@@ -1,13 +1,12 @@
 import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { inferAsyncReturnType } from "@trpc/server";
-import EventEmitter from "events";
+import { prisma } from "../prisma";
 
 export const createContext = ({ req, res }: CreateFastifyContextOptions) => {
-  const ee = new EventEmitter();
   return {
     req,
     res,
-    ee,
+    prisma,
   };
 };
 

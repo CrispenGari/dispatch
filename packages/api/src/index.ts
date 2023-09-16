@@ -1,4 +1,7 @@
+import "dotenv/config";
 import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
+import ip from "ip";
+import _ from "node-env-types";
 import { createContext } from "./context/context";
 export { type AppRouter } from "./routes/app.routes";
 import { appRouter } from "./routes/app.routes";
@@ -6,6 +9,8 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import ws from "@fastify/websocket";
 import { getFastifyPlugin } from "trpc-playground/handlers/fastify";
+
+_();
 
 const PORT: any = process.env.PORT || 3001;
 const HOST =
@@ -17,7 +22,7 @@ const TRPC_PLAYGROUND_ENDPOINT = "/api/trpc-playground";
 
 (async () => {
   const fastify = Fastify({
-    logger: true,
+    logger: false,
     ignoreTrailingSlash: true,
     maxParamLength: 5000,
   });
@@ -48,6 +53,9 @@ const TRPC_PLAYGROUND_ENDPOINT = "/api/trpc-playground";
       console.error(error);
       process.exit(1);
     }
-    console.info(` Server is now listening on ${address}`);
+    console.log();
+    console.log(`\t Local: http:127.0.0.1:${PORT}/`);
+    console.log(`\t Network: http:${ip.address()}:${PORT}/`);
+    console.log();
   });
 })();

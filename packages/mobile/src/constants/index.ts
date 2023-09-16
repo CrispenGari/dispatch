@@ -3,7 +3,7 @@ export const KEYS = {
   APP_SETTINGS: "set:",
 };
 export const APP_NAME = "dispatch";
-export const domain: string = "cc8c-213-172-134-7.ngrok-free.app";
+export const domain: string = "1aeb-213-172-134-7.ngrok-free.app";
 export const serverBaseHttpURL: string = `https://${domain}`;
 export const serverBaseWsURL: string = `wss://${domain}`;
 export const clientHttpURL: string = `${serverBaseHttpURL}/api/trpc`;
