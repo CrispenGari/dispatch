@@ -1,19 +1,11 @@
 import { View, Linking, ScrollView } from "react-native";
 import React from "react";
-import { SettingsTabStacksNavProps } from "../../../../params";
-import { COLORS, KEYS } from "../../../../constants";
-import {
-  MaterialCommunityIcons,
-  Entypo,
-  MaterialIcons,
-  Ionicons,
-  AntDesign,
-  Feather,
-} from "@expo/vector-icons";
+import { AppNavProps } from "../../../params";
+import { COLORS } from "../../../constants";
 
-const SettingsLanding: React.FunctionComponent<
-  SettingsTabStacksNavProps<"SettingsLanding">
-> = ({ navigation }) => {
+const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
+  navigation,
+}) => {
   React.useLayoutEffect(() => {
     navigation.setOptions({ headerTitle: "Settings" });
   }, [navigation]);
@@ -214,4 +206,4 @@ const SettingsLanding: React.FunctionComponent<
   );
 };
 
-export default SettingsLanding;
+export default Settings;

@@ -47,7 +47,8 @@ const TRPC_PLAYGROUND_ENDPOINT = "/api/trpc-playground";
       request: {
         superjson: true,
       },
-    })
+    }),
+    { prefix: TRPC_PLAYGROUND_ENDPOINT }
   );
   fastify.listen({ port: PORT, host: HOST }, (error, address) => {
     if (error) {

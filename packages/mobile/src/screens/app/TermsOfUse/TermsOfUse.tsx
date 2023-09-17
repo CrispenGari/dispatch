@@ -1,14 +1,14 @@
 import { View, Text, ScrollView } from "react-native";
 import React from "react";
-import { COLORS } from "../../../../constants";
-import { SettingsTabStacksNavProps } from "../../../../params";
+import { AppNavProps, AuthNavProps } from "../../../params";
+import { COLORS } from "../../../constants";
 
-const PrivacyPolicy: React.FunctionComponent<
-  SettingsTabStacksNavProps<"PrivacyPolicy">
-> = ({ navigation }) => {
+const TermsOfUse: React.FunctionComponent<AppNavProps<"AppTermsOfUse">> = ({
+  navigation,
+}) => {
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: "Privacy Policy",
+      headerTitle: "Terms of Use",
     });
   }, [navigation]);
   return (
@@ -23,12 +23,9 @@ const PrivacyPolicy: React.FunctionComponent<
       }}
       style={{ backgroundColor: COLORS.main, flex: 1 }}
     >
-      <Text style={[{ marginTop: 10 }]}>
-        If you have any questions or suggestions about our Privacy Policy, do
-        not hesitate to contact us at crispengari@gmail.com.
-      </Text>
+      <Text>Terms of use</Text>
     </ScrollView>
   );
 };
 
-export default PrivacyPolicy;
+export default TermsOfUse;
