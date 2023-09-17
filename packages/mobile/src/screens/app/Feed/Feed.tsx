@@ -11,7 +11,7 @@ import React from "react";
 import { AppNavProps } from "../../../params";
 import FeedHeader from "../../../components/FeedHeader/FeedHeader";
 import { styles } from "../../../styles";
-import { useMediaQuery } from "../../../hooks";
+import { useMediaQuery, usePlatform } from "../../../hooks";
 import { COLORS } from "../../../constants";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -22,8 +22,9 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     });
   }, [navigation]);
 
+  const { os } = usePlatform();
   const {
-    dimension: { width, height },
+    dimension: { height },
   } = useMediaQuery();
   const zIndex = React.useRef(new Animated.Value(1)).current;
   const opacity = React.useRef(new Animated.Value(1)).current;
@@ -74,7 +75,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
             navigation.navigate("Create");
           }}
           style={{
-            top: height * 0.75,
+            top: os === "android" ? height * 0.75 : height * 0.7,
             left: 30,
             backgroundColor: COLORS.primary,
             justifyContent: "center",
@@ -88,7 +89,6 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
           <MaterialIcons name="create" size={30} color={COLORS.secondary} />
         </TouchableOpacity>
       </Animated.View>
-
       <ScrollView
         onMomentumScrollBegin={onMomentumScrollBegin}
         onMomentumScrollEnd={onMomentumScrollEnd}

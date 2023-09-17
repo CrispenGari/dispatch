@@ -18,7 +18,7 @@ export const COLORS = {
   red: "#FF3953",
   green: "#5EBB7C",
   black: "#000000",
-  gray: "gray",
+  gray: "#f5f5f5",
 };
 export const Fonts = {
   AlegreyaSansItalic: require("../../assets/fonts/AlegreyaSans-Italic.ttf"),
@@ -37,4 +37,4 @@ export const FONTS = {
   extraBoldItalic: "AlegreyaSansExtraBoldItalic",
 };
 
-export const logo = require("../../assets/icon.png");
+export const logo = require("../../assets/logo.png");

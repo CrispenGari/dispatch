@@ -4,14 +4,18 @@ import {
   TouchableOpacity,
   TextInput,
   Keyboard,
+  SafeAreaView,
+  Image,
 } from "react-native";
 import React from "react";
-import { COLORS, FONTS } from "../../constants";
+import { COLORS, FONTS, logo } from "../../constants";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { AppParamList } from "../../params";
 import * as Animatable from "react-native-animatable";
 import { useMediaQuery } from "../../hooks";
+import { styles } from "../../styles";
+
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed">;
 }
@@ -19,6 +23,7 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
   const {
     dimension: { width },
   } = useMediaQuery();
+
   const [headerState, setHeaderState] = React.useState({
     searchTerm: "",
     focused: false,
@@ -26,57 +31,75 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
   return (
     <View
       style={{
-        backgroundColor: COLORS.primary,
+        backgroundColor: COLORS.main,
         paddingTop: 25,
         paddingBottom: 10,
+        borderBottomWidth: 0.5,
+        borderBottomColor: COLORS.primary,
       }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "flex-end",
-          paddingHorizontal: 10,
-        }}
+      <SafeAreaView
+        style={{ flexDirection: "row", justifyContent: "space-between" }}
       >
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {
-            navigation.navigate("Notifications");
-          }}
+        <Image
           style={{
-            position: "relative",
-            marginHorizontal: 10,
+            width: 100,
+            height: 50,
+            resizeMode: "contain",
+            marginBottom: -10,
+          }}
+          source={{ uri: Image.resolveAssetSource(logo).uri }}
+        />
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            paddingHorizontal: 10,
           }}
         >
-          <View
-            style={{
-              backgroundColor: COLORS.tertiary,
-              width: 10,
-              height: 10,
-              borderRadius: 10,
-              position: "absolute",
-              zIndex: 1,
-              top: 0,
-              left: 0,
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => {
+              navigation.navigate("Notifications");
             }}
-          />
-          <Ionicons
-            name="ios-notifications-outline"
-            size={26}
-            color={COLORS.black}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate("Settings");
-          }}
-          activeOpacity={0.7}
-          style={{ marginHorizontal: 10 }}
-        >
-          <Ionicons name="md-settings-outline" size={26} color={COLORS.black} />
-        </TouchableOpacity>
-      </View>
-
+            style={{
+              position: "relative",
+              marginHorizontal: 10,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: COLORS.tertiary,
+                width: 10,
+                height: 10,
+                borderRadius: 10,
+                position: "absolute",
+                zIndex: 1,
+                top: 0,
+                left: 0,
+              }}
+            />
+            <Ionicons
+              name="ios-notifications-outline"
+              size={26}
+              color={COLORS.black}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("Settings");
+            }}
+            activeOpacity={0.7}
+            style={{ marginHorizontal: 10 }}
+          >
+            <Ionicons
+              name="md-settings-outline"
+              size={26}
+              color={COLORS.black}
+            />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
       <Animatable.View
         animation="slideInRight"
         duration={500}
@@ -91,6 +114,8 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
           flex: width > 600 ? 1 : 0,
           maxWidth: 500,
           marginTop: 10,
+          borderWidth: 0.5,
+          borderColor: COLORS.primary,
         }}
       >
         <Animatable.View

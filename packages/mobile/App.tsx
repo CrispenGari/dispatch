@@ -1,12 +1,13 @@
 import "react-native-gesture-handler";
 import { registerRootComponent } from "expo";
-import { LogBox, View, Text, StatusBar } from "react-native";
+import { LogBox, View, StatusBar } from "react-native";
 import TRPCProvider from "./src/providers/TRPCProvider";
 import { useFonts } from "expo-font";
-import { trpc } from "./src/utils/trpc";
 import Routes from "./src/routes/Routes";
 import { Fonts } from "./src/constants";
 import * as Notifications from "expo-notifications";
+import Loading from "./src/components/Loading/Loading";
+import { usePlatform } from "./src/hooks";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -20,20 +21,15 @@ LogBox.ignoreLogs;
 LogBox.ignoreAllLogs();
 
 const App = () => {
+  const { os } = usePlatform();
   const [loaded] = useFonts(Fonts);
-  if (!loaded) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <StatusBar barStyle={"light-content"} />
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
-
+  if (!loaded) return <Loading />;
   return (
     <TRPCProvider>
       <View style={{ flex: 1 }}>
-        <StatusBar barStyle={"light-content"} />
+        <StatusBar
+          barStyle={os === "android" ? "light-content" : "dark-content"}
+        />
         <Routes />
       </View>
     </TRPCProvider>
