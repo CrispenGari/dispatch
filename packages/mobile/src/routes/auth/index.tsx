@@ -9,6 +9,7 @@ import {
   ResetPassword,
 } from "../../screens/auth";
 import { AuthParamList } from "../../params";
+import { PrivacyPolicy, TermsOfUse } from "../../screens/app";
 
 const Stack = createStackNavigator<AuthParamList>();
 
@@ -26,6 +27,8 @@ export const AuthStack = () => {
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="ResetPassword" component={ResetPassword} />
       <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+      <Stack.Screen name="AuthPrivacyPolicy" component={PrivacyPolicy as any} />
+      <Stack.Screen name="AuthTermsOfUse" component={TermsOfUse as any} />
     </Stack.Navigator>
   );
 };

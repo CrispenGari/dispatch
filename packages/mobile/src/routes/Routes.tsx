@@ -37,7 +37,7 @@ const Routes = () => {
         },
       }}
     >
-      {!me ? <AppTabs /> : <AuthStack />}
+      {me ? <AppTabs /> : <AuthStack />}
     </NavigationContainer>
   );
 };

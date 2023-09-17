@@ -21,12 +21,11 @@ const AppStackBackButton: React.FunctionComponent<Props> = ({
         paddingVertical: 10,
       }}
     >
-      <Ionicons name="arrow-back-outline" size={24} color={COLORS.green} />
-
+      <Ionicons name="arrow-back-outline" size={24} color={COLORS.primary} />
       <Text
         style={{
           marginLeft: 2,
-          color: COLORS.green,
+          color: COLORS.primary,
           fontFamily: FONTS.regularBold,
           fontSize: 22,
         }}
