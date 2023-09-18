@@ -16,6 +16,17 @@ model User {
   password String
   avatar   String?
 
+  confirmed Boolean @default(false)
+  verified Boolean @default(false)
+  isAuthenticated Boolean @default(false)
+  gender Gender @default(UNDEFINED)
+ 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum Gender{
+  MALE
+  FEMALE
+  UNDEFINED
 }

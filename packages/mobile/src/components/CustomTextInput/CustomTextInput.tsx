@@ -11,7 +11,7 @@ import {
   TextStyle,
 } from "react-native";
 import React from "react";
-import { FONTS } from "../../constants";
+import { COLORS, FONTS } from "../../constants";
 
 interface Props {
   inputStyle: StyleProp<TextStyle>;
@@ -26,11 +26,14 @@ interface Props {
   ) => void;
   numberOfLines: number;
   multiline: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  onRightIconPress?: () => void;
+  containerStyles?: StyleProp<ViewStyle>;
 }
 const CustomTextInput: React.FunctionComponent<Partial<Props>> = ({
   placeholder,
   inputStyle,
-
   keyboardType,
   text,
   onChangeText,
@@ -39,31 +42,56 @@ const CustomTextInput: React.FunctionComponent<Partial<Props>> = ({
   secureTextEntry,
   multiline,
   numberOfLines,
+  onRightIconPress,
+  leftIcon,
+  rightIcon,
+  containerStyles,
 }) => {
   return (
-    <TextInput
-      placeholder={placeholder}
-      placeholderTextColor={"gray"}
+    <View
       style={[
         {
-          backgroundColor: "#f5f5f5",
+          flexDirection: "row",
+          width: "100%",
+          backgroundColor: "white",
           borderRadius: 5,
-          fontFamily: FONTS.regular,
-          fontSize: 18,
-          paddingVertical: 5,
-          paddingHorizontal: 10,
+          padding: 0,
+          alignItems: "center",
+          borderWidth: 0.5,
+          borderColor: COLORS.primary,
+          marginBottom: 5,
         },
-        inputStyle,
+        containerStyles,
       ]}
-      keyboardType={keyboardType}
-      value={text}
-      onChangeText={onChangeText}
-      editable={editable}
-      onSubmitEditing={onSubmitEditing}
-      secureTextEntry={secureTextEntry}
-      numberOfLines={numberOfLines}
-      multiline={multiline}
-    />
+    >
+      {leftIcon}
+      <TextInput
+        placeholder={placeholder}
+        style={[
+          {
+            flex: 1,
+            marginHorizontal: 10,
+            borderRadius: 5,
+            fontFamily: FONTS.regular,
+            fontSize: 18,
+            paddingVertical: 5,
+            paddingHorizontal: 10,
+          },
+          inputStyle,
+        ]}
+        keyboardType={keyboardType}
+        value={text}
+        onChangeText={onChangeText}
+        editable={editable}
+        onSubmitEditing={onSubmitEditing}
+        secureTextEntry={secureTextEntry}
+        numberOfLines={numberOfLines}
+        multiline={multiline}
+      />
+      <TouchableOpacity activeOpacity={0.7} onPress={onRightIconPress}>
+        {rightIcon}
+      </TouchableOpacity>
+    </View>
   );
 };
 

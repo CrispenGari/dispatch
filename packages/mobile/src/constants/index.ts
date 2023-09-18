@@ -1,7 +1,20 @@
+import { GenderType } from "../types";
+
 export const KEYS = {
   TOKEN_KEY: "qid:",
   APP_SETTINGS: "set:",
 };
+
+export const genders: {
+  value: GenderType;
+  id: number;
+  name: string;
+}[] = [
+  { id: 0, name: "Male", value: "MALE" },
+  { id: 1, name: "Female", value: "FEMALE" },
+  { id: 2, name: "Prefer not to say", value: "UNDEFINED" },
+];
+
 export const APP_NAME = "dispatch";
 export const domain: string = "1aeb-213-172-134-7.ngrok-free.app";
 export const serverBaseHttpURL: string = `https://${domain}`;
@@ -38,3 +51,5 @@ export const FONTS = {
 };
 
 export const logo = require("../../assets/logo.png");
+
+export const profile = require("../../assets/profile.png");

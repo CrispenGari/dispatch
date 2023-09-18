@@ -7,6 +7,7 @@
 			NODEMAILER_USER : string;
 			NODEMAILER_PASSWORD : string;
 			IP_ADDRESS : string;
+			REDIS_HOST : string;
 
     }
   }

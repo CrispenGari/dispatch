@@ -11,8 +11,5 @@ export type SettingsType = {
   sound: boolean;
   uid: string | null;
 };
-export interface AuthFieldType {
-  value: string;
-  index: number;
-  title: "email" | "nickname" | "password";
-}
+
+export type GenderType = "MALE" | "FEMALE" | "UNDEFINED";
