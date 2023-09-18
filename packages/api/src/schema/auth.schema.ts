@@ -5,6 +5,11 @@ export const registerSchema = z.object({
   password: z.string(),
   confirmPassword: z.string(),
 });
+export const changePasswordSchema = z.object({
+  password: z.string(),
+  confirmPassword: z.string(),
+  token: z.string(),
+});
 export const loginSchema = z.object({
   emailOrNickname: z.string(),
   password: z.string(),

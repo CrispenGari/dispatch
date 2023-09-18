@@ -3,24 +3,59 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import React from "react";
 import TypeWriter from "react-native-typewriter";
 import Divider from "../../../components/Divider/Divider";
-import { logo, COLORS } from "../../../constants";
+import { logo, COLORS, KEYS } from "../../../constants";
 import { styles } from "../../../styles";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import Message from "../../../components/Message/Message";
 import { AuthNavProps } from "../../../params";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
+import { trpc } from "../../../utils/trpc";
+import { store } from "../../../utils";
 
 const ForgotPassword: React.FunctionComponent<
   AuthNavProps<"ForgotPassword">
 > = ({ navigation }) => {
-  const [{ email, error }, setForm] = React.useState({
+  const { isLoading: sending, mutateAsync: mutateSendForgotPasswordLink } =
+    trpc.auth.sendForgotPasswordLink.useMutation();
+  const { isLoading: resending, mutateAsync: mutateReSendForgotPasswordLink } =
+    trpc.auth.resendForgotPasswordLink.useMutation();
+  const [{ email, error, message }, setForm] = React.useState({
     email: "",
-
     error: "",
+    message: "",
   });
-
   const sendResetPasswordLink = () => {
-    console.log({ error, email });
+    mutateSendForgotPasswordLink({ email }).then(async (res) => {
+      if (res.error) {
+        setForm((state) => ({ ...state, error: res.error, message: "" }));
+      }
+      if (res.jwt) {
+        setForm((state) => ({
+          ...state,
+          error: "",
+          message:
+            "The reset password link has been sent to your email. Check your emails.",
+        }));
+        await store(KEYS.TOKEN_KEY, res.jwt);
+      }
+    });
+  };
+
+  const resendResetPasswordLink = () => {
+    mutateReSendForgotPasswordLink({ email }).then(async (res) => {
+      if (res.error) {
+        setForm((state) => ({ ...state, error: res.error, message: "" }));
+      }
+      if (res.jwt) {
+        setForm((state) => ({
+          ...state,
+          error: "",
+          message:
+            "The reset password link has been res-sent to your email. Check your emails.",
+        }));
+        await store(KEYS.TOKEN_KEY, res.jwt);
+      }
+    });
   };
 
   return (
@@ -97,13 +132,16 @@ const ForgotPassword: React.FunctionComponent<
             onSubmitEditing={sendResetPasswordLink}
           />
 
+          {message ? (
+            <Message error={false} type="primary" message={message} />
+          ) : null}
           {error ? (
             <Message error={true} type="secondary" message={error} />
           ) : null}
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => navigation.navigate("ForgotPassword")}
-            disabled={false}
+            onPress={resendResetPasswordLink}
+            disabled={resending || sending}
             style={{
               alignSelf: "flex-end",
               marginVertical: 5,
@@ -124,7 +162,7 @@ const ForgotPassword: React.FunctionComponent<
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={sendResetPasswordLink}
-            disabled={false}
+            disabled={resending || sending}
             style={[
               styles.button,
               {
@@ -141,13 +179,16 @@ const ForgotPassword: React.FunctionComponent<
               style={[
                 styles.button__text,
                 {
-                  marginRight: 10,
+                  marginRight: sending || resending ? 10 : 0,
                 },
               ]}
             >
               REQUEST LINK
             </Text>
-            <Ripple color={COLORS.tertiary} size={5} />
+
+            {sending || resending ? (
+              <Ripple color={COLORS.tertiary} size={5} />
+            ) : null}
           </TouchableOpacity>
           <Divider
             color={COLORS.black}
@@ -155,6 +196,7 @@ const ForgotPassword: React.FunctionComponent<
           />
           <TouchableOpacity
             activeOpacity={0.7}
+            disabled={resending || sending}
             onPress={() => navigation.navigate("Login")}
             style={[
               styles.button,

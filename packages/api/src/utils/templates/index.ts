@@ -9,7 +9,7 @@ export const verificationEmailTemplate = (
 ): string => {
   const url = `exp://${
     process.env.IP_ADDRESS
-  }:19000/--/profile?code=${encode2Base64(verificationCode)}`;
+  }:8081/--/profile?code=${encode2Base64(verificationCode)}`;
 
   qrcode.toFile(
     join(__dirname.replace("dist\\utils\\templates", ""), "code.png"),
@@ -40,7 +40,7 @@ export const resetPasswordLinkEmailTemplate = (
 ): string => {
   const url = `exp://${
     process.env.IP_ADDRESS
-  }:19000/--/resetPassword?token=${encode2Base64(value)}`;
+  }:8081/--/resetPassword?token=${encode2Base64(value)}`;
   qrcode.toFile(
     join(__dirname.replace("dist\\utils\\templates", ""), "reset.png"),
     url,

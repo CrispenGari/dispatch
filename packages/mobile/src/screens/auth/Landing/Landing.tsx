@@ -7,6 +7,9 @@ import { useMediaQuery } from "../../../hooks";
 import { BottomSheet } from "react-native-btr";
 import TypeWriter from "react-native-typewriter";
 import Footer from "../../../components/Footer/Footer";
+import { trpc } from "../../../utils/trpc";
+import Loading from "../../../components/Loading/Loading";
+import { useMeStore } from "../../../store";
 
 const messages: Array<string> = [
   "Hello 👋, amazing having you on dispatch.",
@@ -18,6 +21,8 @@ const messages: Array<string> = [
 const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
   navigation,
 }) => {
+  const { isFetching: fetching, data: me } = trpc.user.me.useQuery();
+  const { setMe } = useMeStore();
   const [open, setOpen] = React.useState(false);
   const [messageIndex, setMessageIndex] = React.useState(0);
   const {
@@ -36,7 +41,16 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
       clearInterval(intervalId);
     };
   }, [messageIndex]);
+  React.useEffect(() => {
+    if (!!me) {
+      setMe(me);
+    } else {
+      setMe(null);
+    }
+  }, [me]);
   const toggle = () => setOpen((state) => !state);
+
+  if (fetching) return <Loading />;
   return (
     <View style={{ flex: 1 }}>
       <View

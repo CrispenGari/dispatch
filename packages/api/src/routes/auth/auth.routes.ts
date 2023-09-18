@@ -7,6 +7,7 @@ import {
   __token__exp__,
 } from "../../constants";
 import {
+  changePasswordSchema,
   loginSchema,
   registerSchema,
   resendForgotPasswordLinkSchema,
@@ -29,6 +30,94 @@ import { verifyJwt, signJwt } from "../../utils/jwt";
 import { v4 as uuid_v4 } from "uuid";
 
 export const authRouter = router({
+  changePassword: publicProcedure
+    .input(changePasswordSchema)
+    .mutation(
+      async ({
+        ctx: { req, prisma, redis },
+        input: { password, confirmPassword, token },
+      }) => {
+        const _token = decodeFromBase64(token);
+        try {
+          const jwt = req.headers?.authorization?.split(/\s/)[1];
+          if (!!!jwt) {
+            return { error: "The was no token passed in this request." };
+          }
+          const { id } = await verifyJwt(jwt);
+          const me = await prisma.user.findFirst({ where: { id } });
+          if (!!!me) {
+            return {
+              error:
+                "Failed to update the user password because there's no user with that account.",
+            };
+          }
+          const key = __reset__password__prefix__ + me.nickname;
+          const payload = await redis.get(key);
+          if (!!!payload)
+            return {
+              error:
+                "Failed to update the user password. The  reset password link might have been expired.",
+            };
+          const value = JSON.parse(payload) as {
+            nickname: string;
+            token: string;
+            email: string;
+            id: string;
+          };
+
+          if (password.trim() !== confirmPassword.trim()) {
+            return {
+              error:
+                "Failed to update the user password. The two password must match.",
+            };
+          }
+          if (!isValidPassword(password.trim())) {
+            return {
+              error:
+                "The password is not secure. Password must contain minimum of 8 characters with least 1 digit.",
+            };
+          }
+
+          if (me.id !== value.id)
+            return {
+              error:
+                "Failed to update the user password. You can not update the password of the account that does not belongs to you.",
+            };
+
+          if (value.token !== _token)
+            return {
+              error:
+                "Failed to update the user password. Invalid token for resetting the password. ",
+            };
+
+          const correct = await compare(password.trim(), me.password);
+          if (correct) {
+            return {
+              error:
+                "Failed to update the user password. You can not change your password to the current account password. ",
+            };
+          }
+
+          const hashed = await hash(password.trim(), 12);
+          const user = await prisma.user.update({
+            where: { id: me.id },
+            data: {
+              isAuthenticated: false,
+              password: hashed,
+            },
+          });
+          const _jwt = await signJwt(user);
+          await redis.del(key);
+          return {
+            jwt: _jwt,
+          };
+        } catch (error) {
+          return {
+            error: "Failed to update the user password.",
+          };
+        }
+      }
+    ),
   register: publicProcedure
     .input(registerSchema)
     .mutation(
@@ -288,8 +377,12 @@ export const authRouter = router({
         try {
           const me = await prisma.user.findFirst({
             where: {
-              email: emailOrNickname.trim().toLowerCase(),
-              OR: [{ nickname: emailOrNickname.trim().toLowerCase() }],
+              OR: [
+                {
+                  nickname: emailOrNickname.trim().toLowerCase(),
+                },
+                { email: emailOrNickname.trim().toLowerCase() },
+              ],
             },
           });
           if (!!!me) return { error: "Invalid nickname or email." };
@@ -326,8 +419,7 @@ export const authRouter = router({
         where: { id: me.id },
         data: { isAuthenticated: false },
       });
-      const jwt = await signJwt(u);
-      return { jwt };
+      return true;
     } catch (error) {
       return false;
     }

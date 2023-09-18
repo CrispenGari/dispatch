@@ -16,7 +16,7 @@ export const genders: {
 ];
 
 export const APP_NAME = "dispatch";
-export const domain: string = "1aeb-213-172-134-7.ngrok-free.app";
+export const domain: string = "28dc-213-172-134-217.ngrok-free.app";
 export const serverBaseHttpURL: string = `https://${domain}`;
 export const serverBaseWsURL: string = `wss://${domain}`;
 export const clientHttpURL: string = `${serverBaseHttpURL}/api/trpc`;

@@ -27,7 +27,7 @@ export const profileRouter = router({
             gender,
           },
         });
-        const _jwt = signJwt(user);
+        const _jwt = await signJwt(user);
         return {
           jwt: _jwt,
         };

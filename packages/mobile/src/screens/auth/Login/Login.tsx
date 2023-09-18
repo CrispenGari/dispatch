@@ -3,24 +3,37 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import React from "react";
 import TypeWriter from "react-native-typewriter";
 import Divider from "../../../components/Divider/Divider";
-import { logo, COLORS } from "../../../constants";
+import { logo, COLORS, KEYS } from "../../../constants";
 import { styles } from "../../../styles";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import Message from "../../../components/Message/Message";
 import { AuthNavProps } from "../../../params";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
+import { trpc } from "../../../utils/trpc";
+import { store } from "../../../utils";
 
 const Login: React.FunctionComponent<AuthNavProps<"Login">> = ({
   navigation,
 }) => {
+  const { mutateAsync, isLoading } = trpc.auth.login.useMutation();
   const [{ emailOrNickname, password, error }, setForm] = React.useState({
     emailOrNickname: "",
     password: "",
     error: "",
   });
-
   const login = () => {
-    console.log({ password, error, emailOrNickname });
+    mutateAsync({ emailOrNickname, password }).then(
+      async ({ jwt, ...rest }) => {
+        if (rest.error) {
+          setForm((state) => ({ ...state, error: rest.error, password: "" }));
+        }
+        if (jwt) {
+          setForm((state) => ({ ...state, error: "" }));
+          await store(KEYS.TOKEN_KEY, jwt);
+          navigation.replace("Landing");
+        }
+      }
+    );
   };
 
   return (
@@ -115,7 +128,7 @@ const Login: React.FunctionComponent<AuthNavProps<"Login">> = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => navigation.navigate("ForgotPassword")}
-            disabled={false}
+            disabled={isLoading}
             style={{
               alignSelf: "flex-end",
               marginVertical: 5,
@@ -136,7 +149,7 @@ const Login: React.FunctionComponent<AuthNavProps<"Login">> = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={login}
-            disabled={false}
+            disabled={isLoading}
             style={[
               styles.button,
               {
@@ -153,18 +166,19 @@ const Login: React.FunctionComponent<AuthNavProps<"Login">> = ({
               style={[
                 styles.button__text,
                 {
-                  marginRight: 10,
+                  marginRight: isLoading ? 10 : 0,
                 },
               ]}
             >
               LOGIN
             </Text>
-            <Ripple color={COLORS.tertiary} size={5} />
+            {isLoading ? <Ripple color={COLORS.tertiary} size={5} /> : null}
           </TouchableOpacity>
           <Divider color={COLORS.black} title="New user to dispatch?" />
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => navigation.navigate("Register")}
+            disabled={isLoading}
             style={[
               styles.button,
               {

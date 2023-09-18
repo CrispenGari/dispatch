@@ -3,27 +3,58 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import React from "react";
 import TypeWriter from "react-native-typewriter";
 import Divider from "../../../components/Divider/Divider";
-import { logo, COLORS } from "../../../constants";
+import { logo, COLORS, KEYS } from "../../../constants";
 import { styles } from "../../../styles";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import Message from "../../../components/Message/Message";
 import { AuthNavProps } from "../../../params";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
+import { trpc } from "../../../utils/trpc";
+import { store } from "../../../utils";
 
 const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
   navigation,
 }) => {
-  const [{ email, nickname, password, confirmPassword, error }, setForm] =
-    React.useState({
-      email: "",
-      password: "",
-      nickname: "",
-      confirmPassword: "",
-      error: "",
-    });
+  const { mutateAsync: mutateRegister, isLoading: registering } =
+    trpc.auth.register.useMutation();
+  const { mutateAsync: mutateResendVerificationEmail, isLoading: resending } =
+    trpc.auth.resendVerificationEmail.useMutation();
+
+  const [
+    { email, nickname, password, confirmPassword, error, message },
+    setForm,
+  ] = React.useState({
+    email: "",
+    password: "",
+    nickname: "",
+    confirmPassword: "",
+    error: "",
+    message: "",
+  });
 
   const register = () => {
-    console.log({ email, nickname, password, confirmPassword, error });
+    mutateRegister({ email, nickname, password, confirmPassword }).then(
+      async (res) => {
+        if (res.error) {
+          setForm((state) => ({
+            ...state,
+            error: res.error,
+            message: "",
+            password: "",
+            confirmPassword: "",
+          }));
+        }
+        if (res.jwt) {
+          setForm((state) => ({
+            ...state,
+            error: "",
+            message:
+              "The verification email has been sent. Check to your mail box to verify your email by clicking the link.",
+          }));
+          await store(KEYS.TOKEN_KEY, res.jwt);
+        }
+      }
+    );
   };
   const resendEmail = () => {};
   return (
@@ -140,13 +171,16 @@ const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
             }
             onSubmitEditing={register}
           />
+          {message ? (
+            <Message error={false} type="primary" message={message} />
+          ) : null}
           {error ? (
             <Message error={true} type="secondary" message={error} />
           ) : null}
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={resendEmail}
-            disabled={false}
+            disabled={resending || registering}
             style={{
               alignSelf: "flex-end",
               marginVertical: 5,
@@ -167,7 +201,7 @@ const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={register}
-            disabled={false}
+            disabled={resending || registering}
             style={[
               styles.button,
               {
@@ -184,13 +218,15 @@ const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
               style={[
                 styles.button__text,
                 {
-                  marginRight: 10,
+                  marginRight: resending || registering ? 10 : 0,
                 },
               ]}
             >
               REGISTER
             </Text>
-            <Ripple color={COLORS.tertiary} size={5} />
+            {resending || registering ? (
+              <Ripple color={COLORS.tertiary} size={5} />
+            ) : null}
           </TouchableOpacity>
           <Divider
             color={COLORS.black}
@@ -199,6 +235,7 @@ const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => navigation.navigate("Login")}
+            disabled={resending || registering}
             style={[
               styles.button,
               {

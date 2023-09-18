@@ -1,21 +1,95 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import React from "react";
 import { AuthNavProps } from "../../../params";
 import { styles } from "../../../styles";
-import { COLORS, FONTS, genders, logo, profile } from "../../../constants";
+import {
+  APP_NAME,
+  COLORS,
+  FONTS,
+  KEYS,
+  genders,
+  logo,
+  profile,
+} from "../../../constants";
 import Divider from "../../../components/Divider/Divider";
 import DropdownSelect from "react-native-input-select";
 import { GenderType } from "../../../types";
+import { trpc } from "../../../utils/trpc";
+import Loading from "../../../components/Loading/Loading";
+import { store } from "../../../utils";
+import Ripple from "../../../components/ProgressIndicators/Ripple";
 
 const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
   navigation,
+  route,
 }) => {
-  const save = () => {};
-  const [gender, setGender] = React.useState(genders.at(-1));
+  const { mutateAsync: mutateVerify, isLoading: verifying } =
+    trpc.auth.verify.useMutation();
 
-  const changeGender = (gender: GenderType) => {
-    console.log({ gender });
+  const { mutateAsync: mutateAuthProfile, isLoading: updating } =
+    trpc.profile.authProfile.useMutation();
+
+  const save = () => {
+    mutateAuthProfile({ gender }).then(async (res) => {
+      if (res.error) {
+        Alert.alert(
+          APP_NAME,
+          res.error,
+          [
+            {
+              style: "default",
+              text: "OK",
+            },
+          ],
+          { cancelable: false }
+        );
+      }
+      if (res.jwt) {
+        await store(KEYS.TOKEN_KEY, res.jwt);
+        navigation.replace("Landing");
+      }
+    });
   };
+  const [gender, setGender] = React.useState(genders.at(-1)!.value);
+  const changeGender = (gender: GenderType) => {
+    setGender(gender);
+  };
+
+  React.useEffect(() => {
+    mutateVerify({ code: route.params.code }).then(async (res) => {
+      if (res.error) {
+        Alert.alert(
+          APP_NAME,
+          res.error,
+          [
+            {
+              style: "default",
+              text: "OK",
+              onPress: () => {
+                navigation.replace("Register");
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      }
+      if (res.jwt) {
+        await store(KEYS.TOKEN_KEY, res.jwt);
+        Alert.alert(
+          APP_NAME,
+          "Your account email has been verified on dispatch.",
+          [
+            {
+              style: "default",
+              text: "OK",
+            },
+          ],
+          { cancelable: false }
+        );
+      }
+    });
+  }, [route]);
+  if (verifying) return <Loading />;
   return (
     <View style={{ flex: 1, padding: 10, backgroundColor: COLORS.main }}>
       <View
@@ -62,7 +136,7 @@ const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
           options={genders}
           optionLabel={"name"}
           optionValue={"value"}
-          selectedValue={gender!.value}
+          selectedValue={gender}
           isMultiple={false}
           helperText="You can change your gender as 'male' or 'female' or 'undefined'."
           dropdownContainerStyle={{
@@ -120,6 +194,7 @@ const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={save}
+          disabled={updating}
           style={[
             styles.button,
             {
@@ -132,7 +207,10 @@ const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
             },
           ]}
         >
-          <Text style={[styles.button__text]}>SAVE PROFILE</Text>
+          <Text style={[styles.button__text, { margin: updating ? 10 : 0 }]}>
+            SAVE PROFILE
+          </Text>
+          {updating ? <Ripple color={COLORS.tertiary} size={5} /> : null}
         </TouchableOpacity>
       </View>
     </View>

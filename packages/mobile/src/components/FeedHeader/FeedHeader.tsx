@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   TouchableOpacity,
   TextInput,
   Keyboard,
@@ -14,7 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppParamList } from "../../params";
 import * as Animatable from "react-native-animatable";
 import { useMediaQuery } from "../../hooks";
-import { styles } from "../../styles";
 
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed">;
@@ -111,7 +109,6 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
           marginHorizontal: 10,
           borderRadius: 5,
           paddingHorizontal: 10,
-          flex: width > 600 ? 1 : 0,
           maxWidth: 500,
           marginTop: 10,
           borderWidth: 0.5,

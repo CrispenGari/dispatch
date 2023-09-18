@@ -1,18 +1,23 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import React from "react";
 import TypeWriter from "react-native-typewriter";
 import Divider from "../../../components/Divider/Divider";
-import { logo, COLORS } from "../../../constants";
+import { logo, COLORS, KEYS, APP_NAME } from "../../../constants";
 import { styles } from "../../../styles";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import Message from "../../../components/Message/Message";
 import { AuthNavProps } from "../../../params";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
+import { trpc } from "../../../utils/trpc";
+import { store } from "../../../utils";
 
 const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
   navigation,
+  route,
 }) => {
+  const { mutateAsync: mutateChangePassword, isLoading: changing } =
+    trpc.auth.changePassword.useMutation();
   const [{ confirmPassword, password, error }, setForm] = React.useState({
     confirmPassword: "",
     password: "",
@@ -20,7 +25,40 @@ const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
   });
 
   const changePassword = () => {
-    console.log({ password, error, confirmPassword });
+    mutateChangePassword({
+      confirmPassword,
+      password,
+      token: route.params.token,
+    }).then(async (res) => {
+      if (res.error) {
+        setForm((state) => ({
+          ...state,
+          password: "",
+          confirmPassword: "",
+          error: res.error,
+        }));
+      }
+      if (res.jwt) {
+        await store(KEYS.TOKEN_KEY, res.jwt);
+        setForm((state) => ({
+          ...state,
+          error: "",
+        }));
+
+        Alert.alert(
+          APP_NAME,
+          "Your password has been changed successfully. Please login with your new credentials",
+          [
+            {
+              style: "default",
+              text: "OK",
+              onPress: () => navigation.replace("Login"),
+            },
+          ],
+          { cancelable: false }
+        );
+      }
+    });
   };
 
   return (
@@ -119,7 +157,7 @@ const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={changePassword}
-            disabled={false}
+            disabled={changing}
             style={[
               styles.button,
               {
@@ -136,13 +174,14 @@ const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
               style={[
                 styles.button__text,
                 {
-                  marginRight: 10,
+                  marginRight: changing ? 10 : 0,
                 },
               ]}
             >
               CHANGE PASSWORD
             </Text>
-            <Ripple color={COLORS.tertiary} size={5} />
+
+            {changing ? <Ripple color={COLORS.tertiary} size={5} /> : null}
           </TouchableOpacity>
           <Divider
             color={COLORS.black}
@@ -151,6 +190,7 @@ const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => navigation.navigate("Login")}
+            disabled={changing}
             style={[
               styles.button,
               {

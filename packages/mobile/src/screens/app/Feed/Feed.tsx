@@ -5,23 +5,27 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   View,
-  Text,
+  Button,
 } from "react-native";
 import React from "react";
 import { AppNavProps } from "../../../params";
 import FeedHeader from "../../../components/FeedHeader/FeedHeader";
 import { styles } from "../../../styles";
 import { useMediaQuery, usePlatform } from "../../../hooks";
-import { COLORS } from "../../../constants";
+import { COLORS, KEYS } from "../../../constants";
 import { MaterialIcons } from "@expo/vector-icons";
+import { trpc } from "../../../utils/trpc";
+import { del } from "../../../utils";
+import { useMeStore } from "../../../store";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
+  const { mutateAsync } = trpc.auth.logout.useMutation();
+  const { setMe } = useMeStore();
   React.useLayoutEffect(() => {
     navigation.setOptions({
       header: ({}) => <FeedHeader navigation={navigation} />,
     });
   }, [navigation]);
-
   const { os } = usePlatform();
   const {
     dimension: { height },
@@ -29,6 +33,14 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const zIndex = React.useRef(new Animated.Value(1)).current;
   const opacity = React.useRef(new Animated.Value(1)).current;
 
+  const logout = () => {
+    mutateAsync().then(async (res) => {
+      if (res) {
+        await del(KEYS.TOKEN_KEY);
+        setMe(null);
+      }
+    });
+  };
   const onMomentumScrollBegin = (
     e: NativeSyntheticEvent<NativeScrollEvent>
   ) => {
@@ -96,7 +108,9 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-      ></ScrollView>
+      >
+        <Button onPress={logout} title="LOGOUT" />
+      </ScrollView>
     </View>
   );
 };

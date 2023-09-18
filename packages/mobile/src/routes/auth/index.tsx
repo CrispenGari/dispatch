@@ -16,7 +16,7 @@ const Stack = createStackNavigator<AuthParamList>();
 export const AuthStack = () => {
   return (
     <Stack.Navigator
-      initialRouteName="ResetPassword"
+      initialRouteName="Landing"
       screenOptions={{
         headerShown: false,
       }}
