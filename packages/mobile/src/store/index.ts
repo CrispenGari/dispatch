@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { NetworkType, SettingsType } from "../types";
 import { User } from "@dispatch/api";
+import * as Location from "expo-location";
 
 export const useNetworkStore = create<{
   network: Required<NetworkType>;
@@ -21,6 +22,15 @@ export const useSettingsStore = create<{
   settings: { sound: true, haptics: true, uid: null },
   setSettings: (settings: SettingsType) => set({ settings }),
 }));
+
+export const useLocationStore = create<{
+  location: Location.LocationObject | null;
+  setLocation: (location: Location.LocationObject | null) => void;
+}>((set) => ({
+  location: null,
+  setLocation: (location: Location.LocationObject | null) => set({ location }),
+}));
+
 export const useTokenStore = create<{
   token: string;
   setToken: (token: string) => void;

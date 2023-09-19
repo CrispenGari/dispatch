@@ -7,6 +7,18 @@
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow dispatch to use your location while using the app and always.",
+          "isIosBackgroundLocationEnabled": true,
+          "locationAlwaysPermission": "Allow dispatch to use your location always.",
+          "locationWhenInUsePermission": "Allow dispatch to use your location while using the app.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ]
+    ],
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",

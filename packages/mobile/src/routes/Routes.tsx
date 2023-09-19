@@ -3,14 +3,17 @@ import * as Linking from "expo-linking";
 import React from "react";
 import { AuthStack } from "./auth";
 import NetInfo from "@react-native-community/netinfo";
-import { useMeStore, useNetworkStore } from "../store";
+import { useLocationStore, useMeStore, useNetworkStore } from "../store";
 import { AppTabs } from "./app";
+import * as Location from "expo-location";
+import { useLocationPermission } from "../hooks";
 
 const Routes = () => {
   const prefix = Linking.createURL("/");
   const { setNetwork } = useNetworkStore();
+  const { setLocation } = useLocationStore();
+  const { granted } = useLocationPermission();
   const { me } = useMeStore();
-
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(
       ({ type, isInternetReachable, isConnected }) => {
@@ -19,6 +22,14 @@ const Routes = () => {
     );
     return () => unsubscribe();
   }, [setNetwork]);
+
+  React.useEffect(() => {
+    if (granted) {
+      Location.getCurrentPositionAsync().then((value) => {
+        setLocation(value);
+      });
+    }
+  }, [granted, setLocation]);
 
   return (
     <NavigationContainer
