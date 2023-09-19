@@ -7,12 +7,15 @@ import {
   Image,
 } from "react-native";
 import React from "react";
-import { COLORS, FONTS, logo } from "../../constants";
+import { COLORS, FONTS, KEYS, logo } from "../../constants";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { AppParamList } from "../../params";
 import * as Animatable from "react-native-animatable";
 import { useMediaQuery } from "../../hooks";
+import { trpc } from "../../utils/trpc";
+import { del } from "../../utils";
+import { useMeStore } from "../../store";
 
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed">;
@@ -22,6 +25,8 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
     dimension: { width },
   } = useMediaQuery();
 
+  const { mutateAsync } = trpc.auth.logout.useMutation();
+  const { setMe } = useMeStore();
   const [headerState, setHeaderState] = React.useState({
     searchTerm: "",
     focused: false,
@@ -58,7 +63,11 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => {
-              navigation.navigate("Notifications");
+              mutateAsync().then(async (v) => {
+                await del(KEYS.TOKEN_KEY);
+                setMe(null);
+              });
+              // navigation.navigate("Notifications");
             }}
             style={{
               position: "relative",

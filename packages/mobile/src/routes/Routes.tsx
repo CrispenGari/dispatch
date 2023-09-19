@@ -6,14 +6,33 @@ import NetInfo from "@react-native-community/netinfo";
 import { useLocationStore, useMeStore, useNetworkStore } from "../store";
 import { AppTabs } from "./app";
 import * as Location from "expo-location";
-import { useLocationPermission } from "../hooks";
+import { useLocationPermission, useNotificationsToken } from "../hooks";
+import { trpc } from "../utils/trpc";
+import { sendPushNotification } from "../utils";
 
 const Routes = () => {
   const prefix = Linking.createURL("/");
   const { setNetwork } = useNetworkStore();
   const { setLocation } = useLocationStore();
+  const { token } = useNotificationsToken();
   const { granted } = useLocationPermission();
   const { me } = useMeStore();
+
+  console.log({ token });
+  trpc.tweet.onNewTweet.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!token) {
+          await sendPushNotification(
+            token,
+            `dispatch - ${data.creator.nickname}`,
+            data.text
+          );
+        }
+      },
+    }
+  );
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(
       ({ type, isInternetReachable, isConnected }) => {

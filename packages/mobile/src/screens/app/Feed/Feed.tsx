@@ -10,37 +10,50 @@ import {
 import React from "react";
 import { AppNavProps } from "../../../params";
 import FeedHeader from "../../../components/FeedHeader/FeedHeader";
-import { styles } from "../../../styles";
 import { useMediaQuery, usePlatform } from "../../../hooks";
-import { COLORS, KEYS } from "../../../constants";
+import { COLORS, FONTS, KEYS } from "../../../constants";
 import { MaterialIcons } from "@expo/vector-icons";
 import { trpc } from "../../../utils/trpc";
-import { del } from "../../../utils";
-import { useMeStore } from "../../../store";
+import * as Location from "expo-location";
+import { useLocationStore, useMeStore } from "../../../store";
+import Tweet from "../../../components/Tweet/Tweet";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
-  const { mutateAsync } = trpc.auth.logout.useMutation();
-  const { data: tweets } = trpc.tweet.tweets.useQuery();
-  const { setMe } = useMeStore();
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      header: ({}) => <FeedHeader navigation={navigation} />,
-    });
-  }, [navigation]);
+  const { data: tweets, refetch } = trpc.tweet.tweets.useQuery();
   const { os } = usePlatform();
   const {
     dimension: { height },
   } = useMediaQuery();
   const zIndex = React.useRef(new Animated.Value(1)).current;
   const opacity = React.useRef(new Animated.Value(1)).current;
-  const logout = () => {
-    mutateAsync().then(async (res) => {
-      if (res) {
-        await del(KEYS.TOKEN_KEY);
-        setMe(null);
-      }
-    });
-  };
+  const { me } = useMeStore();
+  const { location } = useLocationStore();
+  const [address, setAddress] = React.useState<
+    Location.LocationGeocodedAddress | undefined
+  >();
+
+  trpc.tweet.onNewTweet.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+
+  React.useEffect(() => {
+    if (location) {
+      Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      }).then((data) => {
+        setAddress(data[0]);
+      });
+    }
+  }, [location]);
   const onMomentumScrollBegin = (
     e: NativeSyntheticEvent<NativeScrollEvent>
   ) => {
@@ -71,6 +84,12 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       }),
     ]).start();
   };
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      header: ({}) => <FeedHeader navigation={navigation} />,
+    });
+  }, [navigation]);
   return (
     <View
       style={{ backgroundColor: COLORS.main, flex: 1, position: "relative" }}
@@ -108,8 +127,42 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
+        contentContainerStyle={{ paddingBottom: 100 }}
       >
-        <Text>{JSON.stringify({ tweets }, null, 2)}</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            padding: 10,
+            justifyContent: "space-between",
+          }}
+        >
+          <Text style={{ fontFamily: FONTS.extraBold, fontSize: 30, flex: 1 }}>
+            What's Happening in {address ? address.city : "the City"}?
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{
+              width: 50,
+              height: 50,
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: 2,
+              borderRadius: 50,
+            }}
+          >
+            <MaterialCommunityIcons
+              name="filter-variant"
+              size={24}
+              color="black"
+            />
+          </TouchableOpacity>
+        </View>
+        {!!tweets ? (
+          tweets.tweets.map((tweet) => <Tweet tweet={tweet} key={tweet.id} />)
+        ) : (
+          <Text>No Tweets</Text>
+        )}
       </ScrollView>
     </View>
   );

@@ -18,6 +18,26 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
+CREATE TABLE "Comment" (
+    "id" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "commentId" TEXT,
+    "userId" TEXT NOT NULL,
+    "tweetId" TEXT
+);
+
+-- CreateTable
+CREATE TABLE "Reaction" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "commentId" TEXT,
+    "tweetId" TEXT
+);
+
+-- CreateTable
 CREATE TABLE "Poll" (
     "id" TEXT NOT NULL,
     "text" TEXT NOT NULL,
@@ -30,7 +50,7 @@ CREATE TABLE "Poll" (
 CREATE TABLE "Tweet" (
     "id" TEXT NOT NULL,
     "text" TEXT NOT NULL,
-    "votes" INTEGER NOT NULL DEFAULT 0,
+    "views" INTEGER NOT NULL DEFAULT 0,
     "lat" INTEGER NOT NULL,
     "lon" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -48,6 +68,12 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "User_nickname_key" ON "User"("nickname");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Comment_id_key" ON "Comment"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Reaction_id_key" ON "Reaction"("id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Poll_id_key" ON "Poll"("id");
 
 -- CreateIndex
@@ -55,6 +81,21 @@ CREATE UNIQUE INDEX "Tweet_id_key" ON "Tweet"("id");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_pollId_fkey" FOREIGN KEY ("pollId") REFERENCES "Poll"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Comment" ADD CONSTRAINT "Comment_tweetId_fkey" FOREIGN KEY ("tweetId") REFERENCES "Tweet"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Reaction" ADD CONSTRAINT "Reaction_tweetId_fkey" FOREIGN KEY ("tweetId") REFERENCES "Tweet"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Poll" ADD CONSTRAINT "Poll_tweetId_fkey" FOREIGN KEY ("tweetId") REFERENCES "Tweet"("id") ON DELETE CASCADE ON UPDATE CASCADE;

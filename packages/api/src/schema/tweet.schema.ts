@@ -5,3 +5,5 @@ export const createSchema = z.object({
   cords: z.object({ lat: z.number(), lon: z.number() }),
   polls: z.object({ text: z.string() }).array(),
 });
+
+export const onNewTweetSchema = z.object({ uid: z.string() });

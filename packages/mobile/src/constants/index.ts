@@ -22,6 +22,22 @@ export const serverBaseWsURL: string = `wss://${domain}`;
 export const clientHttpURL: string = `${serverBaseHttpURL}/api/trpc`;
 export const clientWsURL: string = `${serverBaseWsURL}/api/trpc`;
 
+export const relativeTimeObject = {
+  future: "in %s",
+  past: "%s",
+  s: "now",
+  m: "1m",
+  mm: "%dm",
+  h: "1h",
+  hh: "%dh",
+  d: "1d",
+  dd: "%dd",
+  M: "1M",
+  MM: "%dM",
+  y: "1y",
+  yy: "%dy",
+};
+
 export const COLORS = {
   main: "#FFFFFF",
   primary: "#92B4EC",
@@ -32,6 +48,7 @@ export const COLORS = {
   green: "#5EBB7C",
   black: "#000000",
   gray: "#f5f5f5",
+  darkGray: "gray",
 };
 export const Fonts = {
   AlegreyaSansItalic: require("../../assets/fonts/AlegreyaSans-Italic.ttf"),
