@@ -5,7 +5,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   View,
-  Button,
+  Text,
 } from "react-native";
 import React from "react";
 import { AppNavProps } from "../../../params";
@@ -20,6 +20,7 @@ import { useMeStore } from "../../../store";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const { mutateAsync } = trpc.auth.logout.useMutation();
+  const { data: tweets } = trpc.tweet.tweets.useQuery();
   const { setMe } = useMeStore();
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -32,7 +33,6 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   } = useMediaQuery();
   const zIndex = React.useRef(new Animated.Value(1)).current;
   const opacity = React.useRef(new Animated.Value(1)).current;
-
   const logout = () => {
     mutateAsync().then(async (res) => {
       if (res) {
@@ -109,7 +109,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
       >
-        <Button onPress={logout} title="LOGOUT" />
+        <Text>{JSON.stringify({ tweets }, null, 2)}</Text>
       </ScrollView>
     </View>
   );

@@ -1,12 +1,17 @@
-import { View, Animated } from "react-native";
+import { View, Animated, ViewStyle, StyleProp } from "react-native";
 import React from "react";
 import { COLORS } from "../../constants";
 
 interface Props {
   width: number;
   color: string;
+  style?: StyleProp<ViewStyle>;
 }
-const Indeterminate: React.FunctionComponent<Props> = ({ width, color }) => {
+const Indeterminate: React.FunctionComponent<Props> = ({
+  width,
+  color,
+  style,
+}) => {
   const indicatorAnimation = React.useRef(new Animated.Value(0)).current;
   React.useEffect(() => {
     Animated.loop(
@@ -25,15 +30,18 @@ const Indeterminate: React.FunctionComponent<Props> = ({ width, color }) => {
   });
   return (
     <View
-      style={{
-        width,
-        flexDirection: "column",
-        backgroundColor: COLORS.gray,
-        borderRadius: 999,
-        paddingVertical: 2,
-        paddingHorizontal: 10,
-        overflow: "hidden",
-      }}
+      style={[
+        {
+          width,
+          flexDirection: "column",
+          backgroundColor: COLORS.gray,
+          borderRadius: 999,
+          paddingVertical: 2,
+          paddingHorizontal: 10,
+          overflow: "hidden",
+        },
+        style,
+      ]}
     >
       <Animated.View
         style={{

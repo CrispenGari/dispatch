@@ -9,6 +9,7 @@ import {
   NativeSyntheticEvent,
   Text,
   TextStyle,
+  TextInputContentSizeChangeEventData,
 } from "react-native";
 import React from "react";
 import { COLORS, FONTS } from "../../constants";
@@ -30,6 +31,9 @@ interface Props {
   rightIcon?: React.ReactNode;
   onRightIconPress?: () => void;
   containerStyles?: StyleProp<ViewStyle>;
+  onContentSizeChange?:
+    | ((e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => void)
+    | undefined;
 }
 const CustomTextInput: React.FunctionComponent<Partial<Props>> = ({
   placeholder,
@@ -38,6 +42,7 @@ const CustomTextInput: React.FunctionComponent<Partial<Props>> = ({
   text,
   onChangeText,
   editable,
+  onContentSizeChange,
   onSubmitEditing,
   secureTextEntry,
   multiline,
@@ -67,6 +72,7 @@ const CustomTextInput: React.FunctionComponent<Partial<Props>> = ({
       {leftIcon}
       <TextInput
         placeholder={placeholder}
+        onContentSizeChange={onContentSizeChange}
         style={[
           {
             flex: 1,
