@@ -53,7 +53,9 @@ export const tweetRouter = router({
                 },
               },
             },
-            select: { creator: true },
+            include: {
+              creator: true,
+            },
           });
           ee.emit(Events.ON_NEW_TWEET, tweet);
           return { tweet };

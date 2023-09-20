@@ -7,6 +7,11 @@
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
+    "extra": {
+      "eas": {
+        "projectId": "08950a08-041f-44c7-a646-c7942616d82d"
+      }
+    },
     "plugins": [
       [
         "expo-location",
@@ -16,6 +21,14 @@
           "locationAlwaysPermission": "Allow dispatch to use your location always.",
           "locationWhenInUsePermission": "Allow dispatch to use your location while using the app.",
           "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo.png",
+          "color": "#ffffff",
+          "sounds": ["./assets/notification.wav"]
         }
       ]
     ],
@@ -32,7 +45,13 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.ACCESS_BACKGROUND_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/logo.png"

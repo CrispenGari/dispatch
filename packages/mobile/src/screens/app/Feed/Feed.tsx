@@ -137,7 +137,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
             justifyContent: "space-between",
           }}
         >
-          <Text style={{ fontFamily: FONTS.extraBold, fontSize: 30, flex: 1 }}>
+          <Text style={{ fontFamily: FONTS.extraBold, fontSize: 25, flex: 1 }}>
             What's Happening in {address ? address.city : "the City"}?
           </Text>
           <TouchableOpacity

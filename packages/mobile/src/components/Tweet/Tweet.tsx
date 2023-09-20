@@ -14,6 +14,7 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import { useMediaQuery } from "../../hooks";
+import { useMeStore } from "../../store";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -37,6 +38,7 @@ interface Props {
 
 const Tweet: React.FunctionComponent<Props> = ({ tweet }) => {
   const [open, setOpen] = React.useState(false);
+  const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
   const {
     dimension: { height },
@@ -82,7 +84,9 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet }) => {
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={{ fontFamily: FONTS.extraBold, fontSize: 20 }}>
-              @{tweet.creator.nickname}{" "}
+              {tweet.creator.id === me?.id
+                ? "you"
+                : `@${tweet.creator.nickname}`}{" "}
             </Text>
             {tweet.creator.verified ? (
               <MaterialIcons name="verified" size={18} color={COLORS.primary} />

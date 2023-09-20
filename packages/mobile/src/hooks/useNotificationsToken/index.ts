@@ -2,6 +2,7 @@ import React from "react";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 export const useNotificationsToken = () => {
   const [token, setToken] = React.useState<string>("");
@@ -20,7 +21,7 @@ export const useNotificationsToken = () => {
           return;
         }
         const { data } = await Notifications.getExpoPushTokenAsync({
-          projectId: "hello",
+          projectId: Constants.expoConfig?.extra?.projectId,
         });
         setToken(data);
       } else {

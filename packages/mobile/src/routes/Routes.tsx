@@ -17,8 +17,6 @@ const Routes = () => {
   const { token } = useNotificationsToken();
   const { granted } = useLocationPermission();
   const { me } = useMeStore();
-
-  console.log({ token });
   trpc.tweet.onNewTweet.useSubscription(
     { uid: me?.id || "" },
     {

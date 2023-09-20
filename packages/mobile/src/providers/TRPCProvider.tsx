@@ -16,7 +16,7 @@ const client = createWSClient({
 });
 const TRPCProvider: React.FC<Props> = ({ children }) => {
   const links = [
-    loggerLink(),
+    // loggerLink(),
     splitLink({
       condition: (op) => op.type === "subscription",
       true: wsLink<AppRouter>({ client }),
