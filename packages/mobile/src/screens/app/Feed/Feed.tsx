@@ -33,6 +33,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     Location.LocationGeocodedAddress | undefined
   >();
 
+  // feed listiners
   trpc.tweet.onNewTweet.useSubscription(
     { uid: me?.id || "" },
     {
@@ -43,7 +44,26 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       },
     }
   );
-
+  trpc.tweet.onDeleteTweet.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.tweet.onTweetUpdate.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
   React.useEffect(() => {
     if (location) {
       Location.reverseGeocodeAsync({
@@ -159,7 +179,9 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         {!!tweets ? (
-          tweets.tweets.map((tweet) => <Tweet tweet={tweet} key={tweet.id} />)
+          tweets.tweets.map((tweet) => (
+            <Tweet navigation={navigation} tweet={tweet} key={tweet.id} />
+          ))
         ) : (
           <Text>No Tweets</Text>
         )}

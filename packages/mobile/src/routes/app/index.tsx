@@ -5,6 +5,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
 import {
   Create,
+  Edit,
   Feed,
   Notifications,
   PrivacyPolicy,
@@ -33,6 +34,7 @@ export const AppTabs = () => {
       <Stack.Screen name="AppTermsOfUse" component={TermsOfUse} />
       <Stack.Screen name="AppPrivacyPolicy" component={PrivacyPolicy} />
       <Stack.Screen name="Create" component={Create} />
+      <Stack.Screen name="Edit" component={Edit} />
     </Stack.Navigator>
   );
 };

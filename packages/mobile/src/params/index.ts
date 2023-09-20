@@ -28,6 +28,7 @@ export type AppParamList = {
   Settings: undefined;
   Notifications: undefined;
   Create: undefined;
+  Edit: { id: string };
   AppPrivacyPolicy: undefined;
   AppTermsOfUse: undefined;
 };

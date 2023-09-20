@@ -1,20 +1,27 @@
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, Alert, TouchableOpacity } from "react-native";
 import React from "react";
-import { COLORS, FONTS, profile, relativeTimeObject } from "../../constants";
+import {
+  APP_NAME,
+  COLORS,
+  FONTS,
+  profile,
+  relativeTimeObject,
+} from "../../constants";
 import { Poll as P, Reaction, Tweet as T, User, Comment } from "@dispatch/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
 import { styles } from "../../styles";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { BottomSheet } from "react-native-btr";
 import {
   MaterialCommunityIcons,
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useMediaQuery } from "../../hooks";
 import { useMeStore } from "../../store";
+import { trpc } from "../../utils/trpc";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AppParamList } from "../../params";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -34,15 +41,41 @@ interface Props {
         replies: Partial<Comment> & { creator: User; reactions: Reaction[] }[];
       }[];
   };
+  navigation: StackNavigationProp<AppParamList, "Feed">;
 }
 
-const Tweet: React.FunctionComponent<Props> = ({ tweet }) => {
+const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
-  const {
-    dimension: { height },
-  } = useMediaQuery();
+
+  const { mutateAsync: mutateDeleteTweet, isLoading: deleting } =
+    trpc.tweet.del.useMutation();
+
+  const deleteTweet = () => {
+    mutateDeleteTweet({ id: tweet.id }).then(({ error }) => {
+      if (error) {
+        Alert.alert(
+          APP_NAME,
+          error,
+          [
+            {
+              style: "default",
+              text: "OK",
+            },
+          ],
+          { cancelable: false }
+        );
+      }
+      toggle();
+    });
+  };
+  const editTweet = () => {
+    if (me?.id === tweet.creator.id) {
+      navigation.navigate("Edit", { id: tweet.id });
+      toggle();
+    }
+  };
   return (
     <View
       style={{
@@ -62,12 +95,160 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet }) => {
       >
         <View
           style={{
-            height: height / 2,
+            height: 200,
             backgroundColor: COLORS.main,
-            borderTopRightRadius: 30,
-            borderTopLeftRadius: 30,
+            borderTopRightRadius: 10,
+            borderTopLeftRadius: 10,
+            position: "relative",
           }}
-        ></View>
+        >
+          <View
+            style={{
+              position: "absolute",
+              borderRadius: 999,
+              padding: 5,
+              alignSelf: "center",
+              top: -10,
+              backgroundColor: COLORS.main,
+              paddingHorizontal: 15,
+              shadowOffset: { height: 2, width: 2 },
+              shadowOpacity: 1,
+              shadowRadius: 2,
+              shadowColor: COLORS.primary,
+              elevation: 1,
+            }}
+          >
+            <Text style={[styles.h1, {}]}>Tweet Actions</Text>
+          </View>
+          <View style={{ height: 10 }} />
+          <TouchableOpacity
+            style={{
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 1,
+            }}
+            onPress={editTweet}
+            activeOpacity={0.7}
+            disabled={deleting}
+          >
+            <Text
+              style={[
+                styles.h1,
+                {
+                  fontSize: 18,
+                  color:
+                    me?.id !== tweet.creator.id
+                      ? COLORS.darkGray
+                      : COLORS.primary,
+                },
+              ]}
+            >
+              Edit tweet
+            </Text>
+
+            <MaterialCommunityIcons
+              name="file-edit-outline"
+              size={24}
+              color={
+                me?.id !== tweet.creator.id ? COLORS.darkGray : COLORS.primary
+              }
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 1,
+            }}
+            activeOpacity={0.7}
+            disabled={deleting}
+          >
+            <Text
+              style={[
+                styles.h1,
+                {
+                  fontSize: 18,
+                  color:
+                    me?.id === tweet.creator.id ? COLORS.darkGray : COLORS.red,
+                },
+              ]}
+            >
+              Report tweet
+            </Text>
+            <Ionicons
+              name="hand-left-outline"
+              size={24}
+              color={me?.id === tweet.creator.id ? COLORS.darkGray : COLORS.red}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 1,
+            }}
+            activeOpacity={0.7}
+            disabled={deleting}
+            onPress={deleteTweet}
+          >
+            <Text
+              style={[
+                styles.h1,
+                {
+                  fontSize: 18,
+                  color:
+                    me?.id !== tweet.creator.id ? COLORS.darkGray : COLORS.red,
+                },
+              ]}
+            >
+              Delete tweet
+            </Text>
+            <MaterialIcons
+              name="delete-outline"
+              size={24}
+              color={me?.id !== tweet.creator.id ? COLORS.darkGray : COLORS.red}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              alignItems: "center",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 1,
+            }}
+            activeOpacity={0.7}
+            disabled={deleting}
+          >
+            <Text
+              style={[
+                styles.h1,
+                {
+                  fontSize: 18,
+                  color:
+                    me?.id === tweet.creator.id ? COLORS.darkGray : COLORS.red,
+                },
+              ]}
+            >
+              Block user
+            </Text>
+            <MaterialIcons
+              name="block"
+              size={24}
+              color={me?.id === tweet.creator.id ? COLORS.darkGray : COLORS.red}
+            />
+          </TouchableOpacity>
+        </View>
       </BottomSheet>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
         <Image
