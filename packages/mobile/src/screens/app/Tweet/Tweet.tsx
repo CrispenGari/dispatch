@@ -39,7 +39,6 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   route,
 }) => {
   const { os } = usePlatform();
-
   const {
     isLoading: fetching,
     refetch,
@@ -52,8 +51,9 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     height: 40,
     comment: "",
     liked: false,
+    showResults: false,
+    totalVotes: 0,
   });
-
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "View Tweet",
@@ -73,6 +73,22 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       ),
     });
   }, [navigation]);
+
+  React.useEffect(() => {
+    if (data?.tweet) {
+      const tt = data.tweet;
+      const liked = tt.reactions.find((r) => r.creatorId === me?.id);
+      const voted = !!tt.polls
+        .flatMap((p) => p.votes)
+        .find((v) => v.userId === me?.id);
+      setForm((state) => ({
+        ...state,
+        liked: !!liked,
+        showResults: me?.id === tt.creator.id || voted,
+        totalVotes: tt.polls.flatMap((p) => p.votes).length,
+      }));
+    }
+  }, [data, me]);
 
   if (fetching) return <Text>Fetching...</Text>;
   if (!!!data?.tweet) return <Text>No tweet..</Text>;
@@ -328,12 +344,12 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
         <View style={{ marginVertical: 3 }}>
           {tweet.polls.map((poll) => (
             <Poll
-              totalVotes={tweet.polls.flatMap((p) => p.votes).length}
+              totalVotes={form.totalVotes}
               tweetId={tweet.id}
               key={poll.id}
               poll={poll}
               creatorId={tweet.creator.id}
-              nPolls={tweet.polls.length}
+              showResults={form.showResults}
             />
           ))}
         </View>

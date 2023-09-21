@@ -12,25 +12,23 @@ interface Props {
   creatorId: string;
   tweetId: string;
   totalVotes: number;
-  nPolls: number;
+  showResults: boolean;
 }
 const Poll: React.FunctionComponent<Props> = ({
   poll,
   creatorId,
   tweetId,
   totalVotes,
-  nPolls,
+  showResults,
 }) => {
   const { me } = useMeStore();
   const { mutateAsync: mutateVote, isLoading: voting } =
     trpc.poll.vote.useMutation();
   const vote = () => {
     if (me?.id === creatorId) return;
-    mutateVote({ id: poll.id || "", tweetId }).then((res) => {
-      console.log({ res });
-    });
+    mutateVote({ id: poll.id || "", tweetId }).then((res) => {});
   };
-  const percentage = (poll.votes.length / totalVotes) * 100;
+  const percentage = !!!totalVotes ? 0 : (poll.votes.length / totalVotes) * 100;
   return (
     <TouchableOpacity
       disabled={voting}
@@ -49,35 +47,39 @@ const Poll: React.FunctionComponent<Props> = ({
       activeOpacity={0.7}
       onPress={vote}
     >
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-          borderRadius: 3,
-        }}
-      >
+      {showResults ? (
         <View
-          style={[
-            StyleSheet.absoluteFillObject,
-            {
-              backgroundColor: COLORS.primary,
-              width: `${percentage}%`,
-              borderRadius: 3,
-            },
-          ]}
-        />
-      </View>
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            borderRadius: 3,
+          }}
+        >
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor: COLORS.primary,
+                width: `${percentage}%`,
+                borderRadius: 3,
+              },
+            ]}
+          />
+        </View>
+      ) : null}
       <Text
         style={[styles.h1, { fontSize: 18, zIndex: 1, overflow: "visible" }]}
       >
         {poll.text}
       </Text>
-      <Text style={[styles.p, { fontSize: 16, marginLeft: 10 }]}>
-        {percentage} %
-      </Text>
+      {showResults ? (
+        <Text style={[styles.p, { fontSize: 16, marginLeft: 10 }]}>
+          {percentage.toFixed(0)} %
+        </Text>
+      ) : null}
     </TouchableOpacity>
   );
 };

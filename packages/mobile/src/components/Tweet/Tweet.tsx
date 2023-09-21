@@ -69,6 +69,8 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
     height: 40,
     comment: "",
     liked: false,
+    showResults: false,
+    totalVotes: 0,
   });
   const { mutateAsync: mutateDeleteTweet, isLoading: deleting } =
     trpc.tweet.del.useMutation();
@@ -126,7 +128,16 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
   };
   React.useEffect(() => {
     const liked = tweet.reactions.find((r) => r.creatorId === me?.id);
-    setForm((state) => ({ ...state, liked: !!liked }));
+    const voted = !!tweet.polls
+      .flatMap((p) => p.votes)
+      .find((v) => v.userId === me?.id);
+
+    setForm((state) => ({
+      ...state,
+      liked: !!liked,
+      showResults: me?.id === tweet.creator.id || voted,
+      totalVotes: tweet.polls.flatMap((p) => p.votes).length,
+    }));
   }, [tweet, me]);
 
   return (
@@ -363,7 +374,7 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
             tweetId={tweet.id}
             key={poll.id}
             poll={poll}
-            nPolls={tweet.polls.length}
+            showResults={form.showResults}
             creatorId={tweet.creator.id}
             totalVotes={tweet.polls.flatMap((p) => p.votes).length}
           />
