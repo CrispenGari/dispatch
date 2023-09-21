@@ -255,6 +255,7 @@ export const authRouter = router({
         const _jwt = await signJwt(user);
         return { jwt: _jwt };
       } catch (error) {
+        console.log(error);
         return { error: "Failed to verify your email for whatever reason." };
       }
     }),

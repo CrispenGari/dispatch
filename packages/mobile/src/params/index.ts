@@ -29,6 +29,7 @@ export type AppParamList = {
   Notifications: undefined;
   Create: undefined;
   Edit: { id: string };
+  Tweet: { id: string };
   AppPrivacyPolicy: undefined;
   AppTermsOfUse: undefined;
 };

@@ -13,9 +13,13 @@ export const editSchema = z.object({
   id: z.string(),
 });
 
+export const viewSchema = z.object({
+  id: z.string(),
+});
 export const onNewTweetSchema = z.object({ uid: z.string() });
 export const onDeleteTweetSchema = z.object({ uid: z.string() });
 export const onTweetUpdateSchema = z.object({ uid: z.string() });
+export const onViewSchema = z.object({ uid: z.string() });
 
 export const delSchema = z.object({ id: z.string() });
 export const tweetSchema = z.object({ id: z.string() });

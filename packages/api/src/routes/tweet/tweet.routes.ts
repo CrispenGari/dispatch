@@ -6,7 +6,9 @@ import {
   onDeleteTweetSchema,
   onNewTweetSchema,
   onTweetUpdateSchema,
+  onViewSchema,
   tweetSchema,
+  viewSchema,
 } from "../../schema/tweet.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
 import { verifyJwt } from "../../utils/jwt";
@@ -16,6 +18,19 @@ import { Events } from "../../constants";
 
 const ee = new EventEmitter();
 export const tweetRouter = router({
+  onView: publicProcedure
+    .input(onViewSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<Tweet & { creator: User }>((emit) => {
+        const handler = (tweet: Tweet & { creator: User }) => {
+          emit.next(tweet);
+        };
+        ee.on(Events.ON_TWEET_VIEW, handler);
+        return () => {
+          ee.off(Events.ON_TWEET_VIEW, handler);
+        };
+      });
+    }),
   onNewTweet: publicProcedure
     .input(onNewTweetSchema)
     .subscription(async ({ ctx: {}, input: { uid } }) => {
@@ -212,6 +227,32 @@ export const tweetRouter = router({
         return { tweet };
       } catch (error) {
         return { error: "Unable to get a tweet for whatever reason." };
+      }
+    }),
+
+  view: publicProcedure
+    .input(viewSchema)
+    .mutation(async ({ ctx: { req, prisma }, input: { id } }) => {
+      try {
+        const token = req.headers.authorization?.split(/\s/)[1];
+        if (!!!token) return false;
+        const { id: uid } = await verifyJwt(token);
+        const me = await prisma.user.findFirst({ where: { id: uid } });
+        if (!!!me) return false;
+        // const tt = await prisma.tweet.findFirst({ where: { id } });
+        // if (!!!tt) return false;
+        // if (me.id === tt.userId) return false;
+        const tweet = await prisma.tweet.update({
+          where: { id },
+          data: {
+            views: { increment: 1 },
+          },
+          include: { creator: true },
+        });
+        ee.emit(Events.ON_TWEET_VIEW, tweet);
+        return true;
+      } catch (error) {
+        return false;
       }
     }),
 });

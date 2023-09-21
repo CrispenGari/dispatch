@@ -5,3 +5,4 @@ export { default as Notifications } from "./Notifications/Notifications";
 export { default as Create } from "./Create/Create";
 export { default as Feed } from "./Feed/Feed";
 export { default as Edit } from "./Edit/Edit";
+export { default as Tweet } from "./Tweet/Tweet";

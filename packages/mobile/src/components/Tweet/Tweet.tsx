@@ -22,6 +22,7 @@ import { useMeStore } from "../../store";
 import { trpc } from "../../utils/trpc";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppParamList } from "../../params";
+import CustomTextInput from "../CustomTextInput/CustomTextInput";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -48,9 +49,19 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
-
+  const [form, setForm] = React.useState({
+    height: 40,
+    comment: "",
+    liked: false,
+  });
   const { mutateAsync: mutateDeleteTweet, isLoading: deleting } =
     trpc.tweet.del.useMutation();
+  const { mutateAsync: mutateReactToTweet, isLoading: reacting } =
+    trpc.reaction.reactToTweet.useMutation();
+  const { mutateAsync: mutateCommentOnTweet, isLoading: commenting } =
+    trpc.comment.comment.useMutation();
+  const { mutateAsync: mutateViewTweet, isLoading: viewing } =
+    trpc.tweet.view.useMutation();
 
   const deleteTweet = () => {
     mutateDeleteTweet({ id: tweet.id }).then(({ error }) => {
@@ -76,8 +87,37 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
       toggle();
     }
   };
+
+  const reactToTweet = () => {
+    mutateReactToTweet({ id: tweet.id }).then((res) => {
+      console.log({ res });
+    });
+  };
+  const commentOnTweet = () => {
+    if (!!!form.comment.trim()) return;
+    mutateCommentOnTweet({ comment: form.comment, id: tweet.id }).then(
+      (res) => {
+        if (res) {
+          setForm((state) => ({ ...state, comment: "" }));
+        }
+      }
+    );
+  };
+  const view = () => {
+    mutateViewTweet({ id: tweet.id }).then((res) => {
+      navigation.navigate("Tweet", { id: tweet.id });
+    });
+  };
+  React.useEffect(() => {
+    const liked = tweet.reactions.find((r) => r.creatorId === me?.id);
+    setForm((state) => ({ ...state, liked: !!liked }));
+  }, [tweet, me]);
+
   return (
-    <View
+    <TouchableOpacity
+      onPress={view}
+      activeOpacity={0.7}
+      disabled={viewing}
       style={{
         width: "100%",
         maxWidth: 500,
@@ -306,6 +346,49 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
           <Poll key={poll.id} poll={poll} />
         ))}
       </View>
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+        }}
+      >
+        <CustomTextInput
+          placeholder="Comment on this tweet..."
+          containerStyles={{ flex: 1 }}
+          inputStyle={{ height: form.height, maxHeight: 100 }}
+          multiline
+          text={form.comment}
+          onContentSizeChange={(e) =>
+            setForm((state) => ({
+              ...state,
+              height: e.nativeEvent?.contentSize?.height ?? form.height,
+            }))
+          }
+          onChangeText={(comment) =>
+            setForm((state) => ({ ...state, comment }))
+          }
+          onSubmitEditing={commentOnTweet}
+        />
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={commentOnTweet}
+          disabled={commenting}
+          style={[
+            styles.button,
+            {
+              backgroundColor: COLORS.primary,
+              padding: 5,
+              borderRadius: 5,
+              alignSelf: "flex-start",
+              maxWidth: 100,
+              marginLeft: 3,
+            },
+          ]}
+        >
+          <Text style={[styles.button__text]}>COMMENT</Text>
+        </TouchableOpacity>
+      </View>
       <View
         style={{
           flexDirection: "row",
@@ -334,9 +417,14 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.7}
+          onPress={reactToTweet}
           style={{ flexDirection: "row", alignItems: "center" }}
         >
-          <MaterialIcons name="favorite" size={24} color={COLORS.primary} />
+          <MaterialIcons
+            name={form.liked ? "favorite" : "favorite-border"}
+            size={24}
+            color={COLORS.primary}
+          />
           <Text
             style={[
               styles.h1,
@@ -365,7 +453,7 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

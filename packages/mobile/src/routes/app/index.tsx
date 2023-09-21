@@ -11,6 +11,7 @@ import {
   PrivacyPolicy,
   Settings,
   TermsOfUse,
+  Tweet,
 } from "../../screens/app";
 const Stack = createStackNavigator<AppParamList>();
 
@@ -35,6 +36,7 @@ export const AppTabs = () => {
       <Stack.Screen name="AppPrivacyPolicy" component={PrivacyPolicy} />
       <Stack.Screen name="Create" component={Create} />
       <Stack.Screen name="Edit" component={Edit} />
+      <Stack.Screen name="Tweet" component={Tweet} />
     </Stack.Navigator>
   );
 };

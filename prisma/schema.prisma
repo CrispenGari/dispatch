@@ -25,9 +25,10 @@ model User {
   // relations
   tweets Tweet[]
 
-  poll     Poll?     @relation(fields: [pollId], references: [id])
+  poll     Poll?      @relation(fields: [pollId], references: [id])
   pollId   String?
   comments Comment[]
+  Reaction Reaction[]
 }
 
 model Comment {
@@ -55,10 +56,14 @@ model Reaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  creator   User   @relation(fields: [creatorId], references: [id])
+  creatorId String
+
   comment   Comment? @relation(fields: [commentId], references: [id])
   commentId String?
-  tweet     Tweet?   @relation(fields: [tweetId], references: [id])
-  tweetId   String?
+
+  tweet   Tweet?  @relation(fields: [tweetId], references: [id])
+  tweetId String?
 }
 
 model Poll {
@@ -80,8 +85,8 @@ model Tweet {
   views Int    @default(0)
 
   // tweet location coodinates
-  lat Int
-  lon Int
+  lat Float
+  lon Float
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
