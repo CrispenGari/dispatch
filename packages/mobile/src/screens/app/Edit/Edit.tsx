@@ -49,10 +49,10 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
           : form.polls,
       }));
     }
-    if (tweet?.error) {
+    if (!!!tweet) {
       Alert.alert(
         APP_NAME,
-        tweet.error,
+        "Failed to fetch the tweet.",
         [
           {
             style: "default",

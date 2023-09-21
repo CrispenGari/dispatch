@@ -95,6 +95,16 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       },
     }
   );
+  trpc.poll.onVote.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
   React.useEffect(() => {
     if (location) {
       Location.reverseGeocodeAsync({
@@ -168,7 +178,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
           }}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="create" size={30} color={COLORS.secondary} />
+          <MaterialIcons name="create" size={30} color={COLORS.black} />
         </TouchableOpacity>
       </Animated.View>
       <ScrollView

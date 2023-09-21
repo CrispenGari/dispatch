@@ -17,7 +17,6 @@ export const commentRoute = router({
     .subscription(async ({ ctx: {}, input: { uid } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
-          console.log({ tweet });
           emit.next(tweet);
         };
         ee.on(Events.ON_TWEET_COMMENT, handler);

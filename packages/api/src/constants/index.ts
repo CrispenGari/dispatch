@@ -7,6 +7,7 @@ export enum Events {
   ON_HI = "ON_HI",
 
   // POLLS
+  ON_POLL_VOTE = "ON_POLL_VOTE",
 
   // TWEET
   ON_NEW_TWEET = "ON_NEW_TWEET",

@@ -199,17 +199,21 @@ export const tweetRouter = router({
         include: {
           polls: { include: { votes: true } },
           creator: true,
-          reactions: true,
+          reactions: { include: { creator: true } },
           comments: {
             include: {
               creator: true,
-              reactions: true,
-              replies: { include: { creator: true, reactions: true } },
+              reactions: { include: { creator: true } },
+              replies: {
+                include: {
+                  creator: true,
+                  reactions: { include: { creator: true } },
+                },
+              },
             },
           },
         },
       });
-
       return { tweets };
     } catch (error) {
       console.log(error);
@@ -222,11 +226,27 @@ export const tweetRouter = router({
       try {
         const tweet = await prisma.tweet.findFirst({
           where: { id },
-          include: { polls: true },
+          include: {
+            polls: { include: { votes: true } },
+            creator: true,
+            reactions: { include: { creator: true } },
+            comments: {
+              include: {
+                creator: true,
+                reactions: { include: { creator: true } },
+                replies: {
+                  include: {
+                    creator: true,
+                    reactions: { include: { creator: true } },
+                  },
+                },
+              },
+            },
+          },
         });
         return { tweet };
       } catch (error) {
-        return { error: "Unable to get a tweet for whatever reason." };
+        return { tweet: undefined };
       }
     }),
 

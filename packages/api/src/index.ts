@@ -9,7 +9,15 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import ws from "@fastify/websocket";
 import { getFastifyPlugin } from "trpc-playground/handlers/fastify";
-export type { User, Tweet, Poll, Comment, Reaction } from "@prisma/client";
+export type {
+  User,
+  Tweet,
+  Poll,
+  Comment,
+  Reaction,
+  Reply,
+  Vote,
+} from "@prisma/client";
 
 _();
 

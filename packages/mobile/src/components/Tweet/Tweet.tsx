@@ -7,7 +7,15 @@ import {
   profile,
   relativeTimeObject,
 } from "../../constants";
-import { Poll as P, Reaction, Tweet as T, User, Comment } from "@dispatch/api";
+import {
+  Poll as P,
+  Reaction,
+  Tweet as T,
+  User,
+  Comment,
+  Reply,
+  Vote,
+} from "@dispatch/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
@@ -23,6 +31,7 @@ import { trpc } from "../../utils/trpc";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppParamList } from "../../params";
 import CustomTextInput from "../CustomTextInput/CustomTextInput";
+import Poll from "../Poll/Poll";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -30,17 +39,24 @@ dayjs.updateLocale("en", {
   relativeTime: relativeTimeObject,
 });
 
+type ReactionType = Partial<Reaction> & { creator: User };
+
+type ReplyType = Partial<Reply> & {
+  creator: User;
+  reactions: ReactionType[];
+};
+type PollType = Partial<P> & { votes: Vote[] };
+type CommentType = Partial<Comment> & {
+  creator: User;
+  reactions: ReactionType[];
+  replies: ReactionType[];
+};
 interface Props {
   tweet: T & {
     creator: User;
-    reactions: Reaction[];
-    polls: P[];
-    comments: Partial<Comment> &
-      {
-        creator: User;
-        reactions: Reaction[];
-        replies: Partial<Comment> & { creator: User; reactions: Reaction[] }[];
-      }[];
+    reactions: ReactionType[];
+    polls: PollType[];
+    comments: CommentType[];
   };
   navigation: StackNavigationProp<AppParamList, "Feed">;
 }
@@ -343,8 +359,25 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
       </View>
       <View style={{ marginVertical: 3 }}>
         {tweet.polls.map((poll) => (
-          <Poll key={poll.id} poll={poll} />
+          <Poll
+            tweetId={tweet.id}
+            key={poll.id}
+            poll={poll}
+            nPolls={tweet.polls.length}
+            creatorId={tweet.creator.id}
+            totalVotes={tweet.polls.flatMap((p) => p.votes).length}
+          />
         ))}
+        {tweet.polls.length ? (
+          <Text
+            style={[
+              styles.p,
+              { alignSelf: "flex-end", marginVertical: 2, fontSize: 18 },
+            ]}
+          >
+            {tweet.polls.flatMap((p) => p.votes).length} votes
+          </Text>
+        ) : null}
       </View>
 
       <View
@@ -356,15 +389,15 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
         <CustomTextInput
           placeholder="Comment on this tweet..."
           containerStyles={{ flex: 1 }}
-          inputStyle={{ height: form.height, maxHeight: 100 }}
+          inputStyle={{ maxHeight: 100 }}
           multiline
           text={form.comment}
-          onContentSizeChange={(e) =>
-            setForm((state) => ({
-              ...state,
-              height: e.nativeEvent?.contentSize?.height ?? form.height,
-            }))
-          }
+          // onContentSizeChange={(e) =>
+          //   setForm((state) => ({
+          //     ...state,
+          //     height: e.nativeEvent?.contentSize?.height ?? form.height,
+          //   }))
+          // }
           onChangeText={(comment) =>
             setForm((state) => ({ ...state, comment }))
           }
@@ -458,29 +491,3 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
 };
 
 export default Tweet;
-
-const Poll: React.FunctionComponent<{
-  poll: P;
-}> = ({ poll }) => {
-  return (
-    <TouchableOpacity
-      style={{
-        backgroundColor: COLORS.main,
-        borderWidth: 3,
-        borderColor: COLORS.gray,
-        borderRadius: 5,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-        marginBottom: 3,
-        width: "100%",
-      }}
-      activeOpacity={0.7}
-    >
-      <Text
-        style={[styles.h1, { fontSize: 18, zIndex: 1, overflow: "visible" }]}
-      >
-        {poll.text}
-      </Text>
-    </TouchableOpacity>
-  );
-};
