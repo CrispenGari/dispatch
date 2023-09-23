@@ -13,10 +13,12 @@ const ee = new EventEmitter();
 export const reactionRoute = router({
   onTweetReaction: publicProcedure
     .input(onTweetReactionSchema)
-    .subscription(async ({ ctx: {}, input: { uid } }) => {
+    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
-          emit.next(tweet);
+          if (tweetId === tweet.id) {
+            emit.next(tweet);
+          }
         };
         ee.on(Events.ON_TWEET_REACTION, handler);
         return () => {

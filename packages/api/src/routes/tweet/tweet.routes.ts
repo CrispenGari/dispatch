@@ -20,10 +20,12 @@ const ee = new EventEmitter();
 export const tweetRouter = router({
   onView: publicProcedure
     .input(onViewSchema)
-    .subscription(async ({ ctx: {}, input: { uid } }) => {
+    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
-          emit.next(tweet);
+          if (tweetId === tweet.id) {
+            emit.next(tweet);
+          }
         };
         ee.on(Events.ON_TWEET_VIEW, handler);
         return () => {
@@ -46,13 +48,12 @@ export const tweetRouter = router({
         };
       });
     }),
-
   onTweetUpdate: publicProcedure
     .input(onTweetUpdateSchema)
-    .subscription(async ({ ctx: {}, input: { uid } }) => {
+    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
-          if (tweet.userId !== uid) {
+          if (tweet.userId !== uid && tweet.id === tweetId) {
             emit.next(tweet);
           }
         };

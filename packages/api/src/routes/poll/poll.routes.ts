@@ -10,10 +10,12 @@ const ee = new EventEmitter();
 export const pollRouter = router({
   onVote: publicProcedure
     .input(onVoteSchema)
-    .subscription(async ({ ctx: {}, input: { uid } }) => {
+    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
-          emit.next(tweet);
+          if (tweet.id === tweetId) {
+            emit.next(tweet);
+          }
         };
         ee.on(Events.ON_POLL_VOTE, handler);
         return () => {
