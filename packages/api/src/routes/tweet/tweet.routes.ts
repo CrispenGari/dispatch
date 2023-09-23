@@ -4,6 +4,7 @@ import {
   delSchema,
   editSchema,
   onDeleteTweetSchema,
+  onNewTweetNotificationSchema,
   onNewTweetSchema,
   onTweetUpdateSchema,
   onViewSchema,
@@ -18,6 +19,21 @@ import { Events } from "../../constants";
 
 const ee = new EventEmitter();
 export const tweetRouter = router({
+  onNewTweetNotification: publicProcedure
+    .input(onNewTweetNotificationSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<Notification & { user: User }>((emit) => {
+        const handler = (notification: Notification & { user: User }) => {
+          if (uid === notification.user.id) {
+            emit.next(notification);
+          }
+        };
+        ee.on(Events.ON_NEW_NOTIFICATION, handler);
+        return () => {
+          ee.off(Events.ON_NEW_NOTIFICATION, handler);
+        };
+      });
+    }),
   onView: publicProcedure
     .input(onViewSchema)
     .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
@@ -110,6 +126,19 @@ export const tweetRouter = router({
               creator: true,
             },
           });
+
+          if (tweet.creator.id !== me.id) {
+            const notification = await prisma.notification.create({
+              data: {
+                title: `new tweet`,
+                message: `@${me.nickname} - ${tweet.text}`,
+                user: { connect: { id: "" } },
+                include: { user: true },
+              },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          }
+
           ee.emit(Events.ON_NEW_TWEET, tweet);
           return { tweet };
         } catch (err) {
@@ -193,26 +222,16 @@ export const tweetRouter = router({
         }
       }
     ),
+
   tweets: publicProcedure.query(async ({ ctx: { prisma } }) => {
+    /*
+      fetch only the ids of recent tweets.
+    */
     try {
       const tweets = await prisma.tweet.findMany({
         orderBy: { createdAt: "desc" },
-        include: {
-          polls: { include: { votes: true } },
-          creator: true,
-          reactions: { include: { creator: true } },
-          comments: {
-            include: {
-              creator: true,
-              reactions: { include: { creator: true } },
-              replies: {
-                include: {
-                  creator: true,
-                  reactions: { include: { creator: true } },
-                },
-              },
-            },
-          },
+        select: {
+          id: true,
         },
       });
       return { tweets };
@@ -245,9 +264,9 @@ export const tweetRouter = router({
             },
           },
         });
-        return { tweet };
+        return tweet;
       } catch (error) {
-        return { tweet: undefined };
+        return undefined;
       }
     }),
 

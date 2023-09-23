@@ -1,7 +1,9 @@
 import { router } from "../trpc/trpc";
 import { authRouter } from "./auth/auth.routes";
+import { blockedRouter } from "./blocked/blocked.routes";
 import { commentRoute } from "./comment/comment.routes";
 import { helloRouter } from "./hello/hello.routes";
+import { notificationRouter } from "./notification/notification.routes";
 import { pollRouter } from "./poll/poll.routes";
 import { profileRouter } from "./profile/profile.routes";
 import { reactionRoute } from "./reaction/reaction.routes";
@@ -17,6 +19,8 @@ export const appRouter = router({
   poll: pollRouter,
   reaction: reactionRoute,
   comment: commentRoute,
+  blocked: blockedRouter,
+  notification: notificationRouter,
 });
 
 export type AppRouter = typeof appRouter;

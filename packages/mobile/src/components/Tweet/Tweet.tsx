@@ -39,29 +39,36 @@ dayjs.updateLocale("en", {
   relativeTime: relativeTimeObject,
 });
 
-type ReactionType = Partial<Reaction> & { creator: User };
+// type ReactionType = Partial<Reaction> & { creator: User };
 
-type ReplyType = Partial<Reply> & {
-  creator: User;
-  reactions: ReactionType[];
-};
-type PollType = Partial<P> & { votes: Vote[] };
-type CommentType = Partial<Comment> & {
-  creator: User;
-  reactions: ReactionType[];
-  replies: ReactionType[];
-};
+// type ReplyType = Partial<Reply> & {
+//   creator: User;
+//   reactions: ReactionType[];
+// };
+// type PollType = Partial<P> & { votes: Vote[] };
+// type CommentType = Partial<Comment> & {
+//   creator: User;
+//   reactions: ReactionType[];
+//   replies: ReactionType[];
+// };
+// interface Props {
+//   tweet: T & {
+//     creator: User;
+//     reactions: ReactionType[];
+//     polls: PollType[];
+//     comments: CommentType[];
+//   };
+//   navigation: StackNavigationProp<AppParamList, "Feed">;
+// }
+
 interface Props {
-  tweet: T & {
-    creator: User;
-    reactions: ReactionType[];
-    polls: PollType[];
-    comments: CommentType[];
-  };
   navigation: StackNavigationProp<AppParamList, "Feed">;
+  tweet: { id: string };
 }
-
-const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
+const Tweet: React.FunctionComponent<Props> = ({
+  tweet: { id },
+  navigation,
+}) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
@@ -72,6 +79,66 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
     showResults: false,
     totalVotes: 0,
   });
+  const {
+    isLoading: fetching,
+    data: tweet,
+    refetch,
+  } = trpc.tweet.tweet.useQuery({
+    id,
+  });
+
+  trpc.tweet.onTweetUpdate.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.comment.onTweetComment.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.reaction.onTweetReaction.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+
+  trpc.tweet.onView.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.poll.onVote.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+
   const { mutateAsync: mutateDeleteTweet, isLoading: deleting } =
     trpc.tweet.del.useMutation();
   const { mutateAsync: mutateReactToTweet, isLoading: reacting } =
@@ -82,6 +149,7 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
     trpc.tweet.view.useMutation();
 
   const deleteTweet = () => {
+    if (!!!tweet) return;
     mutateDeleteTweet({ id: tweet.id }).then(({ error }) => {
       if (error) {
         Alert.alert(
@@ -100,6 +168,7 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
     });
   };
   const editTweet = () => {
+    if (!!!tweet) return;
     if (me?.id === tweet.creator.id) {
       navigation.navigate("Edit", { id: tweet.id });
       toggle();
@@ -107,11 +176,13 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
   };
 
   const reactToTweet = () => {
+    if (!!!tweet) return;
     mutateReactToTweet({ id: tweet.id }).then((res) => {
       console.log({ res });
     });
   };
   const commentOnTweet = () => {
+    if (!!!tweet) return;
     if (!!!form.comment.trim()) return;
     mutateCommentOnTweet({ comment: form.comment, id: tweet.id }).then(
       (res) => {
@@ -122,23 +193,28 @@ const Tweet: React.FunctionComponent<Props> = ({ tweet, navigation }) => {
     );
   };
   const view = () => {
+    if (!!!tweet) return;
     mutateViewTweet({ id: tweet.id }).then((res) => {
       navigation.navigate("Tweet", { id: tweet.id });
     });
   };
   React.useEffect(() => {
-    const liked = tweet.reactions.find((r) => r.creatorId === me?.id);
-    const voted = !!tweet.polls
-      .flatMap((p) => p.votes)
-      .find((v) => v.userId === me?.id);
+    if (tweet && me) {
+      const liked = tweet.reactions.find((r) => r.creatorId === me.id);
+      const voted = !!tweet.polls
+        .flatMap((p) => p.votes)
+        .find((v) => v.userId === me?.id);
 
-    setForm((state) => ({
-      ...state,
-      liked: !!liked,
-      showResults: me?.id === tweet.creator.id || voted,
-      totalVotes: tweet.polls.flatMap((p) => p.votes).length,
-    }));
+      setForm((state) => ({
+        ...state,
+        liked: !!liked,
+        showResults: me?.id === tweet.creator.id || voted,
+        totalVotes: tweet.polls.flatMap((p) => p.votes).length,
+      }));
+    }
   }, [tweet, me]);
+
+  if (!!!tweet) return <Text>Failed to fetch a tweet.</Text>;
 
   return (
     <TouchableOpacity

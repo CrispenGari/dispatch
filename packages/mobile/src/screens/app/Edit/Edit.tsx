@@ -36,13 +36,13 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   });
 
   React.useEffect(() => {
-    if (tweet?.tweet) {
+    if (!!tweet) {
       setForm((state) => ({
         ...state,
-        enablePolls: !!tweet.tweet?.polls.length,
-        tweet: tweet.tweet?.text ?? "",
-        polls: tweet.tweet?.polls.length
-          ? tweet.tweet.polls.map((p, i) => ({
+        enablePolls: !!tweet.polls.length,
+        tweet: tweet.text ?? "",
+        polls: tweet.polls.length
+          ? tweet.polls.map((p, i) => ({
               id: i,
               text: p.text,
             }))

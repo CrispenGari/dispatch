@@ -42,7 +42,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   const {
     isLoading: fetching,
     refetch,
-    data,
+    data: tweet,
   } = trpc.tweet.tweet.useQuery({ id: route.params.id });
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
@@ -54,6 +54,58 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     showResults: false,
     totalVotes: 0,
   });
+
+  trpc.tweet.onTweetUpdate.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.comment.onTweetComment.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.reaction.onTweetReaction.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.tweet.onView.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.poll.onVote.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "View Tweet",
@@ -75,25 +127,22 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   }, [navigation]);
 
   React.useEffect(() => {
-    if (data?.tweet) {
-      const tt = data.tweet;
-      const liked = tt.reactions.find((r) => r.creatorId === me?.id);
-      const voted = !!tt.polls
+    if (!!tweet) {
+      const liked = tweet.reactions.find((r) => r.creatorId === me?.id);
+      const voted = !!tweet.polls
         .flatMap((p) => p.votes)
         .find((v) => v.userId === me?.id);
       setForm((state) => ({
         ...state,
         liked: !!liked,
-        showResults: me?.id === tt.creator.id || voted,
-        totalVotes: tt.polls.flatMap((p) => p.votes).length,
+        showResults: me?.id === tweet.creator.id || voted,
+        totalVotes: tweet.polls.flatMap((p) => p.votes).length,
       }));
     }
-  }, [data, me]);
+  }, [tweet, me]);
 
   if (fetching) return <Text>Fetching...</Text>;
-  if (!!!data?.tweet) return <Text>No tweet..</Text>;
-
-  const { tweet } = data;
+  if (!!!tweet) return <Text>No tweet..</Text>;
   return (
     <ScrollView
       style={{

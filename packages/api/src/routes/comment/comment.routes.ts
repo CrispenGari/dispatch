@@ -1,5 +1,6 @@
 import {
   commentSchema,
+  onNewCommentNotificationSchema,
   onTweetCommentSchema,
   replySchema,
 } from "../../schema/comment.schema";
@@ -7,11 +8,26 @@ import { publicProcedure, router } from "../../trpc/trpc";
 import { verifyJwt } from "../../utils/jwt";
 import { Events } from "../../constants";
 import EventEmitter from "events";
-import { Tweet, User } from "@prisma/client";
+import { Tweet, User, Notification } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
 
 const ee = new EventEmitter();
 export const commentRoute = router({
+  onNewTweetNotification: publicProcedure
+    .input(onNewCommentNotificationSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<Notification & { user: User }>((emit) => {
+        const handler = (notification: Notification & { user: User }) => {
+          if (uid === notification.user.id) {
+            emit.next(notification);
+          }
+        };
+        ee.on(Events.ON_NEW_NOTIFICATION, handler);
+        return () => {
+          ee.off(Events.ON_NEW_NOTIFICATION, handler);
+        };
+      });
+    }),
   onTweetComment: publicProcedure
     .input(onTweetCommentSchema)
     .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
@@ -36,20 +52,35 @@ export const commentRoute = router({
         const { id: uid } = await verifyJwt(token);
         const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me) return false;
+        const twt = await prisma.tweet.findFirst({
+          where: { id },
+        });
+        if (!!!twt) return false;
+        const cmt = await prisma.comment.create({
+          data: { text: comment.trim(), creator: { connect: { id: me.id } } },
+          include: { creator: true },
+        });
         const tweet = await prisma.tweet.update({
           where: { id },
           data: {
             comments: {
-              create: {
-                text: comment.trim(),
-                creator: { connect: { id: me.id } },
-              },
+              connect: { id: cmt.id },
             },
           },
           include: { creator: true },
         });
+        if (tweet.creator.id !== me.id) {
+          const notification = await prisma.notification.create({
+            data: {
+              title: `new comment`,
+              message: `@${cmt.creator.nickname} - commented on your tweet.`,
+              user: { connect: { id: tweet.creator.id } },
+            },
+            include: { user: true },
+          });
+          ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+        }
         ee.emit(Events.ON_TWEET_COMMENT, tweet);
-        ee.emit(Events.ON_NEW_TWEET, tweet);
         return true;
       } catch (error) {
         return false;
@@ -64,20 +95,38 @@ export const commentRoute = router({
         const { id: uid } = await verifyJwt(token);
         const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me) return false;
-        const comment = await prisma.comment.update({
+        const comment = await prisma.comment.findFirst({
           where: { id },
-          data: {
-            replies: {
-              create: {
-                text: reply.trim(),
-                creator: { connect: { id: me.id } },
-              },
-            },
-          },
           include: {
             creator: true,
+            tweet: {
+              include: { creator: true },
+            },
           },
         });
+        if (!!!comment) return false;
+        const commentReply = await prisma.reply.create({
+          data: {
+            text: reply.trim(),
+            creator: { connect: { id: me.id } },
+            comment: { connect: { id: comment.id } },
+          },
+          include: { creator: true },
+        });
+        if (comment.creator.id !== me.id) {
+          const notification = await prisma.notification.create({
+            data: {
+              title: `comment reply`,
+              message:
+                me.id === comment.tweet?.creator.id
+                  ? `@${commentReply.creator.nickname} - reply to your comment on your tweet.`
+                  : `@${commentReply.creator.nickname} - reply to your comment on ${comment.tweet?.creator.nickname}'s tweet.`,
+              user: { connect: { id: comment.creator.id } },
+            },
+            include: { user: true },
+          });
+          ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+        }
         ee.emit(Events.ON_COMMENT_REPLY, comment);
         return true;
       } catch (error) {

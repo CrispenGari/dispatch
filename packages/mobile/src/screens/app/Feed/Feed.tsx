@@ -54,57 +54,6 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       },
     }
   );
-  trpc.tweet.onTweetUpdate.useSubscription(
-    { uid: me?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
-  trpc.comment.onTweetComment.useSubscription(
-    { uid: me?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
-  trpc.reaction.onTweetReaction.useSubscription(
-    { uid: me?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
-
-  trpc.tweet.onView.useSubscription(
-    { uid: me?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
-  trpc.poll.onVote.useSubscription(
-    { uid: me?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
   React.useEffect(() => {
     if (location) {
       Location.reverseGeocodeAsync({

@@ -80,7 +80,7 @@ model Reaction {
 
   tweet   Tweet?  @relation(fields: [tweetId], references: [id])
   tweetId String?
-  Reply   Reply?  @relation(fields: [replyId], references: [id])
+  reply   Reply?  @relation(fields: [replyId], references: [id])
   replyId String?
 }
 
@@ -88,18 +88,24 @@ model Reaction {
 model Blocked {
   id String @unique @default(uuid())
 
+  uid String // the id of the user that has been blocked
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId String
+
+
+
 }
 
 //
 model Notification {
   id    String  @unique @default(uuid())
   title String
+  message String
   read  Boolean @default(false)
 
   createdAt DateTime @default(now())

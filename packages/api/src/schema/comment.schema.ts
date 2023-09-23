@@ -7,3 +7,6 @@ export const onTweetCommentSchema = z.object({
   uid: z.string(),
   tweetId: z.string(),
 });
+export const onNewCommentNotificationSchema = z.object({
+  uid: z.string(),
+});
