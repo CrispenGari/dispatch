@@ -1,5 +1,8 @@
 import {
   commentSchema,
+  getReplySchema,
+  getSchema,
+  onCommentReplySchema,
   onNewCommentNotificationSchema,
   onTweetCommentSchema,
   replySchema,
@@ -8,12 +11,12 @@ import { publicProcedure, router } from "../../trpc/trpc";
 import { verifyJwt } from "../../utils/jwt";
 import { Events } from "../../constants";
 import EventEmitter from "events";
-import { Tweet, User, Notification } from "@prisma/client";
+import { Tweet, User, Notification, Comment } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
 
 const ee = new EventEmitter();
 export const commentRoute = router({
-  onNewTweetNotification: publicProcedure
+  onNewCommentNotification: publicProcedure
     .input(onNewCommentNotificationSchema)
     .subscription(async ({ ctx: {}, input: { uid } }) => {
       return observable<Notification & { user: User }>((emit) => {
@@ -28,6 +31,7 @@ export const commentRoute = router({
         };
       });
     }),
+
   onTweetComment: publicProcedure
     .input(onTweetCommentSchema)
     .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
@@ -40,6 +44,21 @@ export const commentRoute = router({
         ee.on(Events.ON_TWEET_COMMENT, handler);
         return () => {
           ee.off(Events.ON_TWEET_COMMENT, handler);
+        };
+      });
+    }),
+  onCommentReply: publicProcedure
+    .input(onCommentReplySchema)
+    .subscription(async ({ ctx: {}, input: { uid, commentId } }) => {
+      return observable<Comment & { creator: User }>((emit) => {
+        const handler = (comment: Comment & { creator: User }) => {
+          if (comment.id === commentId) {
+            emit.next(comment);
+          }
+        };
+        ee.on(Events.ON_COMMENT_REPLY, handler);
+        return () => {
+          ee.off(Events.ON_COMMENT_REPLY, handler);
         };
       });
     }),
@@ -131,6 +150,40 @@ export const commentRoute = router({
         return true;
       } catch (error) {
         return false;
+      }
+    }),
+  get: publicProcedure
+    .input(getSchema)
+    .query(async ({ ctx: { prisma }, input: { id } }) => {
+      try {
+        const comment = await prisma.comment.findFirst({
+          where: { id },
+          include: {
+            creator: true,
+            replies: { select: { id: true } },
+            reactions: { select: { id: true } },
+          },
+        });
+        return comment;
+      } catch (error) {
+        return null;
+      }
+    }),
+
+  getReply: publicProcedure
+    .input(getReplySchema)
+    .query(async ({ ctx: { prisma }, input: { id } }) => {
+      try {
+        const reply = await prisma.reply.findFirst({
+          where: { id },
+          include: {
+            creator: true,
+            reactions: { select: { id: true }, include: { creator: true } },
+          },
+        });
+        return reply;
+      } catch (error) {
+        return null;
       }
     }),
 });

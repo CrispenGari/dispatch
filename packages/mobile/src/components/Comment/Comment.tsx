@@ -13,20 +13,50 @@ import {
 } from "@expo/vector-icons";
 import { BottomSheet } from "react-native-btr";
 import Reply from "../Reply/Reply";
+import { trpc } from "../../utils/trpc";
 
 interface Props {
-  comment: Partial<C> & {
-    creator: User;
-    reactions: Partial<Reaction> & { creator: User }[];
-    replies: Partial<C> &
-      { creator: User; reactions: Partial<Reaction> & { creator: User }[] }[];
-  };
+  id: string;
 }
-const Comment: React.FunctionComponent<Props> = ({ comment }) => {
+const Comment: React.FunctionComponent<Props> = ({ id }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
   const [form, setForm] = React.useState({ liked: false });
+
+  const {
+    data: comment,
+    isLoading,
+    refetch,
+  } = trpc.comment.get.useQuery({ id });
+  trpc.reaction.onTweetCommentReaction.useSubscription(
+    {
+      uid: me?.id || "",
+      commentId: comment?.id || "",
+    },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.comment.onCommentReply.useSubscription(
+    {
+      uid: me?.id || "",
+      commentId: comment?.id || "",
+    },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  if (!!!comment) return <Text>Failed to load comment</Text>;
+
   return (
     <View style={{ paddingVertical: 5, paddingHorizontal: 10 }}>
       <BottomSheet
@@ -312,13 +342,13 @@ const Comment: React.FunctionComponent<Props> = ({ comment }) => {
               { fontSize: 14, color: COLORS.darkGray, marginLeft: 10 },
             ]}
           >
-            {new Set(comment.replies.map((r) => r.creator.id)).size}
+            {new Set(comment.replies).size}
           </Text>
         </View>
       </View>
 
-      {comment.replies.map((reply, i) => (
-        <Reply key={i} reply={reply} />
+      {comment.replies.map(({ id }) => (
+        <Reply key={id} id={id} />
       ))}
     </View>
   );

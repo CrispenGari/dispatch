@@ -133,8 +133,8 @@ export const tweetRouter = router({
                 title: `new tweet`,
                 message: `@${me.nickname} - ${tweet.text}`,
                 user: { connect: { id: "" } },
-                include: { user: true },
               },
+              include: { user: true },
             });
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           }
@@ -251,16 +251,7 @@ export const tweetRouter = router({
             creator: true,
             reactions: { include: { creator: true } },
             comments: {
-              include: {
-                creator: true,
-                reactions: { include: { creator: true } },
-                replies: {
-                  include: {
-                    creator: true,
-                    reactions: { include: { creator: true } },
-                  },
-                },
-              },
+              select: { id: true },
             },
           },
         });

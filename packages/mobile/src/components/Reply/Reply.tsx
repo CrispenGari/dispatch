@@ -12,17 +12,37 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 import { BottomSheet } from "react-native-btr";
+import { trpc } from "../../utils/trpc";
 interface Props {
-  reply: Partial<C> & {
-    creator: User;
-    reactions: Partial<Reaction> & { creator: User }[];
-  };
+  id: string;
 }
-const Reply: React.FunctionComponent<Props> = ({ reply }) => {
+const Reply: React.FunctionComponent<Props> = ({ id }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
   const [form, setForm] = React.useState({ liked: false });
+  const {
+    refetch,
+    data: reply,
+    isLoading,
+  } = trpc.comment.getReply.useQuery({ id });
+
+  trpc.reaction.onTweetCommentReplyReaction.useSubscription(
+    {
+      uid: me?.id || "",
+      replyId: reply?.id || "",
+    },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+
+  if (!!!reply) return <Text>Failed to fetch reply</Text>;
+
   return (
     <View style={{ paddingVertical: 5, paddingHorizontal: 10 }}>
       <BottomSheet

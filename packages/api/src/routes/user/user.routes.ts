@@ -1,3 +1,8 @@
+import {
+  updateEmailSchema,
+  updateGenderSchema,
+  updateNicknameSchema,
+} from "../../schema/user.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
 import { verifyJwt } from "../../utils/jwt";
 
@@ -13,9 +18,15 @@ export const userRouter = router({
       return null;
     }
   }),
-  updateNickname: publicProcedure.mutation(() => {}),
-  updateEmail: publicProcedure.mutation(() => {}),
-  updateGender: publicProcedure.mutation(() => {}),
+  updateNickname: publicProcedure
+    .input(updateNicknameSchema)
+    .mutation(async ({ ctx: { req, prisma }, input: { nickname } }) => {}),
+  updateEmail: publicProcedure
+    .input(updateEmailSchema)
+    .mutation(async ({ ctx: { req, prisma }, input: { email } }) => {}),
+  updateGender: publicProcedure
+    .input(updateGenderSchema)
+    .mutation(async ({ ctx: { req, prisma }, input: { gender } }) => {}),
   tweets: publicProcedure.query(async ({ ctx: { req, prisma } }) => {
     try {
       const jwt = req.headers.authorization?.split(/\s/)[1];
@@ -29,7 +40,7 @@ export const userRouter = router({
       return me.tweets ?? [];
     } catch (error) {
       console.log(error);
-      return { tweets: [] };
+      return [];
     }
   }),
 });

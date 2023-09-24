@@ -1,6 +1,8 @@
 import EventEmitter from "events";
 import {
   onNewReactionNotificationSchema,
+  onTweetCommentReplyReactionSchema,
+  onTweetCommentReactionSchema,
   onTweetReactionSchema,
   reactToCommentReplySchema,
   reactToCommentSchema,
@@ -9,7 +11,7 @@ import {
 import { publicProcedure, router } from "../../trpc/trpc";
 import { verifyJwt } from "../../utils/jwt";
 import { Events } from "../../constants";
-import { Tweet, User, Notification } from "@prisma/client";
+import { Tweet, User, Notification, Comment, Reply } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
 
 const ee = new EventEmitter();
@@ -26,6 +28,36 @@ export const reactionRoute = router({
         ee.on(Events.ON_TWEET_REACTION, handler);
         return () => {
           ee.off(Events.ON_TWEET_REACTION, handler);
+        };
+      });
+    }),
+  onTweetCommentReaction: publicProcedure
+    .input(onTweetCommentReactionSchema)
+    .subscription(async ({ ctx: {}, input: { uid, commentId } }) => {
+      return observable<Comment & { creator: User }>((emit) => {
+        const handler = (comment: Comment & { creator: User }) => {
+          if (commentId === comment.id) {
+            emit.next(comment);
+          }
+        };
+        ee.on(Events.ON_COMMENT_REACTION, handler);
+        return () => {
+          ee.off(Events.ON_COMMENT_REACTION, handler);
+        };
+      });
+    }),
+  onTweetCommentReplyReaction: publicProcedure
+    .input(onTweetCommentReplyReactionSchema)
+    .subscription(async ({ ctx: {}, input: { uid, replyId } }) => {
+      return observable<Reply & { creator: User }>((emit) => {
+        const handler = (reply: Reply & { creator: User }) => {
+          if (replyId === reply.id) {
+            emit.next(reply);
+          }
+        };
+        ee.on(Events.ON_COMMENT_REACTION, handler);
+        return () => {
+          ee.off(Events.ON_COMMENT_REACTION, handler);
         };
       });
     }),
@@ -150,16 +182,15 @@ export const reactionRoute = router({
             });
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           }
-          ee.emit(Events.ON_TWEET_REACTION, _comment.tweet);
+          ee.emit(Events.ON_COMMENT_REACTION, _comment);
         } else {
           // dislike
           await prisma.reaction.delete({ where: { id: reacted.id } });
           const _comment = await prisma.comment.findFirst({
             where: { id: comment.id },
-            include: { tweet: { include: { creator: true } }, creator: true },
+            include: { creator: true },
           });
-
-          ee.emit(Events.ON_TWEET_REACTION, _comment?.tweet);
+          ee.emit(Events.ON_COMMENT_REACTION, _comment);
         }
         return true;
       } catch (error) {
@@ -217,23 +248,17 @@ export const reactionRoute = router({
             });
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           }
-          ee.emit(Events.ON_TWEET_REACTION, _reply.comment?.tweet);
+          ee.emit(Events.ON_COMMENT_REPLY_REACTION, _reply);
         } else {
           // dislike
           await prisma.reaction.delete({ where: { id: reacted.id } });
           const _reply = await prisma.reply.findFirst({
             where: { id: reply.id },
             include: {
-              comment: {
-                include: {
-                  tweet: { include: { creator: true } },
-                  creator: true,
-                },
-              },
               creator: true,
             },
           });
-          ee.emit(Events.ON_TWEET_REACTION, _reply?.comment?.tweet);
+          ee.emit(Events.ON_COMMENT_REPLY_REACTION, _reply);
         }
         return true;
       } catch (error) {

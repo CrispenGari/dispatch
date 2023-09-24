@@ -26,6 +26,7 @@ import { styles } from "../../../styles";
 import { useMeStore } from "../../../store";
 import Poll from "../../../components/Poll/Poll";
 import Comment from "../../../components/Comment/Comment";
+import Comments from "../../../components/Comments/Comments";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
@@ -56,16 +57,6 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   });
 
   trpc.tweet.onTweetUpdate.useSubscription(
-    { uid: me?.id || "", tweetId: tweet?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
-  trpc.comment.onTweetComment.useSubscription(
     { uid: me?.id || "", tweetId: tweet?.id || "" },
     {
       onData: async (data) => {
@@ -510,9 +501,8 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
           </TouchableOpacity>
         </View>
       </View>
-
-      {tweet.comments.map((comment) => (
-        <Comment key={comment.id} comment={comment} />
+      {tweet.comments.map(({ id }) => (
+        <Comment key={id} id={id} />
       ))}
     </ScrollView>
   );

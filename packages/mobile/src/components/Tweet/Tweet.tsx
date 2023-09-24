@@ -39,28 +39,6 @@ dayjs.updateLocale("en", {
   relativeTime: relativeTimeObject,
 });
 
-// type ReactionType = Partial<Reaction> & { creator: User };
-
-// type ReplyType = Partial<Reply> & {
-//   creator: User;
-//   reactions: ReactionType[];
-// };
-// type PollType = Partial<P> & { votes: Vote[] };
-// type CommentType = Partial<Comment> & {
-//   creator: User;
-//   reactions: ReactionType[];
-//   replies: ReactionType[];
-// };
-// interface Props {
-//   tweet: T & {
-//     creator: User;
-//     reactions: ReactionType[];
-//     polls: PollType[];
-//     comments: CommentType[];
-//   };
-//   navigation: StackNavigationProp<AppParamList, "Feed">;
-// }
-
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed">;
   tweet: { id: string };
@@ -97,16 +75,6 @@ const Tweet: React.FunctionComponent<Props> = ({
       },
     }
   );
-  trpc.comment.onTweetComment.useSubscription(
-    { uid: me?.id || "", tweetId: tweet?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
   trpc.reaction.onTweetReaction.useSubscription(
     { uid: me?.id || "", tweetId: tweet?.id || "" },
     {
@@ -129,6 +97,17 @@ const Tweet: React.FunctionComponent<Props> = ({
     }
   );
   trpc.poll.onVote.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+
+  trpc.comment.onTweetComment.useSubscription(
     { uid: me?.id || "", tweetId: tweet?.id || "" },
     {
       onData: async (data) => {
