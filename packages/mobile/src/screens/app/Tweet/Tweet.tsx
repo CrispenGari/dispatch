@@ -334,6 +334,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
               height: 50,
               resizeMode: "contain",
               marginRight: 5,
+              borderRadius: 50,
             }}
           />
           <View style={{ flex: 1 }}>

@@ -217,6 +217,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
             height: 30,
             resizeMode: "contain",
             marginRight: 5,
+            borderRadius: 30,
           }}
         />
         <View style={{ flex: 1 }}>

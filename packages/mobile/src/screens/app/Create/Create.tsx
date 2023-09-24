@@ -149,6 +149,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                 height: 50,
                 resizeMode: "contain",
                 marginRight: 5,
+                borderRadius: 50,
               }}
             />
             <CustomTextInput
