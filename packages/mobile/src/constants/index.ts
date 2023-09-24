@@ -49,6 +49,7 @@ export const COLORS = {
   black: "#000000",
   gray: "#f5f5f5",
   darkGray: "gray",
+  loaderGray: "#CCCCCC",
 };
 export const Fonts = {
   AlegreyaSansItalic: require("../../assets/fonts/AlegreyaSans-Italic.ttf"),

@@ -161,7 +161,7 @@ export const commentRoute = router({
           include: {
             creator: true,
             replies: { select: { id: true } },
-            reactions: { select: { id: true } },
+            reactions: { select: { id: true, creatorId: true } },
           },
         });
         return comment;

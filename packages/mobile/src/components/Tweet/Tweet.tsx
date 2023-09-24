@@ -32,6 +32,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { AppParamList } from "../../params";
 import CustomTextInput from "../CustomTextInput/CustomTextInput";
 import Poll from "../Poll/Poll";
+import TweetSkeleton from "../skeletons/TweetSkeleton";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -177,6 +178,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       navigation.navigate("Tweet", { id: tweet.id });
     });
   };
+
   React.useEffect(() => {
     if (tweet && me) {
       const liked = tweet.reactions.find((r) => r.creatorId === me.id);
@@ -193,7 +195,7 @@ const Tweet: React.FunctionComponent<Props> = ({
     }
   }, [tweet, me]);
 
-  if (!!!tweet) return <Text>Failed to fetch a tweet.</Text>;
+  if (!!!tweet) return <TweetSkeleton />;
 
   return (
     <TouchableOpacity
@@ -382,6 +384,7 @@ const Tweet: React.FunctionComponent<Props> = ({
             height: 50,
             resizeMode: "contain",
             marginRight: 5,
+            borderRadius: 50,
           }}
         />
         <View style={{ flex: 1 }}>

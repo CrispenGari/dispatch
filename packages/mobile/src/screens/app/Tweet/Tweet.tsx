@@ -26,8 +26,6 @@ import { styles } from "../../../styles";
 import { useMeStore } from "../../../store";
 import Poll from "../../../components/Poll/Poll";
 import Comment from "../../../components/Comment/Comment";
-import Comments from "../../../components/Comments/Comments";
-
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 

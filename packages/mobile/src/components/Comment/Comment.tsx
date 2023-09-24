@@ -23,12 +23,13 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
   const [form, setForm] = React.useState({ liked: false });
-
   const {
     data: comment,
     isLoading,
     refetch,
   } = trpc.comment.get.useQuery({ id });
+  const { mutateAsync: mutateReactToComment, isLoading: reacting } =
+    trpc.reaction.reactToComment.useMutation();
   trpc.reaction.onTweetCommentReaction.useSubscription(
     {
       uid: me?.id || "",
@@ -55,6 +56,20 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
       },
     }
   );
+  const reactToComment = () => {
+    if (!!comment) {
+      mutateReactToComment({ id: comment.id });
+    }
+  };
+  React.useEffect(() => {
+    if (!!comment && !!me) {
+      const liked = !!comment.reactions.find(
+        ({ creatorId }) => creatorId === me.id
+      );
+      setForm((state) => ({ ...state, liked: liked }));
+    }
+  }, [comment, me]);
+
   if (!!!comment) return <Text>Failed to load comment</Text>;
 
   return (
@@ -313,7 +328,8 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => {}}
+          onPress={reactToComment}
+          disabled={reacting}
           style={{ flexDirection: "row", alignItems: "center" }}
         >
           <MaterialIcons
