@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const replySchema = z.object({ id: z.string(), reply: z.string() });
+export const replySchema = z.object({
+  id: z.string(),
+  reply: z.string(),
+});
 export const commentSchema = z.object({ id: z.string(), comment: z.string() });
 export const getSchema = z.object({ id: z.string() });
 export const getReplySchema = z.object({ id: z.string() });

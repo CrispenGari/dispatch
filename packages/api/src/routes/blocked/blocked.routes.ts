@@ -84,11 +84,9 @@ export const blockedRouter = router({
             error:
               "Failed to unblock the user, because this user is not on your blocked list.",
           };
-
+        const u = await prisma.blocked.findFirst({ where: { uid } });
         await prisma.blocked.delete({
-          where: {
-            uid: user.id,
-          },
+          where: { id: u?.id },
         });
         return true;
       } catch (error) {
