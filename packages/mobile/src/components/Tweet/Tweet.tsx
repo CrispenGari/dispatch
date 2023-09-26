@@ -118,13 +118,21 @@ const Tweet: React.FunctionComponent<Props> = ({
       },
     }
   );
+  trpc.comment.onCommentDelete.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
 
   const { mutateAsync: mutateDeleteTweet, isLoading: deleting } =
     trpc.tweet.del.useMutation();
   const { mutateAsync: mutateReactToTweet, isLoading: reacting } =
     trpc.reaction.reactToTweet.useMutation();
-  const { mutateAsync: mutateCommentOnTweet, isLoading: commenting } =
-    trpc.comment.comment.useMutation();
   const { mutateAsync: mutateViewTweet, isLoading: viewing } =
     trpc.tweet.view.useMutation();
 
@@ -161,17 +169,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       console.log({ res });
     });
   };
-  const commentOnTweet = () => {
-    if (!!!tweet) return;
-    if (!!!form.comment.trim()) return;
-    mutateCommentOnTweet({ comment: form.comment, id: tweet.id }).then(
-      (res) => {
-        if (res) {
-          setForm((state) => ({ ...state, comment: "" }));
-        }
-      }
-    );
-  };
+
   const view = () => {
     if (!!!tweet) return;
     mutateViewTweet({ id: tweet.id }).then((res) => {
@@ -467,10 +465,7 @@ const Tweet: React.FunctionComponent<Props> = ({
           marginVertical: 10,
         }}
       >
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={{ flexDirection: "row", alignItems: "center" }}
-        >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           <MaterialCommunityIcons
             name="comment-quote-outline"
             size={16}
@@ -484,7 +479,7 @@ const Tweet: React.FunctionComponent<Props> = ({
           >
             {tweet.comments.length}
           </Text>
-        </TouchableOpacity>
+        </View>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={reactToTweet}
@@ -504,10 +499,7 @@ const Tweet: React.FunctionComponent<Props> = ({
             {tweet.reactions.length}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={{ flexDirection: "row", alignItems: "center" }}
-        >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons
             name="ios-stats-chart-outline"
             size={16}
@@ -521,7 +513,7 @@ const Tweet: React.FunctionComponent<Props> = ({
           >
             {tweet.views}
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
     </TouchableOpacity>
   );

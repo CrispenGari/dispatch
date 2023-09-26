@@ -160,6 +160,12 @@ export const tweetRouter = router({
             error: "You can not delete the tweet if you are not authenticated.",
           };
         const { id: uid } = await verifyJwt(token);
+
+        const me = await prisma.user.findFirst({ where: { id: uid } });
+        if (!!!me)
+          return {
+            error: "You can not delete the tweet if you are not authenticated.",
+          };
         const tweet = await prisma.tweet.findFirst({ where: { id } });
         if (!!!tweet) return { error: "This tweet is no longer available." };
         if (uid !== tweet.userId)

@@ -1,8 +1,8 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import React from "react";
 import type { User, Comment as C, Reaction } from "@dispatch/api";
 import { useMeStore } from "../../store";
-import { COLORS, FONTS, profile } from "../../constants";
+import { APP_NAME, COLORS, FONTS, profile } from "../../constants";
 import dayjs from "dayjs";
 import { styles } from "../../styles";
 
@@ -30,14 +30,11 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
-
-  const {
-    data: comment,
-    isLoading,
-    refetch,
-  } = trpc.comment.get.useQuery({ id });
+  const { data: comment, refetch } = trpc.comment.get.useQuery({ id });
   const { mutateAsync: mutateReactToComment, isLoading: reacting } =
     trpc.reaction.reactToComment.useMutation();
+  const { isLoading: deleting, mutateAsync: mutateDeleteComment } =
+    trpc.comment.deleteComment.useMutation();
 
   const { isLoading: replying, mutateAsync: mutateReplyComment } =
     trpc.comment.reply.useMutation();
@@ -67,11 +64,26 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
       },
     }
   );
+  trpc.comment.onCommentReplyDelete.useSubscription(
+    {
+      uid: me?.id || "",
+      commentId: comment?.id || "",
+    },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+
   const reactToComment = () => {
     if (!!comment) {
       mutateReactToComment({ id: comment.id });
     }
   };
+
   const replyToComment = () => {
     if (!!!form.reply.trim() || !!!comment) return;
     mutateReplyComment({ id: comment.id, reply: form.reply.trim() }).then(
@@ -81,6 +93,26 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
         }
       }
     );
+  };
+  const editComment = () => {};
+  const deleteComment = () => {
+    if (!!!comment) return;
+    mutateDeleteComment({ id: comment.id }).then(({ error }) => {
+      if (error) {
+        Alert.alert(
+          APP_NAME,
+          error,
+          [
+            {
+              style: "default",
+              text: "OK",
+            },
+          ],
+          { cancelable: false }
+        );
+      }
+      toggle();
+    });
   };
   React.useEffect(() => {
     if (!!comment && !!me) {
@@ -136,42 +168,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
             <Text style={[styles.h1, {}]}>Comment Actions</Text>
           </View>
           <View style={{ height: 10 }} />
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 1,
-            }}
-            // onPress={editTweet}
-            activeOpacity={0.7}
-            // disabled={deleting}
-          >
-            <Text
-              style={[
-                styles.h1,
-                {
-                  fontSize: 18,
-                  color:
-                    me?.id !== comment.creator.id
-                      ? COLORS.darkGray
-                      : COLORS.primary,
-                },
-              ]}
-            >
-              Edit comment
-            </Text>
 
-            <MaterialCommunityIcons
-              name="file-edit-outline"
-              size={24}
-              color={
-                me?.id !== comment.creator.id ? COLORS.darkGray : COLORS.primary
-              }
-            />
-          </TouchableOpacity>
           <TouchableOpacity
             style={{
               paddingHorizontal: 20,
@@ -182,7 +179,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
               marginBottom: 1,
             }}
             activeOpacity={0.7}
-            // disabled={deleting}
+            disabled={deleting}
           >
             <Text
               style={[
@@ -216,8 +213,8 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
               marginBottom: 1,
             }}
             activeOpacity={0.7}
-            // disabled={deleting}
-            // onPress={deleteTweet}
+            disabled={deleting}
+            onPress={deleteComment}
           >
             <Text
               style={[
@@ -251,7 +248,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
               marginBottom: 1,
             }}
             activeOpacity={0.7}
-            // disabled={deleting}
+            disabled={deleting}
           >
             <Text
               style={[

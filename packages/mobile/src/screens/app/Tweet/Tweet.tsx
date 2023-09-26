@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  SafeAreaView,
 } from "react-native";
 import React from "react";
 import { AppNavProps } from "../../../params";
@@ -146,6 +147,16 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     }
   );
   trpc.poll.onVote.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.comment.onCommentDelete.useSubscription(
     { uid: me?.id || "", tweetId: tweet?.id || "" },
     {
       onData: async (data) => {
@@ -542,87 +553,88 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
           </View>
         </View>
 
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            paddingHorizontal: 10,
+            paddingVertical: 10,
+            maxWidth: 500,
+          }}
+        >
+          {!!!tweet ? (
+            <>
+              <ContentLoader
+                style={{
+                  height: 30,
+                  backgroundColor: COLORS.loaderGray,
+                  marginRight: 3,
+                  borderRadius: 5,
+                  flex: 1,
+                }}
+              />
+              <ContentLoader
+                style={{
+                  height: 25,
+                  backgroundColor: COLORS.loaderGray,
+                  marginRight: 3,
+                  borderRadius: 5,
+                  padding: 5,
+                  width: "100%",
+                  alignSelf: "flex-start",
+                  maxWidth: 60,
+                  marginLeft: 3,
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <CustomTextInput
+                placeholder="Comment on this tweet..."
+                containerStyles={{ flex: 1 }}
+                inputStyle={{ maxHeight: 100 }}
+                multiline
+                text={form.comment}
+                onContentSizeChange={(e) => {
+                  e.persist();
+                  setForm((state) => ({
+                    ...state,
+                    height:
+                      e.nativeEvent?.contentSize?.height + 20 ?? form.height,
+                  }));
+                }}
+                onChangeText={(comment) =>
+                  setForm((state) => ({ ...state, comment }))
+                }
+                onSubmitEditing={commentOnTweet}
+              />
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={commentOnTweet}
+                disabled={commenting}
+                style={[
+                  styles.button,
+                  {
+                    backgroundColor: COLORS.primary,
+                    padding: 5,
+                    borderRadius: 5,
+                    alignSelf: "flex-start",
+                    maxWidth: 80,
+                    marginLeft: 3,
+                  },
+                ]}
+              >
+                <Text style={[styles.button__text, { fontSize: 14 }]}>
+                  COMMENT
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
         {tweet.comments.map(({ id }) => (
           <Comment key={id} id={id} />
         ))}
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-          paddingHorizontal: 10,
-          paddingVertical: 10,
-          maxWidth: 500,
-        }}
-      >
-        {!!!tweet ? (
-          <>
-            <ContentLoader
-              style={{
-                height: 30,
-                backgroundColor: COLORS.loaderGray,
-                marginRight: 3,
-                borderRadius: 5,
-                flex: 1,
-              }}
-            />
-            <ContentLoader
-              style={{
-                height: 25,
-                backgroundColor: COLORS.loaderGray,
-                marginRight: 3,
-                borderRadius: 5,
-                padding: 5,
-                width: "100%",
-                alignSelf: "flex-start",
-                maxWidth: 60,
-                marginLeft: 3,
-              }}
-            />
-          </>
-        ) : (
-          <>
-            <CustomTextInput
-              placeholder="Comment on this tweet..."
-              containerStyles={{ flex: 1 }}
-              inputStyle={{ maxHeight: 100 }}
-              multiline
-              text={form.comment}
-              onContentSizeChange={(e) => {
-                e.persist();
-                setForm((state) => ({
-                  ...state,
-                  height:
-                    e.nativeEvent?.contentSize?.height + 20 ?? form.height,
-                }));
-              }}
-              onChangeText={(comment) =>
-                setForm((state) => ({ ...state, comment }))
-              }
-              onSubmitEditing={commentOnTweet}
-            />
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={commentOnTweet}
-              disabled={commenting}
-              style={[
-                styles.button,
-                {
-                  backgroundColor: COLORS.primary,
-                  padding: 5,
-                  borderRadius: 5,
-                  alignSelf: "flex-start",
-                  maxWidth: 80,
-                  marginLeft: 3,
-                },
-              ]}
-            >
-              <Text style={[styles.button__text, { fontSize: 14 }]}>
-                COMMENT
-              </Text>
-            </TouchableOpacity>
-          </>
-        )}
       </View>
     </KeyboardAwareScrollView>
   );

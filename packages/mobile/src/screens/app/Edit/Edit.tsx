@@ -186,6 +186,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                 height: 50,
                 resizeMode: "contain",
                 marginRight: 5,
+                borderRadius: 50,
               }}
             />
             <CustomTextInput
@@ -194,7 +195,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                 flex: 1,
               }}
               placeholder={`Tweet news ${me?.nickname}...`}
-              inputStyle={{ height, maxHeight: 300 }}
+              inputStyle={{ height, maxHeight: 300, fontSize: 16 }}
               multiline
               text={form.tweet}
               onContentSizeChange={(e) => {
@@ -228,7 +229,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                 }))
               }
             />
-            <Text style={[styles.p, { fontSize: 20, marginLeft: 10 }]}>
+            <Text style={[styles.p, { fontSize: 16, marginLeft: 10 }]}>
               {form.enablePolls ? "Disable Polls" : "Enable Polls"}
             </Text>
           </View>
@@ -240,6 +241,8 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                   key={poll.id}
                   text={poll.text}
                   placeholder={`Poll Text ${poll.id + 1}...`}
+                  inputStyle={{ fontSize: 16, paddingVertical: 5 }}
+                  containerStyles={{ paddingVertical: 5 }}
                   onChangeText={(text) =>
                     setForm((state) => ({
                       ...state,
@@ -268,7 +271,9 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                     },
                   ]}
                 >
-                  <Text style={[styles.button__text]}>ADD</Text>
+                  <Text style={[styles.button__text, { fontSize: 15 }]}>
+                    ADD
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   activeOpacity={0.7}
@@ -286,7 +291,9 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                     },
                   ]}
                 >
-                  <Text style={[styles.button__text]}>REMOVE</Text>
+                  <Text style={[styles.button__text, { fontSize: 15 }]}>
+                    REMOVE
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -304,11 +311,11 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                 borderRadius: 5,
                 alignSelf: "flex-end",
                 marginTop: 10,
-                maxWidth: 200,
+                maxWidth: 100,
               },
             ]}
           >
-            <Text style={[styles.button__text]}>SAVE</Text>
+            <Text style={[styles.button__text, { fontSize: 15 }]}>SAVE</Text>
           </TouchableOpacity>
         </View>
       </View>

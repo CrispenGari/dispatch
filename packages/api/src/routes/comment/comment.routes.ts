@@ -1,7 +1,11 @@
 import {
   commentSchema,
+  deleteCommentReplySchema,
+  deleteCommentSchema,
   getReplySchema,
   getSchema,
+  onCommentDeleteSchema,
+  onCommentReplyDeleteSchema,
   onCommentReplySchema,
   onNewCommentNotificationSchema,
   onTweetCommentSchema,
@@ -11,7 +15,7 @@ import { publicProcedure, router } from "../../trpc/trpc";
 import { verifyJwt } from "../../utils/jwt";
 import { Events } from "../../constants";
 import EventEmitter from "events";
-import { Tweet, User, Notification, Comment } from "@prisma/client";
+import { Tweet, User, Notification, Comment, Reply } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
 
 const ee = new EventEmitter();
@@ -62,6 +66,38 @@ export const commentRoute = router({
         };
       });
     }),
+
+  onCommentDelete: publicProcedure
+    .input(onCommentDeleteSchema)
+    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
+      return observable<Comment>((emit) => {
+        const handler = (comment: Comment) => {
+          if (comment.tweetId === tweetId) {
+            emit.next(comment);
+          }
+        };
+        ee.on(Events.ON_COMMENT_DELETE, handler);
+        return () => {
+          ee.off(Events.ON_COMMENT_DELETE, handler);
+        };
+      });
+    }),
+  onCommentReplyDelete: publicProcedure
+    .input(onCommentReplyDeleteSchema)
+    .subscription(async ({ ctx: {}, input: { uid, commentId } }) => {
+      return observable<Reply>((emit) => {
+        const handler = (reply: Reply) => {
+          if (reply.commentId === commentId) {
+            emit.next(reply);
+          }
+        };
+        ee.on(Events.ON_COMMENT_REPLY_DELETE, handler);
+        return () => {
+          ee.off(Events.ON_COMMENT_REPLY_DELETE, handler);
+        };
+      });
+    }),
+
   comment: publicProcedure
     .input(commentSchema)
     .mutation(async ({ ctx: { prisma, req }, input: { id, comment } }) => {
@@ -201,6 +237,73 @@ export const commentRoute = router({
         return reply;
       } catch (error) {
         return null;
+      }
+    }),
+
+  deleteComment: publicProcedure
+    .input(deleteCommentSchema)
+    .mutation(async ({ ctx: { prisma, req }, input: { id } }) => {
+      try {
+        const token = req.headers.authorization?.split(/\s/)[1];
+        if (!!!token)
+          return {
+            error:
+              "You can not delete the comment if you are not authenticated.",
+          };
+        const { id: uid } = await verifyJwt(token);
+        const me = await prisma.user.findFirst({ where: { id: uid } });
+        if (!!!me)
+          return {
+            error:
+              "You can not delete the comment if you are not authenticated.",
+          };
+        const comment = await prisma.comment.findFirst({ where: { id } });
+        if (!!!comment)
+          return { error: "This comment is no longer available." };
+        if (uid !== comment.userId)
+          return {
+            error: "You can not delete the comment that does't belong to you.",
+          };
+        await prisma.comment.delete({ where: { id: comment.id } });
+        ee.emit(Events.ON_COMMENT_DELETE, comment);
+        return { comment };
+      } catch (error) {
+        return { error: "Unable to delete the comment for whatever reason." };
+      }
+    }),
+
+  deleteCommentReply: publicProcedure
+    .input(deleteCommentReplySchema)
+    .mutation(async ({ ctx: { prisma, req }, input: { id } }) => {
+      try {
+        const token = req.headers.authorization?.split(/\s/)[1];
+        if (!!!token)
+          return {
+            error:
+              "You can not delete a comment reply if you are not authenticated.",
+          };
+        const { id: uid } = await verifyJwt(token);
+        const me = await prisma.user.findFirst({ where: { id: uid } });
+        if (!!!me)
+          return {
+            error:
+              "You can not delete a comment reply if you are not authenticated.",
+          };
+        const reply = await prisma.reply.findFirst({ where: { id } });
+        if (!!!reply)
+          return { error: "This comment reply is no longer available." };
+        if (uid !== reply.userId)
+          return {
+            error:
+              "You can not delete the comment reply that does't belong to you.",
+          };
+        await prisma.reply.delete({ where: { id: reply.id } });
+        ee.emit(Events.ON_COMMENT_REPLY_DELETE, reply);
+        return { reply };
+      } catch (error) {
+        return {
+          error: "Unable to delete the comment reply for whatever reason.",
+        };
       }
     }),
 });

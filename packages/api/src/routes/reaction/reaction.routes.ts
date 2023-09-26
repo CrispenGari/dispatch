@@ -55,9 +55,9 @@ export const reactionRoute = router({
             emit.next(reply);
           }
         };
-        ee.on(Events.ON_COMMENT_REACTION, handler);
+        ee.on(Events.ON_COMMENT_REPLY_REACTION, handler);
         return () => {
-          ee.off(Events.ON_COMMENT_REACTION, handler);
+          ee.off(Events.ON_COMMENT_REPLY_REACTION, handler);
         };
       });
     }),
