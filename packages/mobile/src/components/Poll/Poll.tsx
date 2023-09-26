@@ -34,15 +34,16 @@ const Poll: React.FunctionComponent<Props> = ({
       disabled={voting}
       style={{
         backgroundColor: COLORS.main,
-        borderWidth: 3,
+        borderWidth: 1,
         borderColor: COLORS.gray,
-        borderRadius: 5,
+        borderRadius: 999,
         paddingVertical: 5,
         paddingHorizontal: 10,
         marginBottom: 3,
         width: "100%",
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "center",
       }}
       activeOpacity={0.7}
       onPress={vote}
@@ -55,7 +56,7 @@ const Poll: React.FunctionComponent<Props> = ({
             right: 0,
             bottom: 0,
             left: 0,
-            borderRadius: 3,
+            borderRadius: 999,
           }}
         >
           <View
@@ -64,19 +65,19 @@ const Poll: React.FunctionComponent<Props> = ({
               {
                 backgroundColor: COLORS.primary,
                 width: `${percentage}%`,
-                borderRadius: 3,
+                borderRadius: 999,
               },
             ]}
           />
         </View>
       ) : null}
       <Text
-        style={[styles.h1, { fontSize: 18, zIndex: 1, overflow: "visible" }]}
+        style={[styles.h1, { fontSize: 16, zIndex: 1, overflow: "visible" }]}
       >
         {poll.text}
       </Text>
       {showResults ? (
-        <Text style={[styles.p, { fontSize: 16, marginLeft: 10 }]}>
+        <Text style={[styles.p, { fontSize: 14, marginLeft: 10 }]}>
           {percentage.toFixed(0)} %
         </Text>
       ) : null}

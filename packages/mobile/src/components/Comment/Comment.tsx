@@ -14,15 +14,23 @@ import {
 import { BottomSheet } from "react-native-btr";
 import Reply from "../Reply/Reply";
 import { trpc } from "../../utils/trpc";
+import CommentSkeleton from "../skeletons/CommentSkeleton";
+import CustomTextInput from "../CustomTextInput/CustomTextInput";
 
 interface Props {
   id: string;
 }
 const Comment: React.FunctionComponent<Props> = ({ id }) => {
+  const [form, setForm] = React.useState({
+    height: 40,
+    reply: "",
+    liked: false,
+  });
+
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
-  const [form, setForm] = React.useState({ liked: false });
+
   const {
     data: comment,
     isLoading,
@@ -30,6 +38,9 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
   } = trpc.comment.get.useQuery({ id });
   const { mutateAsync: mutateReactToComment, isLoading: reacting } =
     trpc.reaction.reactToComment.useMutation();
+
+  const { isLoading: replying, mutateAsync: mutateReplyComment } =
+    trpc.comment.reply.useMutation();
   trpc.reaction.onTweetCommentReaction.useSubscription(
     {
       uid: me?.id || "",
@@ -61,6 +72,16 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
       mutateReactToComment({ id: comment.id });
     }
   };
+  const replyToComment = () => {
+    if (!!!form.reply.trim() || !!!comment) return;
+    mutateReplyComment({ id: comment.id, reply: form.reply.trim() }).then(
+      (res) => {
+        if (res) {
+          setForm((state) => ({ ...state, reply: "" }));
+        }
+      }
+    );
+  };
   React.useEffect(() => {
     if (!!comment && !!me) {
       const liked = !!comment.reactions.find(
@@ -70,10 +91,18 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
     }
   }, [comment, me]);
 
-  if (!!!comment) return <Text>Failed to load comment</Text>;
+  if (!!!comment) return <CommentSkeleton />;
 
   return (
-    <View style={{ paddingVertical: 5, paddingHorizontal: 10 }}>
+    <View
+      style={{
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderBlockColor: COLORS.tertiary,
+        borderBottomWidth: 0.5,
+        maxWidth: 500,
+      }}
+    >
       <BottomSheet
         visible={!!open}
         onBackButtonPress={toggle}
@@ -269,35 +298,42 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
                 : `@${comment.creator.nickname}`}{" "}
             </Text>
             {comment.creator.verified ? (
-              <MaterialIcons name="verified" size={18} color={COLORS.primary} />
+              <MaterialIcons name="verified" size={14} color={COLORS.primary} />
             ) : null}
             <Text style={{ fontFamily: FONTS.extraBold, fontSize: 16 }}>
               {" "}
               •
             </Text>
-            <Text style={[styles.p, { fontSize: 18 }]}>
+            <Text style={[styles.p, { fontSize: 14 }]}>
               {" "}
               {dayjs(comment.createdAt).fromNow()}
             </Text>
           </View>
 
-          <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 14 }]}>
+          <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 12 }]}>
             {comment.creator.email}
           </Text>
         </View>
         <TouchableOpacity
-          style={{ width: 40, height: 40, marginLeft: 5, borderRadius: 40 }}
+          style={{
+            width: 30,
+            height: 30,
+            marginLeft: 5,
+            borderRadius: 30,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
           onPress={toggle}
           activeOpacity={0.7}
         >
           <MaterialCommunityIcons
             name="dots-vertical"
-            size={24}
+            size={16}
             color="black"
           />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.p, { fontSize: 18, marginVertical: 5 }]}>
+      <Text style={[styles.p, { fontSize: 16, marginVertical: 3 }]}>
         {comment.text}
       </Text>
       <View
@@ -305,7 +341,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-around",
-          marginVertical: 10,
+          marginVertical: 5,
         }}
       >
         <TouchableOpacity
@@ -314,14 +350,14 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
         >
           <MaterialCommunityIcons
             name="reply-outline"
-            size={24}
+            size={16}
             color={COLORS.darkGray}
           />
 
           <Text
             style={[
               styles.h1,
-              { fontSize: 18, color: COLORS.darkGray, marginLeft: 10 },
+              { fontSize: 14, color: COLORS.darkGray, marginLeft: 10 },
             ]}
           >
             {comment.replies.length}
@@ -335,7 +371,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
         >
           <MaterialIcons
             name={form.liked ? "favorite" : "favorite-border"}
-            size={20}
+            size={16}
             color={COLORS.primary}
           />
           <Text
@@ -350,7 +386,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons
             name="ios-people-outline"
-            size={20}
+            size={16}
             color={COLORS.darkGray}
           />
           <Text
@@ -359,7 +395,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
               { fontSize: 14, color: COLORS.darkGray, marginLeft: 10 },
             ]}
           >
-            {new Set(comment.replies).size}
+            {new Set(comment.replies.map((r) => r.userId)).size}
           </Text>
         </View>
       </View>
@@ -367,6 +403,52 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
       {comment.replies.map(({ id }) => (
         <Reply key={id} id={id} />
       ))}
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          paddingHorizontal: 10,
+          paddingVertical: 10,
+          alignSelf: "flex-end",
+          width: "90%",
+        }}
+      >
+        <CustomTextInput
+          placeholder="Reply on this comment..."
+          containerStyles={{ flex: 1 }}
+          inputStyle={{ maxHeight: 100 }}
+          multiline
+          text={form.reply}
+          onContentSizeChange={(e) => {
+            e.persist();
+            setForm((state) => ({
+              ...state,
+              height: e.nativeEvent?.contentSize?.height + 20 ?? form.height,
+            }));
+          }}
+          onChangeText={(reply) => setForm((state) => ({ ...state, reply }))}
+          onSubmitEditing={replyToComment}
+        />
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={replyToComment}
+          disabled={replying}
+          style={[
+            styles.button,
+            {
+              backgroundColor: COLORS.primary,
+              padding: 5,
+              borderRadius: 5,
+              alignSelf: "flex-start",
+              maxWidth: 60,
+              marginLeft: 3,
+            },
+          ]}
+        >
+          <Text style={[styles.button__text, { fontSize: 12 }]}>REPLY</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

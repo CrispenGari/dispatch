@@ -13,6 +13,7 @@ import {
 } from "@expo/vector-icons";
 import { BottomSheet } from "react-native-btr";
 import { trpc } from "../../utils/trpc";
+import ReplySkeleton from "../skeletons/ReplySkeleton";
 interface Props {
   id: string;
 }
@@ -40,11 +41,24 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
       },
     }
   );
-
-  if (!!!reply) return <Text>Failed to fetch reply</Text>;
-
+  if (!!!reply || isLoading) return <ReplySkeleton />;
   return (
-    <View style={{ paddingVertical: 5, paddingHorizontal: 10 }}>
+    <View
+      style={{
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        width: "80%",
+        alignSelf: "flex-end",
+      }}
+    >
+      <View
+        style={{
+          borderRightWidth: 1,
+          position: "absolute",
+          height: 20,
+          borderColor: COLORS.tertiary,
+        }}
+      />
       <BottomSheet
         visible={!!open}
         onBackButtonPress={toggle}
@@ -95,7 +109,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
               style={[
                 styles.h1,
                 {
-                  fontSize: 18,
+                  fontSize: 16,
                   color:
                     me?.id !== reply.creator.id
                       ? COLORS.darkGray
@@ -130,7 +144,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
               style={[
                 styles.h1,
                 {
-                  fontSize: 18,
+                  fontSize: 16,
                   color:
                     me?.id === reply.creator.id ? COLORS.darkGray : COLORS.red,
                 },
@@ -161,7 +175,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
               style={[
                 styles.h1,
                 {
-                  fontSize: 18,
+                  fontSize: 16,
                   color:
                     me?.id !== reply.creator.id ? COLORS.darkGray : COLORS.red,
                 },
@@ -191,7 +205,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
               style={[
                 styles.h1,
                 {
-                  fontSize: 18,
+                  fontSize: 16,
                   color:
                     me?.id === reply.creator.id ? COLORS.darkGray : COLORS.red,
                 },
@@ -213,50 +227,57 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
             uri: Image.resolveAssetSource(profile).uri,
           }}
           style={{
-            width: 30,
-            height: 30,
+            width: 25,
+            height: 25,
             resizeMode: "contain",
             marginRight: 5,
-            borderRadius: 30,
+            borderRadius: 25,
           }}
         />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ fontFamily: FONTS.extraBold, fontSize: 16 }}>
+            <Text style={{ fontFamily: FONTS.extraBold, fontSize: 14 }}>
               {reply.creator.id === me?.id
                 ? "you"
                 : `@${reply.creator.nickname}`}{" "}
             </Text>
             {reply.creator.verified ? (
-              <MaterialIcons name="verified" size={18} color={COLORS.primary} />
+              <MaterialIcons name="verified" size={16} color={COLORS.primary} />
             ) : null}
-            <Text style={{ fontFamily: FONTS.extraBold, fontSize: 16 }}>
+            <Text style={{ fontFamily: FONTS.extraBold, fontSize: 14 }}>
               {" "}
               •
             </Text>
-            <Text style={[styles.p, { fontSize: 18 }]}>
+            <Text style={[styles.p, { fontSize: 16 }]}>
               {" "}
               {dayjs(reply.createdAt).fromNow()}
             </Text>
           </View>
 
-          <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 14 }]}>
+          <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 12 }]}>
             {reply.creator.email}
           </Text>
         </View>
         <TouchableOpacity
-          style={{ width: 40, height: 40, marginLeft: 5, borderRadius: 40 }}
+          style={{
+            width: 20,
+            height: 20,
+            marginLeft: 5,
+            borderRadius: 20,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
           onPress={toggle}
           activeOpacity={0.7}
         >
           <MaterialCommunityIcons
             name="dots-vertical"
-            size={24}
+            size={15}
             color="black"
           />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.p, { fontSize: 18, marginVertical: 5 }]}>
+      <Text style={[styles.p, { fontSize: 16, marginVertical: 3 }]}>
         {reply.text}
       </Text>
       <View
@@ -264,7 +285,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-around",
-          marginVertical: 10,
+          marginVertical: 5,
         }}
       >
         <TouchableOpacity
@@ -273,7 +294,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
         >
           <MaterialCommunityIcons
             name="reply-outline"
-            size={24}
+            size={16}
             color={COLORS.darkGray}
           />
         </TouchableOpacity>
@@ -284,7 +305,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
         >
           <MaterialIcons
             name={form.liked ? "favorite" : "favorite-border"}
-            size={20}
+            size={16}
             color={COLORS.primary}
           />
           <Text

@@ -27,7 +27,7 @@ const AppStackBackButton: React.FunctionComponent<Props> = ({
           marginLeft: 2,
           color: COLORS.primary,
           fontFamily: FONTS.regularBold,
-          fontSize: 22,
+          fontSize: 18,
         }}
       >
         {label}

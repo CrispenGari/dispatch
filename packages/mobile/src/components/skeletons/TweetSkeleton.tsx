@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import React from "react";
 import { COLORS } from "../../constants";
 import ContentLoader from "../ContentLoader/ContentLoader";
@@ -19,11 +19,11 @@ const TweetSkeleton = () => {
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
         <ContentLoader
           style={{
-            width: 50,
-            height: 50,
+            width: 40,
+            height: 40,
             backgroundColor: COLORS.loaderGray,
             marginRight: 5,
-            borderRadius: 50,
+            borderRadius: 40,
           }}
         />
         <View style={{ flex: 1 }}>
@@ -37,7 +37,7 @@ const TweetSkeleton = () => {
               <ContentLoader
                 style={{
                   width: "100%",
-                  height: 15,
+                  height: 10,
                   backgroundColor: COLORS.loaderGray,
                   borderRadius: 999,
                   marginBottom: 3,
@@ -46,7 +46,7 @@ const TweetSkeleton = () => {
               <ContentLoader
                 style={{
                   width: "50%",
-                  height: 15,
+                  height: 10,
                   backgroundColor: COLORS.loaderGray,
                   borderRadius: 999,
                   marginBottom: 3,
@@ -55,8 +55,8 @@ const TweetSkeleton = () => {
             </View>
             <ContentLoader
               style={{
-                width: 10,
-                height: 30,
+                width: 5,
+                height: 20,
                 backgroundColor: COLORS.loaderGray,
                 marginLeft: 5,
                 borderRadius: 999,
@@ -66,7 +66,7 @@ const TweetSkeleton = () => {
           <ContentLoader
             style={{
               width: 100,
-              height: 10,
+              height: 5,
               marginRight: 5,
               borderRadius: 999,
               backgroundColor: COLORS.loaderGray,
@@ -101,6 +101,7 @@ const TweetSkeleton = () => {
           }}
         />
       </View>
+
       <View style={{ marginVertical: 3 }}>
         {Array(3)
           .fill(null)
@@ -110,7 +111,7 @@ const TweetSkeleton = () => {
               style={{
                 width: "100%",
                 height: 30,
-                borderRadius: 5,
+                borderRadius: 999,
                 marginRight: 5,
                 backgroundColor: COLORS.loaderGray,
                 marginTop: 5,
@@ -118,32 +119,15 @@ const TweetSkeleton = () => {
             />
           ))}
       </View>
-      <View
+      <ContentLoader
         style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
+          width: 80,
+          height: 10,
+          backgroundColor: COLORS.loaderGray,
           marginTop: 5,
+          borderRadius: 999,
         }}
-      >
-        <ContentLoader
-          style={{
-            width: 50,
-            height: 40,
-            marginRight: 5,
-            backgroundColor: COLORS.loaderGray,
-            flex: 1,
-            borderRadius: 5,
-          }}
-        />
-        <ContentLoader
-          style={{
-            width: 80,
-            height: 30,
-            backgroundColor: COLORS.loaderGray,
-            borderRadius: 5,
-          }}
-        />
-      </View>
+      />
       <View
         style={{
           flexDirection: "row",
@@ -155,15 +139,28 @@ const TweetSkeleton = () => {
         {Array(3)
           .fill(null)
           .map((_, i) => (
-            <ContentLoader
-              style={{
-                width: 80,
-                height: 20,
-                backgroundColor: COLORS.loaderGray,
-                marginRight: 5,
-                borderRadius: 999,
-              }}
-            />
+            <View
+              key={i}
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
+              <ContentLoader
+                style={{
+                  width: 30,
+                  height: 20,
+                  backgroundColor: COLORS.loaderGray,
+                  marginRight: 3,
+                  borderRadius: 5,
+                }}
+              />
+              <ContentLoader
+                style={{
+                  width: 20,
+                  height: 10,
+                  backgroundColor: COLORS.loaderGray,
+                  borderRadius: 999,
+                }}
+              />
+            </View>
           ))}
       </View>
     </View>

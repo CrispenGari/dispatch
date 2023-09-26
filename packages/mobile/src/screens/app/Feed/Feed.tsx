@@ -6,6 +6,7 @@ import {
   NativeSyntheticEvent,
   View,
   Text,
+  RefreshControl,
 } from "react-native";
 import React from "react";
 import { AppNavProps } from "../../../params";
@@ -20,7 +21,12 @@ import Tweet from "../../../components/Tweet/Tweet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
-  const { data: tweets, refetch } = trpc.tweet.tweets.useQuery();
+  const {
+    data: tweets,
+    refetch,
+    isLoading: loading,
+    isFetching: fetching,
+  } = trpc.tweet.tweets.useQuery();
   const { os } = usePlatform();
   const {
     dimension: { height },
@@ -116,18 +122,18 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
             navigation.navigate("Create");
           }}
           style={{
-            top: os === "android" ? height * 0.75 : height * 0.7,
+            top: os === "android" ? height * 0.8 : height * 0.75,
             left: 30,
             backgroundColor: COLORS.primary,
             justifyContent: "center",
             alignItems: "center",
-            width: 50,
-            height: 50,
-            borderRadius: 50,
+            width: 40,
+            height: 40,
+            borderRadius: 40,
           }}
           activeOpacity={0.7}
         >
-          <MaterialIcons name="create" size={30} color={COLORS.black} />
+          <MaterialIcons name="create" size={20} color={COLORS.black} />
         </TouchableOpacity>
       </Animated.View>
       <ScrollView
@@ -138,6 +144,15 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={fetching || loading}
+            size={4}
+            onRefresh={async () => {
+              await refetch();
+            }}
+          />
+        }
       >
         <View
           style={{

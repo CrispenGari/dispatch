@@ -27,7 +27,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   const { location } = useLocationStore();
   const [{ height, ...form }, setForm] = React.useState({
     tweet: "",
-    height: 40,
+    height: 45,
     enablePolls: false,
     polls: [
       { id: 0, text: "" },
@@ -197,12 +197,13 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
               inputStyle={{ height, maxHeight: 300 }}
               multiline
               text={form.tweet}
-              onContentSizeChange={(e) =>
+              onContentSizeChange={(e) => {
+                e.persist();
                 setForm((state) => ({
                   ...state,
-                  height: e.nativeEvent?.contentSize?.height ?? height,
-                }))
-              }
+                  height: e.nativeEvent?.contentSize?.height + 20 ?? height,
+                }));
+              }}
               onChangeText={(tweet) =>
                 setForm((state) => ({ ...state, tweet }))
               }
@@ -240,18 +241,12 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                   text={poll.text}
                   placeholder={`Poll Text ${poll.id + 1}...`}
                   onChangeText={(text) =>
-                    setForm((state) => {
-                      return {
-                        ...state,
-                        polls: form.polls.map((p) => {
-                          if (p.id === poll.id) {
-                            return { ...p, text };
-                          } else {
-                            return p;
-                          }
-                        }),
-                      };
-                    })
+                    setForm((state) => ({
+                      ...state,
+                      polls: form.polls.map((p) =>
+                        p.id === poll.id ? { ...p, text } : p
+                      ),
+                    }))
                   }
                 />
               ))}

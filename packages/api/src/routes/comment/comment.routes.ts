@@ -107,51 +107,68 @@ export const commentRoute = router({
     }),
   reply: publicProcedure
     .input(replySchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { id, reply } }) => {
-      try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token) return false;
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
-        if (!!!me) return false;
-        const comment = await prisma.comment.findFirst({
-          where: { id },
-          include: {
-            creator: true,
-            tweet: {
-              include: { creator: true },
+    .mutation(
+      async ({ ctx: { prisma, req }, input: { id, reply, mention } }) => {
+        try {
+          const token = req.headers.authorization?.split(/\s/)[1];
+          if (!!!token) return false;
+          const { id: uid } = await verifyJwt(token);
+          const me = await prisma.user.findFirst({ where: { id: uid } });
+          if (!!!me) return false;
+          const comment = await prisma.comment.findFirst({
+            where: { id },
+            include: {
+              creator: true,
+              tweet: {
+                include: { creator: true },
+              },
             },
-          },
-        });
-        if (!!!comment) return false;
-        const commentReply = await prisma.reply.create({
-          data: {
-            text: reply.trim(),
-            creator: { connect: { id: me.id } },
-            comment: { connect: { id: comment.id } },
-          },
-          include: { creator: true },
-        });
-        if (comment.creator.id !== me.id) {
-          const notification = await prisma.notification.create({
-            data: {
-              title: `comment reply`,
-              message:
-                me.id === comment.tweet?.creator.id
-                  ? `@${commentReply.creator.nickname} - reply to your comment on your tweet.`
-                  : `@${commentReply.creator.nickname} - reply to your comment on ${comment.tweet?.creator.nickname}'s tweet.`,
-              user: { connect: { id: comment.creator.id } },
-            },
-            include: { user: true },
           });
-          ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          if (!!!comment) return false;
+          const commentReply = await prisma.reply.create({
+            data: {
+              text: reply.trim(),
+              creator: { connect: { id: me.id } },
+              comment: { connect: { id: comment.id } },
+            },
+            include: { creator: true },
+          });
+          if (comment.creator.id !== me.id) {
+            if (mention) {
+              // const notification = await prisma.notification.create({
+              //   data: {
+              //     title: `comment reply`,
+              //     message:
+              //       me.id === comment.tweet?.creator.id
+              //         ? `@${commentReply.creator.nickname} - reply to your comment on your tweet.`
+              //         : `@${commentReply.creator.nickname} - reply to your comment on ${comment.tweet?.creator.nickname}'s tweet.`,
+              //     user: { connect: { id: comment.creator.id } },
+              //   },
+              //   include: { user: true },
+              // });
+              // ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+            } else {
+              const notification = await prisma.notification.create({
+                data: {
+                  title: `comment reply`,
+                  message:
+                    me.id === comment.tweet?.creator.id
+                      ? `@${commentReply.creator.nickname} - reply to your comment on your tweet.`
+                      : `@${commentReply.creator.nickname} - reply to your comment on ${comment.tweet?.creator.nickname}'s tweet.`,
+                  user: { connect: { id: comment.creator.id } },
+                },
+                include: { user: true },
+              });
+              ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+            }
+          }
+          ee.emit(Events.ON_COMMENT_REPLY, comment);
+          return true;
+        } catch (error) {
+          return false;
         }
-        ee.emit(Events.ON_COMMENT_REPLY, comment);
-        return true;
-      } catch (error) {
-        return false;
       }
-    }),
+    ),
   get: publicProcedure
     .input(getSchema)
     .query(async ({ ctx: { prisma }, input: { id } }) => {
@@ -160,7 +177,7 @@ export const commentRoute = router({
           where: { id },
           include: {
             creator: true,
-            replies: { select: { id: true } },
+            replies: { select: { id: true, userId: true } },
             reactions: { select: { id: true, creatorId: true } },
           },
         });
@@ -178,7 +195,7 @@ export const commentRoute = router({
           where: { id },
           include: {
             creator: true,
-            reactions: { select: { id: true }, include: { creator: true } },
+            reactions: { include: { creator: true } },
           },
         });
         return reply;

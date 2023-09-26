@@ -380,51 +380,58 @@ const Tweet: React.FunctionComponent<Props> = ({
             uri: Image.resolveAssetSource(profile).uri,
           }}
           style={{
-            width: 50,
-            height: 50,
+            width: 40,
+            height: 40,
             resizeMode: "contain",
             marginRight: 5,
-            borderRadius: 50,
+            borderRadius: 40,
           }}
         />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ fontFamily: FONTS.extraBold, fontSize: 20 }}>
+            <Text style={{ fontFamily: FONTS.extraBold, fontSize: 16 }}>
               {tweet.creator.id === me?.id
                 ? "you"
                 : `@${tweet.creator.nickname}`}{" "}
             </Text>
             {tweet.creator.verified ? (
-              <MaterialIcons name="verified" size={18} color={COLORS.primary} />
+              <MaterialIcons name="verified" size={14} color={COLORS.primary} />
             ) : null}
             <Text style={{ fontFamily: FONTS.extraBold, fontSize: 20 }}>
               {" "}
               •
             </Text>
-            <Text style={[styles.p, { fontSize: 18 }]}>
+            <Text style={[styles.p, { fontSize: 16 }]}>
               {" "}
               {dayjs(tweet.createdAt).fromNow()}
             </Text>
           </View>
 
-          <Text style={[styles.p, { color: COLORS.darkGray }]}>
+          <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 14 }]}>
             {tweet.creator.email}
           </Text>
         </View>
         <TouchableOpacity
-          style={{ width: 40, height: 40, marginLeft: 5, borderRadius: 40 }}
+          style={{
+            width: 20,
+            height: 20,
+            marginLeft: 5,
+            borderRadius: 20,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
           onPress={toggle}
           activeOpacity={0.7}
         >
           <MaterialCommunityIcons
             name="dots-vertical"
-            size={24}
+            size={16}
             color="black"
           />
         </TouchableOpacity>
       </View>
       <View style={{ marginVertical: 5 }}>
-        <Text style={[styles.p, { fontSize: 18 }]}>{tweet.text}</Text>
+        <Text style={[styles.p, { fontSize: 16 }]}>{tweet.text}</Text>
       </View>
       <View style={{ marginVertical: 3 }}>
         {tweet.polls.map((poll) => (
@@ -441,55 +448,16 @@ const Tweet: React.FunctionComponent<Props> = ({
           <Text
             style={[
               styles.p,
-              { alignSelf: "flex-end", marginVertical: 2, fontSize: 18 },
+              {
+                marginVertical: 2,
+                fontSize: 16,
+                color: COLORS.darkGray,
+              },
             ]}
           >
             {tweet.polls.flatMap((p) => p.votes).length} votes
           </Text>
         ) : null}
-      </View>
-
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-        }}
-      >
-        <CustomTextInput
-          placeholder="Comment on this tweet..."
-          containerStyles={{ flex: 1 }}
-          inputStyle={{ maxHeight: 100 }}
-          multiline
-          text={form.comment}
-          // onContentSizeChange={(e) =>
-          //   setForm((state) => ({
-          //     ...state,
-          //     height: e.nativeEvent?.contentSize?.height ?? form.height,
-          //   }))
-          // }
-          onChangeText={(comment) =>
-            setForm((state) => ({ ...state, comment }))
-          }
-          onSubmitEditing={commentOnTweet}
-        />
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={commentOnTweet}
-          disabled={commenting}
-          style={[
-            styles.button,
-            {
-              backgroundColor: COLORS.primary,
-              padding: 5,
-              borderRadius: 5,
-              alignSelf: "flex-start",
-              maxWidth: 100,
-              marginLeft: 3,
-            },
-          ]}
-        >
-          <Text style={[styles.button__text]}>COMMENT</Text>
-        </TouchableOpacity>
       </View>
       <View
         style={{
@@ -505,13 +473,13 @@ const Tweet: React.FunctionComponent<Props> = ({
         >
           <MaterialCommunityIcons
             name="comment-quote-outline"
-            size={24}
+            size={16}
             color={COLORS.darkGray}
           />
           <Text
             style={[
               styles.h1,
-              { fontSize: 18, color: COLORS.darkGray, marginLeft: 10 },
+              { fontSize: 14, color: COLORS.darkGray, marginLeft: 10 },
             ]}
           >
             {tweet.comments.length}
@@ -524,13 +492,13 @@ const Tweet: React.FunctionComponent<Props> = ({
         >
           <MaterialIcons
             name={form.liked ? "favorite" : "favorite-border"}
-            size={24}
+            size={16}
             color={COLORS.primary}
           />
           <Text
             style={[
               styles.h1,
-              { fontSize: 18, color: COLORS.darkGray, marginLeft: 10 },
+              { fontSize: 16, color: COLORS.darkGray, marginLeft: 10 },
             ]}
           >
             {tweet.reactions.length}
@@ -542,13 +510,13 @@ const Tweet: React.FunctionComponent<Props> = ({
         >
           <Ionicons
             name="ios-stats-chart-outline"
-            size={24}
+            size={16}
             color={COLORS.secondary}
           />
           <Text
             style={[
               styles.h1,
-              { fontSize: 18, color: COLORS.darkGray, marginLeft: 10 },
+              { fontSize: 16, color: COLORS.darkGray, marginLeft: 10 },
             ]}
           >
             {tweet.views}
