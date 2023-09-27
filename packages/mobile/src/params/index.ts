@@ -28,10 +28,14 @@ export type AppParamList = {
   Settings: undefined;
   Notifications: undefined;
   Create: undefined;
-  Edit: { id: string };
-  Tweet: { id: string };
+  Edit: { id: string; from: keyof AppParamList };
+  Tweet: { id: string; from: keyof AppParamList };
   AppPrivacyPolicy: undefined;
   AppTermsOfUse: undefined;
+  User: {
+    id: string;
+    from: keyof AppParamList;
+  };
 };
 
 export type AppNavProps<T extends keyof AppParamList> = {

@@ -141,12 +141,12 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
       },
       headerLeft: () => (
         <AppStackBackButton
-          label={os === "ios" ? "Feed" : ""}
+          label={os === "ios" ? route.params.from : ""}
           onPress={() => navigation.goBack()}
         />
       ),
     });
-  }, [navigation]);
+  }, [navigation, route]);
 
   if (fetching) return <Text>Fetching...</Text>;
 
@@ -177,18 +177,29 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
             />
           ) : null}
           <View style={{ flexDirection: "row" }}>
-            <Image
-              source={{
-                uri: Image.resolveAssetSource(profile).uri,
-              }}
-              style={{
-                width: 50,
-                height: 50,
-                resizeMode: "contain",
-                marginRight: 5,
-                borderRadius: 50,
-              }}
-            />
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() =>
+                navigation.navigate("User", {
+                  id: me?.id || "",
+                  from: "Edit",
+                })
+              }
+            >
+              <Image
+                source={{
+                  uri: Image.resolveAssetSource(profile).uri,
+                }}
+                style={{
+                  width: 50,
+                  height: 50,
+                  resizeMode: "contain",
+                  marginRight: 5,
+                  borderRadius: 50,
+                }}
+              />
+            </TouchableOpacity>
+
             <CustomTextInput
               containerStyles={{
                 borderColor: COLORS.secondary,

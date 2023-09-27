@@ -5,7 +5,7 @@ import { signJwt, verifyJwt } from "../../utils/jwt";
 export const profileRouter = router({
   authProfile: publicProcedure
     .input(authProfileSchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { gender } }) => {
+    .mutation(async ({ ctx: { prisma, req }, input: { gender, bio } }) => {
       try {
         const jwt = req.headers?.authorization?.split(/\s/)[1];
         if (!!!jwt) {
@@ -25,6 +25,7 @@ export const profileRouter = router({
           data: {
             isAuthenticated: true,
             gender,
+            bio: bio?.trim() || "",
           },
         });
         const _jwt = await signJwt(user);

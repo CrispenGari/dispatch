@@ -14,10 +14,14 @@ import {
 import { BottomSheet } from "react-native-btr";
 import { trpc } from "../../utils/trpc";
 import ReplySkeleton from "../skeletons/ReplySkeleton";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AppParamList } from "../../params";
 interface Props {
   id: string;
+
+  navigation: StackNavigationProp<AppParamList, "Feed" | "User" | "Tweet">;
 }
-const Reply: React.FunctionComponent<Props> = ({ id }) => {
+const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
@@ -26,6 +30,8 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
     trpc.reaction.reactToCommentReply.useMutation();
   const { isLoading: deleting, mutateAsync: mutateDeleteReply } =
     trpc.comment.deleteCommentReply.useMutation();
+  const { isLoading: viewing, mutateAsync: mutateViewProfile } =
+    trpc.user.viewProfile.useMutation();
 
   const {
     refetch,
@@ -52,6 +58,12 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
     mutateReactToReply({ id: reply.id }).then((res) => console.log({ res }));
   };
 
+  const viewProfile = () => {
+    if (viewing || !!!reply) return;
+    mutateViewProfile({ id: reply.userId }).then((res) => {
+      navigation.navigate("User", { from: "Tweet", id: reply.userId });
+    });
+  };
   const deleteReply = () => {
     if (!!!reply) return;
     mutateDeleteReply({ id: reply.id }).then(({ error }) => {
@@ -227,19 +239,25 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
         </View>
       </BottomSheet>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-        <Image
-          source={{
-            uri: Image.resolveAssetSource(profile).uri,
-          }}
-          style={{
-            width: 25,
-            height: 25,
-            resizeMode: "contain",
-            marginRight: 5,
-            borderRadius: 25,
-          }}
-        />
-        <View style={{ flex: 1 }}>
+        <TouchableOpacity activeOpacity={0.7} onPress={viewProfile}>
+          <Image
+            source={{
+              uri: Image.resolveAssetSource(profile).uri,
+            }}
+            style={{
+              width: 25,
+              height: 25,
+              resizeMode: "contain",
+              marginRight: 5,
+              borderRadius: 25,
+            }}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flex: 1 }}
+          activeOpacity={0.7}
+          onPress={viewProfile}
+        >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={{ fontFamily: FONTS.extraBold, fontSize: 14 }}>
               {reply.creator.id === me?.id
@@ -262,7 +280,7 @@ const Reply: React.FunctionComponent<Props> = ({ id }) => {
           <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 12 }]}>
             {reply.creator.email}
           </Text>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
           style={{
             width: 20,

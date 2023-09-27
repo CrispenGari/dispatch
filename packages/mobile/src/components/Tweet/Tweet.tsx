@@ -7,15 +7,7 @@ import {
   profile,
   relativeTimeObject,
 } from "../../constants";
-import {
-  Poll as P,
-  Reaction,
-  Tweet as T,
-  User,
-  Comment,
-  Reply,
-  Vote,
-} from "@dispatch/api";
+
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
@@ -30,7 +22,6 @@ import { useMeStore } from "../../store";
 import { trpc } from "../../utils/trpc";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppParamList } from "../../params";
-import CustomTextInput from "../CustomTextInput/CustomTextInput";
 import Poll from "../Poll/Poll";
 import TweetSkeleton from "../skeletons/TweetSkeleton";
 dayjs.extend(relativeTime);
@@ -41,12 +32,14 @@ dayjs.updateLocale("en", {
 });
 
 interface Props {
-  navigation: StackNavigationProp<AppParamList, "Feed">;
+  navigation: StackNavigationProp<AppParamList, "Feed" | "User" | "Tweet">;
   tweet: { id: string };
+  from: keyof AppParamList;
 }
 const Tweet: React.FunctionComponent<Props> = ({
   tweet: { id },
   navigation,
+  from,
 }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
@@ -136,6 +129,15 @@ const Tweet: React.FunctionComponent<Props> = ({
   const { mutateAsync: mutateViewTweet, isLoading: viewing } =
     trpc.tweet.view.useMutation();
 
+  const { isLoading: viewingP, mutateAsync: mutateViewProfile } =
+    trpc.user.viewProfile.useMutation();
+
+  const viewProfile = () => {
+    if (viewingP || !!!tweet) return;
+    mutateViewProfile({ id: tweet.userId }).then((res) => {
+      navigation.navigate("User", { from: "Tweet", id: tweet.userId });
+    });
+  };
   const deleteTweet = () => {
     if (!!!tweet) return;
     mutateDeleteTweet({ id: tweet.id }).then(({ error }) => {
@@ -158,7 +160,7 @@ const Tweet: React.FunctionComponent<Props> = ({
   const editTweet = () => {
     if (!!!tweet) return;
     if (me?.id === tweet.creator.id) {
-      navigation.navigate("Edit", { id: tweet.id });
+      navigation.navigate("Edit", { id: tweet.id, from });
       toggle();
     }
   };
@@ -173,7 +175,7 @@ const Tweet: React.FunctionComponent<Props> = ({
   const view = () => {
     if (!!!tweet) return;
     mutateViewTweet({ id: tweet.id }).then((res) => {
-      navigation.navigate("Tweet", { id: tweet.id });
+      navigation.navigate("Tweet", { id: tweet.id, from });
     });
   };
 
@@ -373,19 +375,26 @@ const Tweet: React.FunctionComponent<Props> = ({
         </View>
       </BottomSheet>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-        <Image
-          source={{
-            uri: Image.resolveAssetSource(profile).uri,
-          }}
-          style={{
-            width: 40,
-            height: 40,
-            resizeMode: "contain",
-            marginRight: 5,
-            borderRadius: 40,
-          }}
-        />
-        <View style={{ flex: 1 }}>
+        <TouchableOpacity onPress={viewProfile} activeOpacity={0.7}>
+          <Image
+            source={{
+              uri: Image.resolveAssetSource(profile).uri,
+            }}
+            style={{
+              width: 40,
+              height: 40,
+              resizeMode: "contain",
+              marginRight: 5,
+              borderRadius: 40,
+            }}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{ flex: 1 }}
+          onPress={viewProfile}
+          activeOpacity={0.7}
+        >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={{ fontFamily: FONTS.extraBold, fontSize: 16 }}>
               {tweet.creator.id === me?.id
@@ -408,7 +417,7 @@ const Tweet: React.FunctionComponent<Props> = ({
           <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 14 }]}>
             {tweet.creator.email}
           </Text>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
           style={{
             width: 20,

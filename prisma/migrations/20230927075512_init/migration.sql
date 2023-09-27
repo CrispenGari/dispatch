@@ -12,6 +12,8 @@ CREATE TABLE "User" (
     "verified" BOOLEAN NOT NULL DEFAULT false,
     "isAuthenticated" BOOLEAN NOT NULL DEFAULT false,
     "gender" "Gender" NOT NULL DEFAULT 'UNDEFINED',
+    "bio" TEXT,
+    "views" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "pollId" TEXT
@@ -99,6 +101,15 @@ CREATE TABLE "Tweet" (
     "userId" TEXT NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "Mention" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
+    "tweetId" TEXT NOT NULL
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_id_key" ON "User"("id");
 
@@ -131,6 +142,9 @@ CREATE UNIQUE INDEX "Vote_id_key" ON "Vote"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Tweet_id_key" ON "Tweet"("id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Mention_id_key" ON "Mention"("id");
 
 -- AddForeignKey
 ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -176,3 +190,9 @@ ALTER TABLE "Vote" ADD CONSTRAINT "Vote_pollId_fkey" FOREIGN KEY ("pollId") REFE
 
 -- AddForeignKey
 ALTER TABLE "Tweet" ADD CONSTRAINT "Tweet_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Mention" ADD CONSTRAINT "Mention_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Mention" ADD CONSTRAINT "Mention_tweetId_fkey" FOREIGN KEY ("tweetId") REFERENCES "Tweet"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -1,12 +1,4 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Image,
-  SafeAreaView,
-} from "react-native";
+import { View, Text, TouchableOpacity, Alert, Image } from "react-native";
 import React from "react";
 import { AppNavProps } from "../../../params";
 import {
@@ -70,6 +62,8 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     trpc.reaction.reactToTweet.useMutation();
   const { mutateAsync: mutateCommentOnTweet, isLoading: commenting } =
     trpc.comment.comment.useMutation();
+  const { isLoading: viewing, mutateAsync: mutateViewProfile } =
+    trpc.user.viewProfile.useMutation();
 
   const deleteTweet = () => {
     if (!!!tweet) return;
@@ -93,7 +87,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   const editTweet = () => {
     if (!!!tweet) return;
     if (me?.id === tweet.creator.id) {
-      navigation.navigate("Edit", { id: tweet.id });
+      navigation.navigate("Edit", { id: tweet.id, from: "Tweet" });
       toggle();
     }
   };
@@ -179,12 +173,12 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       },
       headerLeft: () => (
         <AppStackBackButton
-          label={os === "ios" ? "Feed" : ""}
+          label={os === "ios" ? route.params.from : ""}
           onPress={() => navigation.goBack()}
         />
       ),
     });
-  }, [navigation]);
+  }, [navigation, route]);
 
   React.useEffect(() => {
     if (!!tweet) {
@@ -200,6 +194,13 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       }));
     }
   }, [tweet, me]);
+
+  const viewProfile = () => {
+    if (viewing || !!!tweet) return;
+    mutateViewProfile({ id: tweet.userId }).then((res) => {
+      navigation.navigate("User", { from: "Tweet", id: tweet.userId });
+    });
+  };
   if (fetching || !!!tweet) return <TweetSkeleton />;
   return (
     <KeyboardAwareScrollView
@@ -396,19 +397,26 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
             </View>
           </BottomSheet>
           <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-            <Image
-              source={{
-                uri: Image.resolveAssetSource(profile).uri,
-              }}
-              style={{
-                width: 40,
-                height: 40,
-                resizeMode: "contain",
-                marginRight: 5,
-                borderRadius: 40,
-              }}
-            />
-            <View style={{ flex: 1 }}>
+            <TouchableOpacity activeOpacity={0.7} onPress={viewProfile}>
+              <Image
+                source={{
+                  uri: Image.resolveAssetSource(profile).uri,
+                }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  resizeMode: "contain",
+                  marginRight: 5,
+                  borderRadius: 40,
+                }}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{ flex: 1 }}
+              activeOpacity={0.7}
+              onPress={viewProfile}
+            >
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Text style={{ fontFamily: FONTS.extraBold, fontSize: 16 }}>
                   {tweet.creator.id === me?.id
@@ -437,7 +445,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
               >
                 {tweet.creator.email}
               </Text>
-            </View>
+            </TouchableOpacity>
             <TouchableOpacity
               style={{
                 width: 20,
@@ -633,7 +641,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
         </View>
 
         {tweet.comments.map(({ id }) => (
-          <Comment key={id} id={id} />
+          <Comment key={id} id={id} navigation={navigation} />
         ))}
       </View>
     </KeyboardAwareScrollView>

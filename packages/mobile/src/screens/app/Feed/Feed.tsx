@@ -185,7 +185,12 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
         </View>
         {!!tweets ? (
           tweets.tweets.map((tweet) => (
-            <Tweet navigation={navigation} tweet={tweet} key={tweet.id} />
+            <Tweet
+              navigation={navigation}
+              tweet={tweet}
+              key={tweet.id}
+              from="Feed"
+            />
           ))
         ) : (
           <Text>No Tweets</Text>

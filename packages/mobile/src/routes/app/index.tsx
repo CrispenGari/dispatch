@@ -12,6 +12,7 @@ import {
   Settings,
   TermsOfUse,
   Tweet,
+  User,
 } from "../../screens/app";
 const Stack = createStackNavigator<AppParamList>();
 
@@ -37,6 +38,7 @@ export const AppTabs = () => {
       <Stack.Screen name="Create" component={Create} />
       <Stack.Screen name="Edit" component={Edit} />
       <Stack.Screen name="Tweet" component={Tweet} />
+      <Stack.Screen name="User" component={User} />
     </Stack.Navigator>
   );
 };

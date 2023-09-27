@@ -1,9 +1,13 @@
 import { generateVerificationCode } from "@crispengari/random-verification-codes";
 import {
   changePasswordSchema,
+  onViewProfileSchema,
+  tweetsSchema,
   updateEmailSchema,
   updateGenderSchema,
   updateNicknameSchema,
+  userSchema,
+  viewProfile,
 } from "../../schema/user.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
 import { signJwt, verifyJwt } from "../../utils/jwt";
@@ -12,12 +16,49 @@ import {
   isValidPassword,
   isValidUsername,
 } from "../../utils/regex";
-import { __verify__prefix__, __code__exp__ } from "../../constants";
+import { __verify__prefix__, __code__exp__, Events } from "../../constants";
 import { sendVerificationCodeAsEmail } from "../../utils/mail";
 import { verificationEmailTemplate } from "../../utils/templates";
 import { compare, hash } from "bcryptjs";
+import { User } from "@prisma/client";
+import { observable } from "@trpc/server/observable";
+import EventEmitter from "events";
 
+const ee = new EventEmitter();
 export const userRouter = router({
+  onViewProfile: publicProcedure
+    .input(onViewProfileSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<User>((emit) => {
+        const handler = (user: User) => {
+          if (user.id === uid) {
+            emit.next(user);
+          }
+        };
+        ee.on(Events.ON_PROFILE_VIEW, handler);
+        return () => {
+          ee.off(Events.ON_PROFILE_VIEW, handler);
+        };
+      });
+    }),
+  user: publicProcedure
+    .input(userSchema)
+    .query(async ({ ctx: { req, prisma } }) => {
+      try {
+        const jwt = req.headers.authorization?.split(/\s/)[1];
+        if (!!!jwt) return null;
+        const { id } = await verifyJwt(jwt);
+        const me = await prisma.user.findFirst({ where: { id } });
+        if (!!!me) return null;
+        const user = await prisma.user.findFirst({
+          where: { id },
+          include: { tweets: { select: { id: true } } },
+        });
+        return user;
+      } catch (err) {
+        return null;
+      }
+    }),
   me: publicProcedure.query(async ({ ctx: { req, prisma } }) => {
     try {
       const jwt = req.headers.authorization?.split(/\s/)[1];
@@ -221,20 +262,52 @@ export const userRouter = router({
         }
       }
     ),
-  tweets: publicProcedure.query(async ({ ctx: { req, prisma } }) => {
-    try {
-      const jwt = req.headers.authorization?.split(/\s/)[1];
-      if (!!!jwt) return [];
-      const { id } = await verifyJwt(jwt);
-      const me = await prisma.user.findFirst({
-        where: { id },
-        select: { tweets: { select: { id: true } } },
-      });
-      if (!!!me) return [];
-      return me.tweets ?? [];
-    } catch (error) {
-      console.log(error);
-      return [];
-    }
-  }),
+  tweets: publicProcedure
+    .input(tweetsSchema)
+    .query(async ({ ctx: { req, prisma }, input: { id } }) => {
+      try {
+        const jwt = req.headers.authorization?.split(/\s/)[1];
+        if (!!!jwt) return [];
+        const { id: uid } = await verifyJwt(jwt);
+        const me = await prisma.user.findFirst({
+          where: { id: uid },
+        });
+        if (!!!me) return [];
+        const user = await prisma.user.findFirst({
+          where: { id },
+          select: { tweets: { select: { id: true } } },
+        });
+        return user?.tweets ?? [];
+      } catch (error) {
+        console.log(error);
+        return [];
+      }
+    }),
+
+  viewProfile: publicProcedure
+    .input(viewProfile)
+    .mutation(async ({ ctx: { req, prisma }, input: { id } }) => {
+      try {
+        const jwt = req.headers.authorization?.split(/\s/)[1];
+        if (!!!jwt) return false;
+        const { id: uid } = await verifyJwt(jwt);
+        const me = await prisma.user.findFirst({
+          where: { id: uid },
+        });
+        if (!!!me) return false;
+
+        if (me.id === id) return false;
+
+        const user = await prisma.user.update({
+          where: { id },
+          data: { views: { increment: 1 } },
+        });
+
+        ee.emit(Events.ON_PROFILE_VIEW, user);
+        return true;
+      } catch (error) {
+        console.log(error);
+        return false;
+      }
+    }),
 });

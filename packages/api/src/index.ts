@@ -15,6 +15,7 @@ export type {
   Poll,
   Comment,
   Reaction,
+  Mention,
   Reply,
   Vote,
 } from "@prisma/client";

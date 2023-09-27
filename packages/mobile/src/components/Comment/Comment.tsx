@@ -16,11 +16,14 @@ import Reply from "../Reply/Reply";
 import { trpc } from "../../utils/trpc";
 import CommentSkeleton from "../skeletons/CommentSkeleton";
 import CustomTextInput from "../CustomTextInput/CustomTextInput";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AppParamList } from "../../params";
 
 interface Props {
   id: string;
+  navigation: StackNavigationProp<AppParamList, "Feed" | "User" | "Tweet">;
 }
-const Comment: React.FunctionComponent<Props> = ({ id }) => {
+const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
   const [form, setForm] = React.useState({
     height: 40,
     reply: "",
@@ -35,6 +38,8 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
     trpc.reaction.reactToComment.useMutation();
   const { isLoading: deleting, mutateAsync: mutateDeleteComment } =
     trpc.comment.deleteComment.useMutation();
+  const { isLoading: viewing, mutateAsync: mutateViewProfile } =
+    trpc.user.viewProfile.useMutation();
 
   const { isLoading: replying, mutateAsync: mutateReplyComment } =
     trpc.comment.reply.useMutation();
@@ -94,7 +99,12 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
       }
     );
   };
-  const editComment = () => {};
+  const viewProfile = () => {
+    if (viewing || !!!comment) return;
+    mutateViewProfile({ id: comment.userId }).then((res) => {
+      navigation.navigate("User", { from: "Tweet", id: comment.userId });
+    });
+  };
   const deleteComment = () => {
     if (!!!comment) return;
     mutateDeleteComment({ id: comment.id }).then(({ error }) => {
@@ -275,19 +285,25 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
         </View>
       </BottomSheet>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-        <Image
-          source={{
-            uri: Image.resolveAssetSource(profile).uri,
-          }}
-          style={{
-            width: 30,
-            height: 30,
-            resizeMode: "contain",
-            marginRight: 5,
-            borderRadius: 30,
-          }}
-        />
-        <View style={{ flex: 1 }}>
+        <TouchableOpacity activeOpacity={0.7} onPress={viewProfile}>
+          <Image
+            source={{
+              uri: Image.resolveAssetSource(profile).uri,
+            }}
+            style={{
+              width: 30,
+              height: 30,
+              resizeMode: "contain",
+              marginRight: 5,
+              borderRadius: 30,
+            }}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={viewProfile}
+          style={{ flex: 1 }}
+        >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Text style={{ fontFamily: FONTS.extraBold, fontSize: 16 }}>
               {comment.creator.id === me?.id
@@ -310,7 +326,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
           <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 12 }]}>
             {comment.creator.email}
           </Text>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
           style={{
             width: 30,
@@ -398,7 +414,7 @@ const Comment: React.FunctionComponent<Props> = ({ id }) => {
       </View>
 
       {comment.replies.map(({ id }) => (
-        <Reply key={id} id={id} />
+        <Reply key={id} id={id} navigation={navigation} />
       ))}
 
       <View

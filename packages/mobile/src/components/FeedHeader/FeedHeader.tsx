@@ -13,8 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppParamList } from "../../params";
 import * as Animatable from "react-native-animatable";
 import { useMediaQuery } from "../../hooks";
-import { trpc } from "../../utils/trpc";
-import { del } from "../../utils";
 import { useMeStore } from "../../store";
 
 interface Props {
@@ -24,13 +22,12 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
   const {
     dimension: { width },
   } = useMediaQuery();
-
-  const { mutateAsync } = trpc.auth.logout.useMutation();
-  const { setMe } = useMeStore();
+  const { me } = useMeStore();
   const [headerState, setHeaderState] = React.useState({
     searchTerm: "",
     focused: false,
   });
+
   return (
     <View
       style={{
@@ -44,7 +41,13 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
       <SafeAreaView
         style={{ flexDirection: "row", justifyContent: "space-between" }}
       >
-        <TouchableOpacity activeOpacity={0.7} style={{ marginLeft: 10 }}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={{ marginLeft: 10 }}
+          onPress={() => {
+            navigation.navigate("User", { id: me?.id ?? "", from: "Feed" });
+          }}
+        >
           <Image
             style={{
               width: 40,
@@ -67,11 +70,7 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
-                mutateAsync().then(async (v) => {
-                  await del(KEYS.TOKEN_KEY);
-                  setMe(null);
-                });
-                // navigation.navigate("Notifications");
+                navigation.navigate("Notifications");
               }}
               style={{
                 position: "relative",
