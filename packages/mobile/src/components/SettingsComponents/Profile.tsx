@@ -1,15 +1,15 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
-import { COLORS, KEYS, profile, relativeTimeObject } from "../constants";
+import { COLORS, KEYS, profile, relativeTimeObject } from "../../constants";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
-import { useMeStore } from "../store";
-import { styles } from "../styles";
+import { useMeStore, useSettingsStore } from "../../store";
+import { styles } from "../../styles";
 import dayjs from "dayjs";
 import { MaterialIcons } from "@expo/vector-icons";
-import Ripple from "../components/ProgressIndicators/Ripple";
-import { trpc } from "../utils/trpc";
-import { del } from "../utils";
+import Ripple from "../ProgressIndicators/Ripple";
+import { trpc } from "../../utils/trpc";
+import { del, onImpact } from "../../utils";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
@@ -21,7 +21,11 @@ const Profile = () => {
   const { me, setMe } = useMeStore();
   const { mutateAsync: mutateLogout, isLoading } =
     trpc.auth.logout.useMutation();
+  const { settings } = useSettingsStore();
   const logout = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     mutateLogout().then(async (res) => {
       if (res) {
         await del(KEYS.TOKEN_KEY);
@@ -52,7 +56,7 @@ const Profile = () => {
           <Text style={[styles.h1, { textAlign: "center", fontSize: 16 }]}>
             @{me.nickname}
           </Text>
-          {!me.verified ? (
+          {me.verified ? (
             <MaterialIcons name="verified" size={14} color={COLORS.primary} />
           ) : null}
         </View>

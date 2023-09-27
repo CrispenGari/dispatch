@@ -16,7 +16,11 @@ import {
 } from "@expo/vector-icons";
 import { onFetchUpdateAsync, onImpact, rateApp, store } from "../../../utils";
 import { SettingsType } from "../../../types";
-import Profile from "../../../SettingsComponents/Profile";
+import Profile from "../../../components/SettingsComponents/Profile";
+import ChangeNickname from "../../../components/SettingsComponents/ChangeNickname";
+import ChangeEmail from "../../../components/SettingsComponents/ChangeEmail";
+import ChangeGender from "../../../components/SettingsComponents/ChangeGender";
+import ChangeBio from "../../../components/SettingsComponents/ChangeBio";
 
 const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
   navigation,
@@ -59,8 +63,6 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       style={{ backgroundColor: COLORS.main, flex: 1 }}
     >
       <Profile />
-      <Divider color={COLORS.black} title="MANAGE PROFILE" />
-
       <Divider color={COLORS.black} title="MISC" />
       <SettingItem
         title={settings.haptics ? "Disable Haptics" : "Enable Haptics"}
@@ -173,36 +175,14 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
         }}
       />
 
+      <Divider color={COLORS.black} title="MANAGE PROFILE" />
+
+      <ChangeNickname />
+      <ChangeEmail />
+      <ChangeBio />
+      <ChangeGender />
       <Divider color={COLORS.black} title="MANAGE ACCOUNT" />
-      {/* <SettingItem
-        title={"Change Email"}
-        Icon={
-          <MaterialIcons name="attach-email" size={18} color={COLORS.black} />
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-        }}
-      />
-      <SettingItem
-        title={"Change Nickname"}
-        Icon={<Feather name="user" size={18} color={COLORS.black} />}
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-        }}
-      />
-      <SettingItem
-        title={"Change Password"}
-        Icon={<Entypo name="key" size={18} color={COLORS.black} />}
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-        }}
-      /> */}
+
       <SettingItem
         title={"Reset Password"}
         Icon={
@@ -212,6 +192,16 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
             color={COLORS.black}
           />
         }
+        onPress={async () => {
+          if (settings.haptics) {
+            onImpact();
+          }
+        }}
+      />
+      <SettingItem
+        title={"Change Password"}
+        titleColor={COLORS.red}
+        Icon={<Ionicons name="key-outline" size={18} color={COLORS.red} />}
         onPress={async () => {
           if (settings.haptics) {
             onImpact();
