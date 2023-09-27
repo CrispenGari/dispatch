@@ -13,8 +13,12 @@ export type AuthParamList = {
   ResetPassword: {
     token: string;
   };
-  AuthPrivacyPolicy: undefined;
-  AuthTermsOfUse: undefined;
+  AuthPrivacyPolicy: {
+    from: keyof AuthParamList;
+  };
+  AuthTermsOfUse: {
+    from: keyof AuthParamList;
+  };
 };
 
 export type AuthNavProps<T extends keyof AuthParamList> = {
@@ -30,8 +34,8 @@ export type AppParamList = {
   Create: undefined;
   Edit: { id: string; from: keyof AppParamList };
   Tweet: { id: string; from: keyof AppParamList };
-  AppPrivacyPolicy: undefined;
-  AppTermsOfUse: undefined;
+  AppPrivacyPolicy: { from: keyof AppParamList };
+  AppTermsOfUse: { from: keyof AppParamList };
   User: {
     id: string;
     from: keyof AppParamList;

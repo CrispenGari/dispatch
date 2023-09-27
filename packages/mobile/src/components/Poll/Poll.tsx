@@ -3,8 +3,9 @@ import { COLORS } from "../../constants";
 import { styles } from "../../styles";
 import { type Poll as P, Vote } from "@dispatch/api";
 import { trpc } from "../../utils/trpc";
-import { useMeStore } from "../../store";
+import { useMeStore, useSettingsStore } from "../../store";
 import React from "react";
+import { onImpact } from "../../utils";
 
 type PollType = Partial<P> & { votes: Vote[] };
 interface Props {
@@ -24,7 +25,12 @@ const Poll: React.FunctionComponent<Props> = ({
   const { me } = useMeStore();
   const { mutateAsync: mutateVote, isLoading: voting } =
     trpc.poll.vote.useMutation();
+
+  const { settings } = useSettingsStore();
   const vote = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (me?.id === creatorId) return;
     mutateVote({ id: poll.id || "", tweetId }).then((res) => {});
   };

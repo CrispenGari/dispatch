@@ -2,6 +2,8 @@ import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import { COLORS } from "../../constants";
 import { Tab } from "./Tab";
+import { useSettingsStore } from "../../store";
+import { onImpact } from "../../utils";
 
 const TAB_BAR_HEIGHT: number = 30;
 const TAB_BAR_WIDTH: number = 300;
@@ -14,6 +16,7 @@ export const Tabs: React.FunctionComponent<{
   >;
   tab: "tweets" | "mentions";
 }> = ({ setForm, tab }) => {
+  const { settings } = useSettingsStore();
   return (
     <View
       style={{
@@ -34,6 +37,9 @@ export const Tabs: React.FunctionComponent<{
         style={{ flex: 1 }}
         activeOpacity={0.7}
         onPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
           setForm((state) => ({ ...state, tab: "tweets" }));
         }}
       >
@@ -43,6 +49,9 @@ export const Tabs: React.FunctionComponent<{
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         activeOpacity={0.7}
         onPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
           setForm((state) => ({ ...state, tab: "mentions" }));
         }}
       >

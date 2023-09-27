@@ -16,19 +16,22 @@ import DropdownSelect from "react-native-input-select";
 import { GenderType } from "../../../types";
 import { trpc } from "../../../utils/trpc";
 import Loading from "../../../components/Loading/Loading";
-import { store } from "../../../utils";
+import { onImpact, store } from "../../../utils";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useMediaQuery } from "../../../hooks";
+import { useSettingsStore } from "../../../store";
 
 const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
   navigation,
   route,
 }) => {
+  const { settings } = useSettingsStore();
   const {
     dimension: { height },
   } = useMediaQuery();
+
   const { mutateAsync: mutateVerify, isLoading: verifying } =
     trpc.auth.verify.useMutation();
 
@@ -36,6 +39,9 @@ const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
     trpc.profile.authProfile.useMutation();
 
   const save = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     mutateAuthProfile({ gender: form.gender, bio: form.bio }).then(
       async (res) => {
         if (res.error) {
@@ -78,7 +84,10 @@ const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
               style: "default",
               text: "OK",
               onPress: () => {
-                // navigation.replace("Register");
+                if (settings.haptics) {
+                  onImpact();
+                }
+                navigation.replace("Register");
               },
             },
           ],

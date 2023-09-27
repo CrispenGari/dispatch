@@ -16,9 +16,10 @@ import { COLORS, FONTS, KEYS } from "../../../constants";
 import { MaterialIcons } from "@expo/vector-icons";
 import { trpc } from "../../../utils/trpc";
 import * as Location from "expo-location";
-import { useLocationStore, useMeStore } from "../../../store";
+import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import Tweet from "../../../components/Tweet/Tweet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { onImpact } from "../../../utils";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const {
@@ -28,6 +29,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     isFetching: fetching,
   } = trpc.tweet.tweets.useQuery();
   const { os } = usePlatform();
+  const { settings } = useSettingsStore();
   const {
     dimension: { height },
   } = useMediaQuery();
@@ -119,6 +121,9 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       >
         <TouchableOpacity
           onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
             navigation.navigate("Create");
           }}
           style={{

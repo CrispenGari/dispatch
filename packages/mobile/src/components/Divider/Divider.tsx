@@ -1,7 +1,6 @@
 import { View, Text } from "react-native";
 import React from "react";
 import { styles } from "../../styles";
-import { COLORS } from "../../constants";
 
 interface Props {
   title: string;
@@ -16,6 +15,7 @@ const Divider: React.FunctionComponent<Props> = ({ title, color }) => {
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",
+        marginHorizontal: 10,
       }}
     >
       <Text style={[styles.h1, { color }]}>{title}</Text>

@@ -9,7 +9,6 @@ export type NetworkType = {
 export type SettingsType = {
   haptics: boolean;
   sound: boolean;
-  uid: string | null;
 };
 
 export type GenderType = "MALE" | "FEMALE" | "UNDEFINED";

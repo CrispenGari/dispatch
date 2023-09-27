@@ -19,7 +19,7 @@ export const useSettingsStore = create<{
   settings: Required<SettingsType>;
   setSettings: (settings: SettingsType) => void;
 }>((set) => ({
-  settings: { sound: true, haptics: true, uid: null },
+  settings: { haptics: true, sound: true },
   setSettings: (settings: SettingsType) => set({ settings }),
 }));
 

@@ -5,11 +5,15 @@ import { COLORS, FONTS } from "../../../constants";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { styles } from "../../../styles";
 import { usePlatform } from "../../../hooks";
+import { onImpact } from "../../../utils";
+import { useSettingsStore } from "../../../store";
 
 const TermsOfUse: React.FunctionComponent<AppNavProps<"AppTermsOfUse">> = ({
   navigation,
+  route,
 }) => {
   const { os } = usePlatform();
+  const { settings } = useSettingsStore();
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "Terms of Use",
@@ -19,12 +23,17 @@ const TermsOfUse: React.FunctionComponent<AppNavProps<"AppTermsOfUse">> = ({
       },
       headerLeft: () => (
         <AppStackBackButton
-          label={os === "ios" ? "Back" : ""}
-          onPress={() => navigation.goBack()}
+          label={os === "ios" ? route.params.from : ""}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
+          }}
         />
       ),
     });
-  }, [navigation]);
+  }, [navigation, settings, route]);
   return (
     <ScrollView
       scrollEventThrottle={16}

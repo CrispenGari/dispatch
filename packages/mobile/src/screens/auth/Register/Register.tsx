@@ -10,7 +10,8 @@ import Message from "../../../components/Message/Message";
 import { AuthNavProps } from "../../../params";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
 import { trpc } from "../../../utils/trpc";
-import { store } from "../../../utils";
+import { onImpact, store } from "../../../utils";
+import { useSettingsStore } from "../../../store";
 
 const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
   navigation,
@@ -19,6 +20,8 @@ const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
     trpc.auth.register.useMutation();
   const { mutateAsync: mutateResendVerificationEmail, isLoading: resending } =
     trpc.auth.resendVerificationEmail.useMutation();
+
+  const { settings } = useSettingsStore();
 
   const [
     { email, nickname, password, confirmPassword, error, message },
@@ -33,6 +36,9 @@ const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
   });
 
   const register = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     mutateRegister({ email, nickname, password, confirmPassword }).then(
       async (res) => {
         if (res.error) {
@@ -234,7 +240,12 @@ const Register: React.FunctionComponent<AuthNavProps<"Register">> = ({
           />
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => navigation.navigate("Login")}
+            onPress={() => {
+              if (settings.haptics) {
+                onImpact();
+              }
+              navigation.navigate("Login");
+            }}
             disabled={resending || registering}
             style={[
               styles.button,

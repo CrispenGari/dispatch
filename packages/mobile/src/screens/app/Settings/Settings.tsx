@@ -1,44 +1,80 @@
 import { View, Linking, ScrollView } from "react-native";
 import React from "react";
 import { AppNavProps } from "../../../params";
-import { COLORS } from "../../../constants";
+import { COLORS, FONTS, KEYS } from "../../../constants";
+import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
+import { usePlatform } from "../../../hooks";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Divider from "../../../components/Divider/Divider";
+import SettingItem from "../../../components/SettingItem/SettingItem";
+import { useSettingsStore } from "../../../store";
+
+import {
+  MaterialCommunityIcons,
+  MaterialIcons,
+  Ionicons,
+} from "@expo/vector-icons";
+import { onFetchUpdateAsync, onImpact, rateApp, store } from "../../../utils";
+import { SettingsType } from "../../../types";
+import Profile from "../../../SettingsComponents/Profile";
 
 const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
   navigation,
 }) => {
+  const { os } = usePlatform();
+  const { settings, setSettings } = useSettingsStore();
+
   React.useLayoutEffect(() => {
-    navigation.setOptions({ headerTitle: "Settings" });
-  }, [navigation]);
+    navigation.setOptions({
+      headerTitle: "Settings",
+      headerShown: true,
+      headerStyle: {
+        borderBottomColor: COLORS.primary,
+        borderBottomWidth: 0.5,
+      },
+      headerTitleStyle: {
+        fontFamily: FONTS.regularBold,
+      },
+      headerLeft: () => (
+        <AppStackBackButton
+          label={os === "ios" ? "Feed" : ""}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
+          }}
+        />
+      ),
+    });
+  }, [navigation, settings]);
   return (
-    <ScrollView
-      scrollEventThrottle={16}
-      showsHorizontalScrollIndicator={false}
+    <KeyboardAwareScrollView
       showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
+      scrollEventThrottle={16}
       contentContainerStyle={{
         paddingBottom: 100,
       }}
       style={{ backgroundColor: COLORS.main, flex: 1 }}
     >
-      {/* <Label title="MANAGE PROFILE" />
-      <ProfileAccount />
-      <Label title="ACCOUNT BALANCES" />
-      <ProfileBank />
-      <Label title="ACCOUNT STARTERS" />
-      <ProfileStarters />
-      <Label title="MISC" />
+      <Profile />
+      <Divider color={COLORS.black} title="MANAGE PROFILE" />
+
+      <Divider color={COLORS.black} title="MISC" />
       <SettingItem
         title={settings.haptics ? "Disable Haptics" : "Enable Haptics"}
         Icon={
           settings.haptics ? (
             <MaterialCommunityIcons
               name="vibrate"
-              size={24}
+              size={18}
               color={COLORS.black}
             />
           ) : (
             <MaterialCommunityIcons
               name="vibrate-off"
-              size={24}
+              size={18}
               color={COLORS.black}
             />
           )
@@ -57,22 +93,18 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
         }}
       />
       <SettingItem
-        title={
-          settings.sound
-            ? "Disable Sound Notifications"
-            : "Enable Sound Notifications"
-        }
+        title={settings.sound ? "Disable Sound" : "Enable Sound"}
         Icon={
           settings.sound ? (
             <Ionicons
               name="ios-notifications-circle"
-              size={24}
+              size={18}
               color={COLORS.black}
             />
           ) : (
             <Ionicons
               name="ios-notifications-off-circle"
-              size={24}
+              size={18}
               color={COLORS.black}
             />
           )
@@ -92,7 +124,7 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       />
       <SettingItem
         title={"Rate invitee"}
-        Icon={<MaterialIcons name="star-rate" size={24} color={COLORS.black} />}
+        Icon={<MaterialIcons name="star-rate" size={18} color={COLORS.black} />}
         onPress={async () => {
           if (settings.haptics) {
             onImpact();
@@ -103,7 +135,7 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       <SettingItem
         title={"Check for Updates"}
         Icon={
-          <MaterialIcons name="system-update" size={24} color={COLORS.black} />
+          <MaterialIcons name="system-update" size={18} color={COLORS.black} />
         }
         onPress={async () => {
           if (settings.haptics) {
@@ -114,32 +146,38 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       />
       <SettingItem
         title={"Terms of Use"}
-        Icon={<Entypo name="text-document" size={24} color={COLORS.black} />}
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          navigation.navigate("TermsOfUse");
-        }}
-      />
-      <SettingItem
-        title={"Privacy Policy"}
         Icon={
-          <MaterialIcons name="privacy-tip" size={24} color={COLORS.black} />
+          <Ionicons
+            name="document-text-outline"
+            size={18}
+            color={COLORS.black}
+          />
         }
         onPress={async () => {
           if (settings.haptics) {
             onImpact();
           }
-          navigation.navigate("PrivacyPolicy");
+          navigation.navigate("AppTermsOfUse", { from: "Settings" });
+        }}
+      />
+      <SettingItem
+        title={"Privacy Policy"}
+        Icon={
+          <MaterialIcons name="privacy-tip" size={18} color={COLORS.black} />
+        }
+        onPress={async () => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          navigation.navigate("AppPrivacyPolicy", { from: "Settings" });
         }}
       />
 
-      <Label title="MANAGE ACCOUNT" />
-      <SettingItem
+      <Divider color={COLORS.black} title="MANAGE ACCOUNT" />
+      {/* <SettingItem
         title={"Change Email"}
         Icon={
-          <MaterialIcons name="attach-email" size={24} color={COLORS.black} />
+          <MaterialIcons name="attach-email" size={18} color={COLORS.black} />
         }
         onPress={async () => {
           if (settings.haptics) {
@@ -149,7 +187,7 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       />
       <SettingItem
         title={"Change Nickname"}
-        Icon={<Feather name="user" size={24} color={COLORS.black} />}
+        Icon={<Feather name="user" size={18} color={COLORS.black} />}
         onPress={async () => {
           if (settings.haptics) {
             onImpact();
@@ -158,13 +196,13 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       />
       <SettingItem
         title={"Change Password"}
-        Icon={<Entypo name="key" size={24} color={COLORS.black} />}
+        Icon={<Entypo name="key" size={18} color={COLORS.black} />}
         onPress={async () => {
           if (settings.haptics) {
             onImpact();
           }
         }}
-      />
+      /> */}
       <SettingItem
         title={"Reset Password"}
         Icon={
@@ -182,27 +220,37 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       />
       <SettingItem
         title={"Delete Account"}
-        Icon={<AntDesign name="deleteuser" size={24} color={COLORS.red} />}
+        titleColor={COLORS.red}
+        Icon={
+          <MaterialCommunityIcons
+            name="delete-empty-outline"
+            size={18}
+            color={COLORS.red}
+          />
+        }
         onPress={async () => {
           if (settings.haptics) {
             onImpact();
           }
         }}
       />
-      <Label title="ISSUES & BUGS" />
+      <Divider color={COLORS.black} title="ISSUES & BUGS" />
       <SettingItem
         title="Report an Issue"
-        Icon={<Entypo name="bug" size={24} color={COLORS.red} />}
+        titleColor={COLORS.red}
+        Icon={
+          <MaterialIcons name="sync-problem" size={18} color={COLORS.red} />
+        }
         onPress={async () => {
           if (settings.haptics) {
             onImpact();
           }
           await Linking.openURL(
-            "https://github.com/CrispenGari/invitee/issues"
+            "https://github.com/CrispenGari/dispatch/issues"
           );
         }}
-      /> */}
-    </ScrollView>
+      />
+    </KeyboardAwareScrollView>
   );
 };
 

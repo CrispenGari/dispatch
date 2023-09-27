@@ -1,6 +1,6 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
-import { APP_NAME, COLORS, FONTS, logo } from "../../../constants";
+import { APP_NAME, COLORS, FONTS, KEYS, logo } from "../../../constants";
 import { styles } from "../../../styles";
 import { AuthNavProps } from "../../../params";
 import { useMediaQuery } from "../../../hooks";
@@ -9,7 +9,9 @@ import TypeWriter from "react-native-typewriter";
 import Footer from "../../../components/Footer/Footer";
 import { trpc } from "../../../utils/trpc";
 import Loading from "../../../components/Loading/Loading";
-import { useMeStore } from "../../../store";
+import { useMeStore, useSettingsStore } from "../../../store";
+import { SettingsType } from "../../../types";
+import { onImpact, retrieve, store } from "../../../utils";
 
 const messages: Array<string> = [
   "Hello 👋, amazing having you on dispatch.",
@@ -23,6 +25,7 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
 }) => {
   const { isFetching: fetching, data: me } = trpc.user.me.useQuery();
   const { setMe } = useMeStore();
+  const { setSettings, settings } = useSettingsStore();
   const [open, setOpen] = React.useState(false);
   const [messageIndex, setMessageIndex] = React.useState(0);
   const {
@@ -96,7 +99,11 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
         }}
       >
         <TouchableOpacity
-          onPress={() => {
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            await store(KEYS.APP_SETTINGS, JSON.stringify(settings));
             toggle();
           }}
           activeOpacity={0.7}
@@ -151,8 +158,11 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
               </Text>
               <TouchableOpacity
                 onPress={() => {
+                  if (settings.haptics) {
+                    onImpact();
+                  }
                   toggle();
-                  navigation.navigate("AuthTermsOfUse");
+                  navigation.navigate("AuthTermsOfUse", { from: "Landing" });
                 }}
                 activeOpacity={0.7}
                 style={{}}
@@ -178,8 +188,11 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
               </Text>
               <TouchableOpacity
                 onPress={() => {
+                  if (settings.haptics) {
+                    onImpact();
+                  }
                   toggle();
-                  navigation.navigate("AuthPrivacyPolicy");
+                  navigation.navigate("AuthPrivacyPolicy", { from: "Landing" });
                 }}
                 activeOpacity={0.7}
                 style={{}}
@@ -239,6 +252,9 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
 
             <TouchableOpacity
               onPress={() => {
+                if (settings.haptics) {
+                  onImpact();
+                }
                 toggle();
                 navigation.replace("Login");
               }}
@@ -256,6 +272,9 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
+                if (settings.haptics) {
+                  onImpact();
+                }
                 toggle();
                 navigation.replace("Register");
               }}

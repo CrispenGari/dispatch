@@ -1,8 +1,14 @@
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import React from "react";
 import type { User, Comment as C, Reaction } from "@dispatch/api";
-import { useMeStore } from "../../store";
-import { APP_NAME, COLORS, FONTS, profile } from "../../constants";
+import { useMeStore, useSettingsStore } from "../../store";
+import {
+  APP_NAME,
+  COLORS,
+  FONTS,
+  profile,
+  relativeTimeObject,
+} from "../../constants";
 import dayjs from "dayjs";
 import { styles } from "../../styles";
 
@@ -16,6 +22,18 @@ import { trpc } from "../../utils/trpc";
 import ReplySkeleton from "../skeletons/ReplySkeleton";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppParamList } from "../../params";
+
+import relativeTime from "dayjs/plugin/relativeTime";
+import updateLocal from "dayjs/plugin/updateLocale";
+import { onImpact } from "../../utils";
+
+dayjs.extend(relativeTime);
+dayjs.extend(updateLocal);
+
+dayjs.updateLocale("en", {
+  relativeTime: relativeTimeObject,
+});
+
 interface Props {
   id: string;
 
@@ -24,6 +42,7 @@ interface Props {
 const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
+  const { settings } = useSettingsStore();
   const toggle = () => setOpen((state) => !state);
   const [form, setForm] = React.useState({ liked: false });
   const { isLoading: reacting, mutateAsync: mutateReactToReply } =
@@ -54,17 +73,26 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
   );
 
   const reactToReply = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!reply) return;
     mutateReactToReply({ id: reply.id }).then((res) => console.log({ res }));
   };
 
   const viewProfile = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (viewing || !!!reply) return;
     mutateViewProfile({ id: reply.userId }).then((res) => {
       navigation.navigate("User", { from: "Tweet", id: reply.userId });
     });
   };
   const deleteReply = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!reply) return;
     mutateDeleteReply({ id: reply.id }).then(({ error }) => {
       if (error) {
@@ -113,8 +141,18 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
       />
       <BottomSheet
         visible={!!open}
-        onBackButtonPress={toggle}
-        onBackdropPress={toggle}
+        onBackButtonPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          toggle();
+        }}
+        onBackdropPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          toggle();
+        }}
       >
         <View
           style={{
@@ -290,7 +328,12 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={toggle}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggle();
+          }}
           activeOpacity={0.7}
         >
           <MaterialCommunityIcons

@@ -3,7 +3,7 @@ import React from "react";
 import { AppNavProps } from "../../../params";
 import { COLORS, FONTS, profile } from "../../../constants";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
-import { useMeStore } from "../../../store";
+import { useMeStore, useSettingsStore } from "../../../store";
 import { usePlatform } from "../../../hooks";
 import { trpc } from "../../../utils/trpc";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
@@ -11,6 +11,7 @@ import { Tabs } from "../../../components/Tabs/Tabs";
 import { styles } from "../../../styles";
 import TweetsTab from "../../../components/Tabs/TweetsTab";
 import MentionsTab from "../../../components/Tabs/MentionsTab";
+import { onImpact } from "../../../utils";
 
 const User: React.FunctionComponent<AppNavProps<"User">> = ({
   navigation,
@@ -18,6 +19,7 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
 }) => {
   const { os } = usePlatform();
   const { me } = useMeStore();
+  const { settings } = useSettingsStore();
   const { data: user, refetch } = trpc.user.user.useQuery({
     id: route.params.id,
   });
@@ -49,11 +51,16 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
       headerLeft: () => (
         <AppStackBackButton
           label={os === "ios" ? route.params.from : ""}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
+          }}
         />
       ),
     });
-  }, [navigation, user, me, route]);
+  }, [navigation, user, me, route, settings]);
 
   return (
     <ScrollView

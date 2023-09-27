@@ -13,7 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppParamList } from "../../params";
 import * as Animatable from "react-native-animatable";
 import { useMediaQuery } from "../../hooks";
-import { useMeStore } from "../../store";
+import { useMeStore, useSettingsStore } from "../../store";
+import { onImpact } from "../../utils";
 
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed">;
@@ -23,6 +24,7 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
     dimension: { width },
   } = useMediaQuery();
   const { me } = useMeStore();
+  const { settings } = useSettingsStore();
   const [headerState, setHeaderState] = React.useState({
     searchTerm: "",
     focused: false,
@@ -45,6 +47,9 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
           activeOpacity={0.7}
           style={{ marginLeft: 10 }}
           onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
             navigation.navigate("User", { id: me?.id ?? "", from: "Feed" });
           }}
         >
@@ -70,6 +75,9 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
+                if (settings.haptics) {
+                  onImpact();
+                }
                 navigation.navigate("Notifications");
               }}
               style={{
@@ -97,6 +105,9 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
+                if (settings.haptics) {
+                  onImpact();
+                }
                 navigation.navigate("Settings");
               }}
               activeOpacity={0.7}
@@ -133,6 +144,9 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
             >
               <TouchableOpacity
                 onPress={() => {
+                  if (settings.haptics) {
+                    onImpact();
+                  }
                   if (headerState.focused) {
                     setHeaderState((state) => ({ ...state, searchTerm: "" }));
                     Keyboard.dismiss();

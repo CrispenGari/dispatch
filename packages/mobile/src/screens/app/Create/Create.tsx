@@ -9,8 +9,9 @@ import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput
 import { styles } from "../../../styles";
 import { CheckBox } from "react-native-btr";
 import Indeterminate from "../../../components/ProgressIndicators/Indeterminate";
-import { useLocationStore, useMeStore } from "../../../store";
+import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import { trpc } from "../../../utils/trpc";
+import { onImpact } from "../../../utils";
 
 const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
   navigation,
@@ -19,6 +20,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
     trpc.tweet.create.useMutation();
   const { os } = usePlatform();
   const { me } = useMeStore();
+  const { settings } = useSettingsStore();
   const { location } = useLocationStore();
   const [{ height, ...form }, setForm] = React.useState({
     tweet: "",
@@ -31,6 +33,9 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
   });
 
   const tweet = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!location?.coords) return;
     mutateCreateTweet({
       polls: form.enablePolls ? form.polls : [],
@@ -68,6 +73,9 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
   };
 
   const removePollField = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     // minimum of 2 polls
     if (form.polls.length === 2) return;
     setForm((state) => {
@@ -79,6 +87,9 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
     });
   };
   const addNewPollField = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     // polls can not be more than 5
     if (form.polls.length === 5) return;
     setForm((state) => ({
@@ -107,11 +118,18 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
       headerLeft: () => (
         <AppStackBackButton
           label={os === "ios" ? "Feed" : ""}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            () => {
+              if (settings.haptics) {
+                onImpact();
+              }
+              navigation.goBack();
+            };
+          }}
         />
       ),
     });
-  }, [navigation]);
+  }, [navigation, settings]);
 
   return (
     <KeyboardAwareScrollView
@@ -185,12 +203,15 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
               checked={form.enablePolls}
               color={COLORS.primary}
               disabled={false}
-              onPress={() =>
+              onPress={() => {
+                if (settings.haptics) {
+                  onImpact();
+                }
                 setForm((state) => ({
                   ...state,
                   enablePolls: !form.enablePolls,
-                }))
-              }
+                }));
+              }}
             />
             <Text style={[styles.p, { fontSize: 20, marginLeft: 10 }]}>
               {form.enablePolls ? "Disable Polls" : "Enable Polls"}

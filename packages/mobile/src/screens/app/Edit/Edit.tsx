@@ -9,8 +9,9 @@ import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput
 import { styles } from "../../../styles";
 import { CheckBox } from "react-native-btr";
 import Indeterminate from "../../../components/ProgressIndicators/Indeterminate";
-import { useLocationStore, useMeStore } from "../../../store";
+import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import { trpc } from "../../../utils/trpc";
+import { onImpact } from "../../../utils";
 
 const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   navigation,
@@ -24,6 +25,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
     trpc.tweet.edit.useMutation();
   const { os } = usePlatform();
   const { me } = useMeStore();
+  const { settings } = useSettingsStore();
   const { location } = useLocationStore();
   const [{ height, ...form }, setForm] = React.useState({
     tweet: "",
@@ -65,6 +67,9 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   }, [tweet]);
 
   const save = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!location?.coords) return;
     mutateEditTweet({
       polls: form.enablePolls ? form.polls : [],
@@ -103,6 +108,9 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   };
 
   const removePollField = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     // minimum of 2 polls
     if (form.polls.length === 2) return;
     setForm((state) => {
@@ -115,6 +123,9 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   };
   const addNewPollField = () => {
     // polls can not be more than 5
+    if (settings.haptics) {
+      onImpact();
+    }
     if (form.polls.length === 5) return;
     setForm((state) => ({
       ...state,
@@ -142,11 +153,16 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
       headerLeft: () => (
         <AppStackBackButton
           label={os === "ios" ? route.params.from : ""}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
+          }}
         />
       ),
     });
-  }, [navigation, route]);
+  }, [navigation, route, settings]);
 
   if (fetching) return <Text>Fetching...</Text>;
 
@@ -179,12 +195,15 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
           <View style={{ flexDirection: "row" }}>
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() =>
+              onPress={() => {
+                if (settings.haptics) {
+                  onImpact();
+                }
                 navigation.navigate("User", {
                   id: me?.id || "",
                   from: "Edit",
-                })
-              }
+                });
+              }}
             >
               <Image
                 source={{
@@ -233,12 +252,15 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
               checked={form.enablePolls}
               color={COLORS.primary}
               disabled={false}
-              onPress={() =>
+              onPress={() => {
+                if (settings.haptics) {
+                  onImpact();
+                }
                 setForm((state) => ({
                   ...state,
                   enablePolls: !form.enablePolls,
-                }))
-              }
+                }));
+              }}
             />
             <Text style={[styles.p, { fontSize: 16, marginLeft: 10 }]}>
               {form.enablePolls ? "Disable Polls" : "Enable Polls"}

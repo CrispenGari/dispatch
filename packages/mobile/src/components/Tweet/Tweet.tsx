@@ -18,12 +18,13 @@ import {
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useMeStore } from "../../store";
+import { useMeStore, useSettingsStore } from "../../store";
 import { trpc } from "../../utils/trpc";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppParamList } from "../../params";
 import Poll from "../Poll/Poll";
 import TweetSkeleton from "../skeletons/TweetSkeleton";
+import { onImpact } from "../../utils";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -41,6 +42,7 @@ const Tweet: React.FunctionComponent<Props> = ({
   navigation,
   from,
 }) => {
+  const { settings } = useSettingsStore();
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
@@ -133,12 +135,18 @@ const Tweet: React.FunctionComponent<Props> = ({
     trpc.user.viewProfile.useMutation();
 
   const viewProfile = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (viewingP || !!!tweet) return;
     mutateViewProfile({ id: tweet.userId }).then((res) => {
       navigation.navigate("User", { from: "Tweet", id: tweet.userId });
     });
   };
   const deleteTweet = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!tweet) return;
     mutateDeleteTweet({ id: tweet.id }).then(({ error }) => {
       if (error) {
@@ -158,6 +166,9 @@ const Tweet: React.FunctionComponent<Props> = ({
     });
   };
   const editTweet = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!tweet) return;
     if (me?.id === tweet.creator.id) {
       navigation.navigate("Edit", { id: tweet.id, from });
@@ -166,6 +177,9 @@ const Tweet: React.FunctionComponent<Props> = ({
   };
 
   const reactToTweet = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!tweet) return;
     mutateReactToTweet({ id: tweet.id }).then((res) => {
       console.log({ res });
@@ -173,6 +187,9 @@ const Tweet: React.FunctionComponent<Props> = ({
   };
 
   const view = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!tweet) return;
     mutateViewTweet({ id: tweet.id }).then((res) => {
       navigation.navigate("Tweet", { id: tweet.id, from });
@@ -214,8 +231,18 @@ const Tweet: React.FunctionComponent<Props> = ({
     >
       <BottomSheet
         visible={!!open}
-        onBackButtonPress={toggle}
-        onBackdropPress={toggle}
+        onBackButtonPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          toggle();
+        }}
+        onBackdropPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          toggle();
+        }}
       >
         <View
           style={{
@@ -427,7 +454,12 @@ const Tweet: React.FunctionComponent<Props> = ({
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={toggle}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggle();
+          }}
           activeOpacity={0.7}
         >
           <MaterialCommunityIcons

@@ -22,12 +22,13 @@ import {
 import { BottomSheet } from "react-native-btr";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import { styles } from "../../../styles";
-import { useMeStore } from "../../../store";
+import { useMeStore, useSettingsStore } from "../../../store";
 import Poll from "../../../components/Poll/Poll";
 import Comment from "../../../components/Comment/Comment";
 import TweetSkeleton from "../../../components/skeletons/TweetSkeleton";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import ContentLoader from "../../../components/ContentLoader/ContentLoader";
+import { onImpact } from "../../../utils";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -47,6 +48,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   } = trpc.tweet.tweet.useQuery({ id: route.params.id });
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
+  const { settings } = useSettingsStore();
   const toggle = () => setOpen((state) => !state);
   const [form, setForm] = React.useState({
     height: 60,
@@ -66,6 +68,9 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     trpc.user.viewProfile.useMutation();
 
   const deleteTweet = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!tweet) return;
     mutateDeleteTweet({ id: tweet.id }).then(({ error }) => {
       if (error) {
@@ -85,6 +90,9 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     });
   };
   const editTweet = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!tweet) return;
     if (me?.id === tweet.creator.id) {
       navigation.navigate("Edit", { id: tweet.id, from: "Tweet" });
@@ -93,12 +101,18 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   };
 
   const reactToTweet = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!tweet) return;
     mutateReactToTweet({ id: tweet.id }).then((res) => {
       console.log({ res });
     });
   };
   const commentOnTweet = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!tweet) return;
     if (!!!form.comment.trim()) return;
     mutateCommentOnTweet({ comment: form.comment, id: tweet.id }).then(
@@ -174,11 +188,16 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       headerLeft: () => (
         <AppStackBackButton
           label={os === "ios" ? route.params.from : ""}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
+          }}
         />
       ),
     });
-  }, [navigation, route]);
+  }, [navigation, route, settings]);
 
   React.useEffect(() => {
     if (!!tweet) {
@@ -222,8 +241,18 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
         >
           <BottomSheet
             visible={!!open}
-            onBackButtonPress={toggle}
-            onBackdropPress={toggle}
+            onBackButtonPress={() => {
+              if (settings.haptics) {
+                onImpact();
+              }
+              toggle();
+            }}
+            onBackdropPress={() => {
+              if (settings.haptics) {
+                onImpact();
+              }
+              toggle();
+            }}
           >
             <View
               style={{
@@ -455,7 +484,12 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
                 justifyContent: "center",
                 alignItems: "center",
               }}
-              onPress={toggle}
+              onPress={() => {
+                if (settings.haptics) {
+                  onImpact();
+                }
+                toggle();
+              }}
               activeOpacity={0.7}
             >
               <MaterialCommunityIcons

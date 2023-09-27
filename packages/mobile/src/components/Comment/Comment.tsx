@@ -1,8 +1,13 @@
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import React from "react";
-import type { User, Comment as C, Reaction } from "@dispatch/api";
-import { useMeStore } from "../../store";
-import { APP_NAME, COLORS, FONTS, profile } from "../../constants";
+import { useMeStore, useSettingsStore } from "../../store";
+import {
+  APP_NAME,
+  COLORS,
+  FONTS,
+  profile,
+  relativeTimeObject,
+} from "../../constants";
 import dayjs from "dayjs";
 import { styles } from "../../styles";
 
@@ -18,6 +23,16 @@ import CommentSkeleton from "../skeletons/CommentSkeleton";
 import CustomTextInput from "../CustomTextInput/CustomTextInput";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { AppParamList } from "../../params";
+import relativeTime from "dayjs/plugin/relativeTime";
+import updateLocal from "dayjs/plugin/updateLocale";
+import { onImpact } from "../../utils";
+
+dayjs.extend(relativeTime);
+dayjs.extend(updateLocal);
+
+dayjs.updateLocale("en", {
+  relativeTime: relativeTimeObject,
+});
 
 interface Props {
   id: string;
@@ -33,6 +48,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
   const [open, setOpen] = React.useState(false);
   const { me } = useMeStore();
   const toggle = () => setOpen((state) => !state);
+  const { settings } = useSettingsStore();
   const { data: comment, refetch } = trpc.comment.get.useQuery({ id });
   const { mutateAsync: mutateReactToComment, isLoading: reacting } =
     trpc.reaction.reactToComment.useMutation();
@@ -84,12 +100,18 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
   );
 
   const reactToComment = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!comment) {
       mutateReactToComment({ id: comment.id });
     }
   };
 
   const replyToComment = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!form.reply.trim() || !!!comment) return;
     mutateReplyComment({ id: comment.id, reply: form.reply.trim() }).then(
       (res) => {
@@ -100,12 +122,18 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     );
   };
   const viewProfile = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (viewing || !!!comment) return;
     mutateViewProfile({ id: comment.userId }).then((res) => {
       navigation.navigate("User", { from: "Tweet", id: comment.userId });
     });
   };
   const deleteComment = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     if (!!!comment) return;
     mutateDeleteComment({ id: comment.id }).then(({ error }) => {
       if (error) {
@@ -147,8 +175,18 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     >
       <BottomSheet
         visible={!!open}
-        onBackButtonPress={toggle}
-        onBackdropPress={toggle}
+        onBackButtonPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          toggle();
+        }}
+        onBackdropPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          toggle();
+        }}
       >
         <View
           style={{
@@ -336,7 +374,12 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={toggle}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggle();
+          }}
           activeOpacity={0.7}
         >
           <MaterialCommunityIcons

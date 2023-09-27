@@ -5,11 +5,14 @@ import { AppNavProps } from "../../../params";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { styles } from "../../../styles";
 import { usePlatform } from "../../../hooks";
+import { onImpact } from "../../../utils";
+import { useSettingsStore } from "../../../store";
 
 const PrivacyPolicy: React.FunctionComponent<
   AppNavProps<"AppPrivacyPolicy">
-> = ({ navigation }) => {
+> = ({ navigation, route }) => {
   const { os } = usePlatform();
+  const { settings } = useSettingsStore();
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "Privacy Policy",
@@ -19,12 +22,17 @@ const PrivacyPolicy: React.FunctionComponent<
       },
       headerLeft: () => (
         <AppStackBackButton
-          label={os === "ios" ? "Back" : ""}
-          onPress={() => navigation.goBack()}
+          label={os === "ios" ? route.params.from : ""}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
+          }}
         />
       ),
     });
-  }, [navigation]);
+  }, [navigation, settings, route]);
   return (
     <ScrollView
       scrollEventThrottle={16}

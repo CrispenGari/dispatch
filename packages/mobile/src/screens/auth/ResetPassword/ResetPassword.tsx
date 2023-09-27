@@ -10,7 +10,8 @@ import Message from "../../../components/Message/Message";
 import { AuthNavProps } from "../../../params";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
 import { trpc } from "../../../utils/trpc";
-import { store } from "../../../utils";
+import { onImpact, store } from "../../../utils";
+import { useSettingsStore } from "../../../store";
 
 const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
   navigation,
@@ -23,8 +24,12 @@ const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
     password: "",
     error: "",
   });
+  const { settings } = useSettingsStore();
 
   const changePassword = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
     mutateChangePassword({
       confirmPassword,
       password,
@@ -52,7 +57,12 @@ const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
             {
               style: "default",
               text: "OK",
-              onPress: () => navigation.replace("Login"),
+              onPress: () => {
+                if (settings.haptics) {
+                  onImpact();
+                }
+                navigation.replace("Login");
+              },
             },
           ],
           { cancelable: false }
@@ -189,7 +199,12 @@ const ResetPassword: React.FunctionComponent<AuthNavProps<"ResetPassword">> = ({
           />
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => navigation.navigate("Login")}
+            onPress={() => {
+              if (settings.haptics) {
+                onImpact();
+              }
+              navigation.navigate("Login");
+            }}
             disabled={changing}
             style={[
               styles.button,

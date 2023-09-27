@@ -23,7 +23,6 @@ import { compare, hash } from "bcryptjs";
 import { User } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
-
 const ee = new EventEmitter();
 export const userRouter = router({
   onViewProfile: publicProcedure
@@ -198,7 +197,6 @@ export const userRouter = router({
         };
       }
     }),
-
   changePassword: publicProcedure
     .input(changePasswordSchema)
     .mutation(
@@ -283,7 +281,6 @@ export const userRouter = router({
         return [];
       }
     }),
-
   viewProfile: publicProcedure
     .input(viewProfile)
     .mutation(async ({ ctx: { req, prisma }, input: { id } }) => {
