@@ -117,7 +117,7 @@ const ChangePassword: React.FunctionComponent<
       },
       headerLeft: () => (
         <AppStackBackButton
-          label={os === "ios" ? "Feed" : ""}
+          label={os === "ios" ? "Settings" : ""}
           onPress={() => {
             if (settings.haptics) {
               onImpact();

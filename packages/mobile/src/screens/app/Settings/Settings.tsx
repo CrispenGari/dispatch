@@ -1,32 +1,115 @@
-import { View, Linking, ScrollView } from "react-native";
+import { View, Linking, ScrollView, Alert } from "react-native";
 import React from "react";
 import { AppNavProps } from "../../../params";
-import { COLORS, FONTS, KEYS } from "../../../constants";
+import { APP_NAME, COLORS, FONTS, KEYS } from "../../../constants";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { usePlatform } from "../../../hooks";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Divider from "../../../components/Divider/Divider";
 import SettingItem from "../../../components/SettingItem/SettingItem";
-import { useSettingsStore } from "../../../store";
+import { useMeStore, useSettingsStore } from "../../../store";
 
 import {
   MaterialCommunityIcons,
   MaterialIcons,
   Ionicons,
 } from "@expo/vector-icons";
-import { onFetchUpdateAsync, onImpact, rateApp, store } from "../../../utils";
+import {
+  del,
+  onFetchUpdateAsync,
+  onImpact,
+  rateApp,
+  store,
+} from "../../../utils";
 import { SettingsType } from "../../../types";
 import Profile from "../../../components/SettingsComponents/Profile";
 import ChangeNickname from "../../../components/SettingsComponents/ChangeNickname";
 import ChangeGender from "../../../components/SettingsComponents/ChangeGender";
 import ChangeBio from "../../../components/SettingsComponents/ChangeBio";
+import Message from "../../../components/Message/Message";
+import { trpc } from "../../../utils/trpc";
 
 const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
   navigation,
 }) => {
+  const { isLoading: sending, mutateAsync: mutateSendForgotPasswordLink } =
+    trpc.auth.sendForgotPasswordLink.useMutation();
+  const { isLoading: deleting, mutateAsync: mutateDeleteAccount } =
+    trpc.user.deleteAccount.useMutation();
   const { os } = usePlatform();
+  const { me, setMe } = useMeStore();
   const { settings, setSettings } = useSettingsStore();
+  const [form, setForm] = React.useState({
+    error: "",
+    message: "",
+  });
 
+  React.useEffect(() => {
+    if (!!form.error || !!form.message) {
+      const timeoutId = setTimeout(async () => {
+        setForm((state) => ({ ...state, error: "", message: "" }));
+      }, 5000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [form]);
+
+  const deleteAccount = () => {
+    if (deleting) return;
+    Alert.alert(
+      APP_NAME,
+      "When you delete your account, this is an irreversible action you will lost your account forever.",
+      [
+        {
+          text: "DELETE ACCOUNT",
+          onPress: () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            mutateDeleteAccount().then(async (data) => {
+              if (data.error) {
+                setForm((state) => ({
+                  ...state,
+                  message: "",
+                  error: data.error,
+                }));
+              } else {
+                await del(KEYS.TOKEN_KEY);
+                setMe(null);
+              }
+            });
+          },
+          style: "destructive",
+        },
+        {
+          text: "CANCEL",
+          onPress: () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+          },
+          style: "cancel",
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+  const sendResetPasswordLink = () => {
+    if (!!!me || sending) return;
+    mutateSendForgotPasswordLink({ email: me.email }).then(async (data) => {
+      if (data.error) {
+        setForm((state) => ({ ...state, error: data.error, message: "" }));
+      }
+      if (data.jwt) {
+        setForm((state) => ({
+          ...state,
+          message:
+            "The reset password link has been sent to your email. Please open your emails to change the account password!",
+          error: "",
+        }));
+        await store(KEYS.TOKEN_KEY, data.jwt);
+      }
+    });
+  };
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "Settings",
@@ -180,19 +263,27 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       <ChangeGender />
       <Divider color={COLORS.black} title="MANAGE ACCOUNT" />
 
+      <View style={{ maxWidth: 500, paddingHorizontal: 10 }}>
+        {!!form.error ? <Message error={true} message={form.error} /> : null}
+        {!!form.message ? (
+          <Message error={false} message={form.message} type="primary" />
+        ) : null}
+      </View>
+
       <SettingItem
-        title={"Reset Password"}
+        title={"Forgot Password"}
         Icon={
           <MaterialCommunityIcons
             name="lock-reset"
-            size={24}
+            size={18}
             color={COLORS.black}
           />
         }
-        onPress={async () => {
+        onPress={() => {
           if (settings.haptics) {
             onImpact();
           }
+          sendResetPasswordLink();
         }}
       />
       <SettingItem
@@ -237,6 +328,7 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
           if (settings.haptics) {
             onImpact();
           }
+          deleteAccount();
         }}
       />
       <Divider color={COLORS.black} title="ISSUES & BUGS" />

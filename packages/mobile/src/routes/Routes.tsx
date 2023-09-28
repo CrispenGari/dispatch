@@ -57,6 +57,8 @@ const Routes = () => {
     }
   }, [granted, setLocation]);
 
+  console.log({ me });
+
   return (
     <NavigationContainer
       linking={{

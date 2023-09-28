@@ -57,6 +57,30 @@ export const userRouter = router({
         };
       });
     }),
+
+  deleteAccount: publicProcedure.mutation(async ({ ctx: { req, prisma } }) => {
+    try {
+      const jwt = req.headers?.authorization?.split(/\s/)[1];
+      if (!!!jwt) {
+        return {
+          error: "Failed to delete account because you are not authenticated.",
+        };
+      }
+      const { id } = await verifyJwt(jwt);
+      const me = await prisma.user.findFirst({ where: { id } });
+      if (!!!me) {
+        return {
+          error: "Failed to delete account because you are not authenticated.",
+        };
+      }
+      await prisma.user.delete({ where: { id: me.id } });
+      return { success: true };
+    } catch (error) {
+      return {
+        error: "Failed to delete the account for whatever reason.",
+      };
+    }
+  }),
   user: publicProcedure
     .input(userSchema)
     .query(async ({ ctx: { req, prisma } }) => {

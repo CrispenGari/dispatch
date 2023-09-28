@@ -51,6 +51,7 @@ export const authRouter = router({
         };
       });
     }),
+
   changePassword: publicProcedure
     .input(changePasswordSchema)
     .mutation(
