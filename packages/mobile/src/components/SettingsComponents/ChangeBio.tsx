@@ -90,6 +90,7 @@ const ChangeBio = () => {
             }));
           }}
           onChangeText={(text) => setForm((state) => ({ ...state, bio: text }))}
+          onSubmitEditing={update}
         />
         <TouchableOpacity
           activeOpacity={0.7}

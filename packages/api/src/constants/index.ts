@@ -5,6 +5,8 @@ export const __code__exp__ = 60 * 60; // 1hr
 export const __token__exp__ = 60 * 60; // 1hr
 
 export enum Events {
+  // AUTH
+  ON_AUTH_STATE_CHANGED = "ON_AUTH_STATE_CHANGED",
   ON_HI = "ON_HI",
 
   // POLLS

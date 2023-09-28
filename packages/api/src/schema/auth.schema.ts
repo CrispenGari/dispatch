@@ -19,5 +19,9 @@ export const verifySchema = z.object({
   code: z.string(),
 });
 
+export const onAuthStateChangedSchema = z.object({
+  uid: z.string(),
+});
+
 export const sendForgotPasswordLinkSchema = z.object({ email: z.string() });
 export const resendForgotPasswordLinkSchema = z.object({ email: z.string() });

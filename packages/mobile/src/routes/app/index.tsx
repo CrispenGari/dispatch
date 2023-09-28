@@ -1,9 +1,10 @@
-import { COLORS, FONTS } from "../../constants";
+import { COLORS } from "../../constants";
 import { AppParamList } from "../../params";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import React from "react";
 import {
+  ChangePassword,
   Create,
   Edit,
   Feed,
@@ -12,6 +13,7 @@ import {
   Settings,
   TermsOfUse,
   Tweet,
+  ChangeEmail,
   User,
 } from "../../screens/app";
 const Stack = createStackNavigator<AppParamList>();
@@ -39,6 +41,8 @@ export const AppTabs = () => {
       <Stack.Screen name="Edit" component={Edit} />
       <Stack.Screen name="Tweet" component={Tweet} />
       <Stack.Screen name="User" component={User} />
+      <Stack.Screen name="ChangePassword" component={ChangePassword} />
+      <Stack.Screen name="ChangeEmail" component={ChangeEmail} />
     </Stack.Navigator>
   );
 };

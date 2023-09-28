@@ -92,6 +92,7 @@ const ChangeNickname = () => {
           onChangeText={(text) =>
             setForm((state) => ({ ...state, nickname: text }))
           }
+          onSubmitEditing={update}
         />
         <TouchableOpacity
           activeOpacity={0.7}

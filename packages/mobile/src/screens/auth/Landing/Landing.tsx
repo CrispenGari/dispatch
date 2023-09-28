@@ -31,7 +31,6 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
   const {
     dimension: { height },
   } = useMediaQuery();
-
   React.useEffect(() => {
     const intervalId = setInterval(() => {
       if (messageIndex >= messages.length - 1) {

@@ -6,4 +6,6 @@ export { default as Create } from "./Create/Create";
 export { default as Feed } from "./Feed/Feed";
 export { default as Edit } from "./Edit/Edit";
 export { default as Tweet } from "./Tweet/Tweet";
+export { default as ChangePassword } from "./ChangePassword/ChangePassword";
 export { default as User } from "./User/User";
+export { default as ChangeEmail } from "./ChangeEmail/ChangeEmail";

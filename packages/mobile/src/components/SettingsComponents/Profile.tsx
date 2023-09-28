@@ -27,7 +27,6 @@ const Profile = () => {
       onImpact();
     }
     mutateLogout().then(async (res) => {
-      console.log({ res });
       if (res) {
         await del(KEYS.TOKEN_KEY);
         setMe(null);

@@ -5,10 +5,12 @@ import {
   __code__exp__,
   __reset__password__prefix__,
   __token__exp__,
+  Events,
 } from "../../constants";
 import {
   changePasswordSchema,
   loginSchema,
+  onAuthStateChangedSchema,
   registerSchema,
   resendForgotPasswordLinkSchema,
   sendForgotPasswordLinkSchema,
@@ -28,8 +30,27 @@ import {
 import { decodeFromBase64 } from "@crispengari/utils";
 import { verifyJwt, signJwt } from "../../utils/jwt";
 import { v4 as uuid_v4 } from "uuid";
+import { User } from "@prisma/client";
+import { observable } from "@trpc/server/observable";
+import EventEmitter from "events";
 
+const ee = new EventEmitter();
 export const authRouter = router({
+  onAuthStateChanged: publicProcedure
+    .input(onAuthStateChangedSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<User>((emit) => {
+        const handler = (user: User) => {
+          if (user.id === uid) {
+            emit.next(user);
+          }
+        };
+        ee.on(Events.ON_AUTH_STATE_CHANGED, handler);
+        return () => {
+          ee.off(Events.ON_AUTH_STATE_CHANGED, handler);
+        };
+      });
+    }),
   changePassword: publicProcedure
     .input(changePasswordSchema)
     .mutation(
@@ -410,17 +431,17 @@ export const authRouter = router({
       const token = req.headers.authorization?.split(/\s/)[1];
       if (!token) return false;
       const { id } = await verifyJwt(token);
-      console.log({ id });
       const me = await prisma.user.findFirst({
         where: {
           id,
         },
       });
       if (!!!me) return false;
-      const u = await prisma.user.update({
+      const user = await prisma.user.update({
         where: { id: me.id },
         data: { isAuthenticated: false },
       });
+      ee.emit(Events.ON_AUTH_STATE_CHANGED, user);
       return true;
     } catch (error) {
       return false;

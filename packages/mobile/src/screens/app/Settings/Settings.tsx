@@ -18,7 +18,6 @@ import { onFetchUpdateAsync, onImpact, rateApp, store } from "../../../utils";
 import { SettingsType } from "../../../types";
 import Profile from "../../../components/SettingsComponents/Profile";
 import ChangeNickname from "../../../components/SettingsComponents/ChangeNickname";
-import ChangeEmail from "../../../components/SettingsComponents/ChangeEmail";
 import ChangeGender from "../../../components/SettingsComponents/ChangeGender";
 import ChangeBio from "../../../components/SettingsComponents/ChangeBio";
 
@@ -176,9 +175,7 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
       />
 
       <Divider color={COLORS.black} title="MANAGE PROFILE" />
-
       <ChangeNickname />
-      <ChangeEmail />
       <ChangeBio />
       <ChangeGender />
       <Divider color={COLORS.black} title="MANAGE ACCOUNT" />
@@ -206,6 +203,24 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
           if (settings.haptics) {
             onImpact();
           }
+          navigation.navigate("ChangePassword");
+        }}
+      />
+      <SettingItem
+        title={"Change Email"}
+        titleColor={COLORS.red}
+        Icon={
+          <MaterialCommunityIcons
+            name="email-alert-outline"
+            size={18}
+            color={COLORS.red}
+          />
+        }
+        onPress={async () => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          navigation.navigate("ChangeEmail");
         }}
       />
       <SettingItem

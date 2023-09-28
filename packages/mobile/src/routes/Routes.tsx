@@ -39,6 +39,7 @@ const Routes = () => {
       },
     }
   );
+
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(
       ({ type, isInternetReachable, isConnected }) => {

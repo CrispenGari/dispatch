@@ -1,23 +1,30 @@
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import React from "react";
-import { useMeStore, useSettingsStore } from "../../store";
-import TypeWriter from "react-native-typewriter";
-import { styles } from "../../styles";
-import CustomTextInput from "../CustomTextInput/CustomTextInput";
-import { APP_NAME, COLORS, KEYS } from "../../constants";
-import { trpc } from "../../utils/trpc";
-import { del, onImpact, store } from "../../utils";
-import Ripple from "../ProgressIndicators/Ripple";
-import Message from "../Message/Message";
+import { AppNavProps } from "../../../params";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { APP_NAME, COLORS, FONTS, KEYS } from "../../../constants";
+import { useMeStore, useSettingsStore } from "../../../store";
+import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
+import { onImpact, store } from "../../../utils";
+import { usePlatform } from "../../../hooks";
+import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
+import Ripple from "../../../components/ProgressIndicators/Ripple";
+import { styles } from "../../../styles";
+import Message from "../../../components/Message/Message";
+import { trpc } from "../../../utils/trpc";
 
-const ChangeEmail = () => {
+const ChangeEmail: React.FunctionComponent<AppNavProps<"ChangeEmail">> = ({
+  navigation,
+}) => {
   const { me, setMe } = useMeStore();
+  const { os } = usePlatform();
   const [form, setForm] = React.useState({
     email: "",
     error: "",
     message: "",
   });
-  const { mutateAsync: mutateLogout } = trpc.auth.logout.useMutation();
+  const { mutateAsync: mutateLogout, isLoading: logging } =
+    trpc.auth.logout.useMutation();
   const { settings } = useSettingsStore();
   const { mutateAsync: mutateUpdateEmail, isLoading } =
     trpc.user.updateEmail.useMutation();
@@ -93,19 +100,44 @@ const ChangeEmail = () => {
     );
   };
 
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: "Change Account Email",
+      headerShown: true,
+      headerStyle: {
+        borderBottomColor: COLORS.primary,
+        borderBottomWidth: 0.5,
+      },
+      headerTitleStyle: {
+        fontFamily: FONTS.regularBold,
+      },
+      headerLeft: () => (
+        <AppStackBackButton
+          label={os === "ios" ? "Settings" : ""}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
+          }}
+        />
+      ),
+    });
+  }, [navigation, settings]);
   return (
-    <View style={{ maxWidth: 500, paddingHorizontal: 10, width: "100%" }}>
-      <TypeWriter
-        style={[styles.p, { fontSize: 14 }]}
-        typing={1}
-        maxDelay={-50}
-      >
-        Change email
-      </TypeWriter>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
+    <KeyboardAwareScrollView
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
+      scrollEventThrottle={16}
+      contentContainerStyle={{
+        paddingBottom: 100,
+      }}
+      style={{ backgroundColor: COLORS.main, flex: 1 }}
+    >
+      <View style={{ maxWidth: 500, padding: 10, marginTop: 10 }}>
         <CustomTextInput
           keyboardType={"email-address"}
-          placeholder={"Email"}
+          placeholder={"Email address"}
           containerStyles={{
             paddingHorizontal: 0,
             marginTop: 4,
@@ -121,11 +153,17 @@ const ChangeEmail = () => {
           onChangeText={(text) =>
             setForm((state) => ({ ...state, email: text }))
           }
+          onSubmitEditing={update}
         />
+
+        {!!form.error ? <Message error={true} message={form.error} /> : null}
+        {!!form.message ? (
+          <Message error={false} message={form.message} type="primary" />
+        ) : null}
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={update}
-          disabled={isLoading}
+          disabled={isLoading || logging}
           style={[
             styles.button,
             {
@@ -133,7 +171,6 @@ const ChangeEmail = () => {
               padding: 5,
               borderRadius: 0,
               maxWidth: 100,
-              marginLeft: 5,
             },
           ]}
         >
@@ -141,21 +178,19 @@ const ChangeEmail = () => {
             style={[
               styles.button__text,
               {
-                marginRight: isLoading ? 10 : 0,
+                marginRight: isLoading || logging ? 10 : 0,
                 fontSize: 16,
               },
             ]}
           >
             UPDATE
           </Text>
-          {isLoading ? <Ripple color={COLORS.tertiary} size={5} /> : null}
+          {isLoading || logging ? (
+            <Ripple color={COLORS.tertiary} size={5} />
+          ) : null}
         </TouchableOpacity>
       </View>
-      {!!form.error ? <Message error={true} message={form.error} /> : null}
-      {!!form.message ? (
-        <Message error={false} message={form.message} type="primary" />
-      ) : null}
-    </View>
+    </KeyboardAwareScrollView>
   );
 };
 

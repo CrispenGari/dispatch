@@ -161,7 +161,6 @@ export const userRouter = router({
             email: email.trim().toLocaleLowerCase(),
           },
         });
-
         const code = await generateVerificationCode(6, false, true);
         const value = JSON.stringify({
           nickname: user.nickname,
@@ -258,8 +257,8 @@ export const userRouter = router({
     .input(changePasswordSchema)
     .mutation(
       async ({
-        ctx: { req, prisma, redis },
-        input: { password, confirmPassword },
+        ctx: { req, prisma },
+        input: { confirmNewPassword, newPassword, currentPassword },
       }) => {
         try {
           const jwt = req.headers?.authorization?.split(/\s/)[1];
@@ -277,19 +276,26 @@ export const userRouter = router({
                 "Failed to update the user password because you are not authenticated.",
             };
           }
-          if (password.trim() !== confirmPassword.trim()) {
+          const valid = await compare(currentPassword.trim(), me.password);
+          if (!valid)
+            return {
+              error:
+                "Failed to update the user password because the current account password is invalid.",
+            };
+
+          if (confirmNewPassword.trim() !== newPassword.trim()) {
             return {
               error:
                 "Failed to update the user password. The two password must match.",
             };
           }
-          if (!isValidPassword(password.trim())) {
+          if (!isValidPassword(newPassword.trim())) {
             return {
               error:
                 "The password is not secure. Password must contain minimum of 8 characters with least 1 digit.",
             };
           }
-          const correct = await compare(password.trim(), me.password);
+          const correct = await compare(newPassword.trim(), me.password);
           if (correct) {
             return {
               error:
@@ -297,7 +303,7 @@ export const userRouter = router({
             };
           }
 
-          const hashed = await hash(password.trim(), 12);
+          const hashed = await hash(newPassword.trim(), 12);
           const user = await prisma.user.update({
             where: { id: me.id },
             data: {

@@ -14,6 +14,7 @@ export const updateBioSchema = z.object({
   bio: z.string(),
 });
 export const changePasswordSchema = z.object({
-  password: z.string(),
-  confirmPassword: z.string(),
+  currentPassword: z.string(),
+  newPassword: z.string(),
+  confirmNewPassword: z.string(),
 });
