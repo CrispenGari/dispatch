@@ -410,6 +410,7 @@ export const authRouter = router({
       const token = req.headers.authorization?.split(/\s/)[1];
       if (!token) return false;
       const { id } = await verifyJwt(token);
+      console.log({ id });
       const me = await prisma.user.findFirst({
         where: {
           id,

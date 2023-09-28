@@ -4,9 +4,9 @@ import { useMeStore, useSettingsStore } from "../../store";
 import TypeWriter from "react-native-typewriter";
 import { styles } from "../../styles";
 import CustomTextInput from "../CustomTextInput/CustomTextInput";
-import { COLORS } from "../../constants";
+import { COLORS, KEYS } from "../../constants";
 import { trpc } from "../../utils/trpc";
-import { onImpact } from "../../utils";
+import { onImpact, store } from "../../utils";
 import Ripple from "../ProgressIndicators/Ripple";
 import Message from "../Message/Message";
 
@@ -20,17 +20,39 @@ const ChangeBio = () => {
   });
   const { settings } = useSettingsStore();
   const { mutateAsync: mutateUpdateBio, isLoading } =
-    trpc.profile.authProfile.useMutation();
+    trpc.user.updateBio.useMutation();
   React.useEffect(() => {
     if (!!me) {
       setForm((state) => ({ ...state, bio: me.bio || "" }));
     }
   }, [me]);
+  React.useEffect(() => {
+    if (!!form.error || !!form.message) {
+      const timeoutId = setTimeout(() => {
+        setForm((state) => ({ ...state, error: "", message: "" }));
+      }, 5000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [form]);
 
   const update = () => {
     if (settings.haptics) {
       onImpact();
     }
+    if (!!!me) return;
+    mutateUpdateBio({ bio: form.bio }).then(async (data) => {
+      if (data.error) {
+        setForm((state) => ({ ...state, message: "", error: data.error }));
+      }
+      if (data.jwt) {
+        setForm((state) => ({
+          ...state,
+          message: "Your profile biography has been updated.",
+          error: "",
+        }));
+        await store(KEYS.TOKEN_KEY, data.jwt);
+      }
+    });
   };
 
   return (
@@ -100,7 +122,9 @@ const ChangeBio = () => {
         </TouchableOpacity>
       </View>
       {!!form.error ? <Message error={true} message={form.error} /> : null}
-      {!!form.message ? <Message error={false} message={form.message} /> : null}
+      {!!form.message ? (
+        <Message error={false} message={form.message} type="primary" />
+      ) : null}
     </View>
   );
 };

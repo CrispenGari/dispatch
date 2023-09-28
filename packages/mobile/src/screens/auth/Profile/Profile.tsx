@@ -21,7 +21,7 @@ import Ripple from "../../../components/ProgressIndicators/Ripple";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useMediaQuery } from "../../../hooks";
-import { useSettingsStore } from "../../../store";
+import { useMeStore, useSettingsStore } from "../../../store";
 
 const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
   navigation,
@@ -31,6 +31,8 @@ const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
   const {
     dimension: { height },
   } = useMediaQuery();
+
+  const { me } = useMeStore();
 
   const { mutateAsync: mutateVerify, isLoading: verifying } =
     trpc.auth.verify.useMutation();
@@ -73,6 +75,11 @@ const Profile: React.FunctionComponent<AuthNavProps<"Profile">> = ({
     setForm((state) => ({ ...state, gender }));
   };
 
+  React.useEffect(() => {
+    if (!!me) {
+      setForm((state) => ({ ...state, gender: me.gender, bio: me.bio || "" }));
+    }
+  }, [me]);
   React.useEffect(() => {
     mutateVerify({ code: route.params.code }).then(async (res) => {
       if (res.error) {

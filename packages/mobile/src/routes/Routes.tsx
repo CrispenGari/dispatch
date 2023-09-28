@@ -16,7 +16,15 @@ const Routes = () => {
   const { setLocation } = useLocationStore();
   const { token } = useNotificationsToken();
   const { granted } = useLocationPermission();
-  const { me } = useMeStore();
+  const { me, setMe } = useMeStore();
+  trpc.user.onUpdate.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (data) => {
+        setMe(data);
+      },
+    }
+  );
   trpc.tweet.onNewTweet.useSubscription(
     { uid: me?.id || "" },
     {
@@ -65,7 +73,7 @@ const Routes = () => {
         },
       }}
     >
-      {me && me.isAuthenticated ? <AppTabs /> : <AuthStack />}
+      {me && me.isAuthenticated && me.confirmed ? <AppTabs /> : <AuthStack />}
     </NavigationContainer>
   );
 };

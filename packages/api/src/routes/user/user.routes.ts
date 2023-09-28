@@ -1,8 +1,10 @@
 import { generateVerificationCode } from "@crispengari/random-verification-codes";
 import {
   changePasswordSchema,
+  onUpdateSchema,
   onViewProfileSchema,
   tweetsSchema,
+  updateBioSchema,
   updateEmailSchema,
   updateGenderSchema,
   updateNicknameSchema,
@@ -25,6 +27,21 @@ import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
 const ee = new EventEmitter();
 export const userRouter = router({
+  onUpdate: publicProcedure
+    .input(onUpdateSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<User>((emit) => {
+        const handler = (user: User) => {
+          if (user.id === uid) {
+            emit.next(user);
+          }
+        };
+        ee.on(Events.ON_USER_UPDATE, handler);
+        return () => {
+          ee.off(Events.ON_USER_UPDATE, handler);
+        };
+      });
+    }),
   onViewProfile: publicProcedure
     .input(onViewProfileSchema)
     .subscription(async ({ ctx: {}, input: { uid } }) => {
@@ -98,6 +115,7 @@ export const userRouter = router({
           data: { nickname: nickname.trim().toLowerCase() },
         });
         const jwt = await signJwt(user);
+        ee.emit(Events.ON_USER_UPDATE, user);
         return { jwt };
       } catch (error) {
         return { error: "Failed to update the nickname for whatever reason." };
@@ -138,8 +156,12 @@ export const userRouter = router({
 
         const user = await prisma.user.update({
           where: { id: me.id },
-          data: { confirmed: false, email: email.trim().toLocaleLowerCase() },
+          data: {
+            confirmed: false,
+            email: email.trim().toLocaleLowerCase(),
+          },
         });
+
         const code = await generateVerificationCode(6, false, true);
         const value = JSON.stringify({
           nickname: user.nickname,
@@ -188,6 +210,41 @@ export const userRouter = router({
           },
         });
         const _jwt = await signJwt(user);
+        ee.emit(Events.ON_USER_UPDATE, user);
+        return {
+          jwt: _jwt,
+        };
+      } catch (error) {
+        return {
+          error: "Unable to update the user gender for whatever reason.",
+        };
+      }
+    }),
+
+  updateBio: publicProcedure
+    .input(updateBioSchema)
+    .mutation(async ({ ctx: { req, prisma }, input: { bio } }) => {
+      try {
+        const jwt = req.headers?.authorization?.split(/\s/)[1];
+        if (!!!jwt) {
+          return { error: "The was no token passed in this request." };
+        }
+        const { id } = await verifyJwt(jwt);
+        const me = await prisma.user.findFirst({ where: { id } });
+        if (!!!me) {
+          return {
+            error:
+              "Failed to update the profile because you are not authenticated.",
+          };
+        }
+        const user = await prisma.user.update({
+          where: { id: me.id },
+          data: {
+            bio,
+          },
+        });
+        const _jwt = await signJwt(user);
+        ee.emit(Events.ON_USER_UPDATE, user);
         return {
           jwt: _jwt,
         };

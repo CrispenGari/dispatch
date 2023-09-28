@@ -4,9 +4,9 @@ import { useMeStore, useSettingsStore } from "../../store";
 import TypeWriter from "react-native-typewriter";
 import { styles } from "../../styles";
 import CustomTextInput from "../CustomTextInput/CustomTextInput";
-import { COLORS } from "../../constants";
+import { COLORS, KEYS } from "../../constants";
 import { trpc } from "../../utils/trpc";
-import { onImpact } from "../../utils";
+import { onImpact, store } from "../../utils";
 import Ripple from "../ProgressIndicators/Ripple";
 import Message from "../Message/Message";
 
@@ -26,10 +26,36 @@ const ChangeNickname = () => {
     }
   }, [me]);
 
+  React.useEffect(() => {
+    if (!!form.error || !!form.message) {
+      const timeoutId = setTimeout(() => {
+        setForm((state) => ({ ...state, error: "", message: "" }));
+      }, 5000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [form]);
+
   const update = () => {
     if (settings.haptics) {
       onImpact();
     }
+    if (me?.nickname === form.nickname.trim().toLowerCase()) {
+      setForm((state) => ({ ...state, error: "", message: "" }));
+      return;
+    }
+    mutateUpdateNickname({ nickname: form.nickname }).then(async (data) => {
+      if (data.error) {
+        setForm((state) => ({ ...state, message: "", error: data.error }));
+      }
+      if (data.jwt) {
+        setForm((state) => ({
+          ...state,
+          message: "Your nickname has been updated.",
+          error: "",
+        }));
+        await store(KEYS.TOKEN_KEY, data.jwt);
+      }
+    });
   };
 
   return (
@@ -97,7 +123,9 @@ const ChangeNickname = () => {
         </TouchableOpacity>
       </View>
       {!!form.error ? <Message error={true} message={form.error} /> : null}
-      {!!form.message ? <Message error={false} message={form.message} /> : null}
+      {!!form.message ? (
+        <Message error={false} message={form.message} type="primary" />
+      ) : null}
     </View>
   );
 };
