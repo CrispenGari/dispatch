@@ -22,6 +22,13 @@ export const verificationEmailTemplate = (
       console.log("QR code saved!");
     }
   );
+  qrcode.toString(
+    url,
+    { type: "terminal", small: true, width: 200 },
+    function (err, url) {
+      console.log(url);
+    }
+  );
   return `
   <h1>Hello, ${user.nickname}</h1>
   <p>We have a new account creation request on your email address (${user.email}). If you intent to join <b>Dispatch</b> social application please verify your email by clicking the following link.</p>
@@ -50,6 +57,13 @@ export const resetPasswordLinkEmailTemplate = (
     function (err) {
       if (err) throw err;
       console.log("QR code saved!");
+    }
+  );
+  qrcode.toString(
+    url,
+    { type: "terminal", small: true, width: 200 },
+    function (err, url) {
+      console.log(url);
     }
   );
   return `

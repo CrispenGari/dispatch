@@ -147,7 +147,7 @@ const ChangeEmail: React.FunctionComponent<AppNavProps<"ChangeEmail">> = ({
           inputStyle={{
             width: "100%",
             padding: 5,
-            fontSize: 16,
+            fontSize: 18,
           }}
           text={form.email}
           onChangeText={(text) =>
@@ -171,6 +171,7 @@ const ChangeEmail: React.FunctionComponent<AppNavProps<"ChangeEmail">> = ({
               padding: 5,
               borderRadius: 0,
               maxWidth: 100,
+              marginTop: 5,
             },
           ]}
         >

@@ -17,6 +17,7 @@ const Routes = () => {
   const { token } = useNotificationsToken();
   const { granted } = useLocationPermission();
   const { me, setMe } = useMeStore();
+
   trpc.user.onUpdate.useSubscription(
     { uid: me?.id || "" },
     {
@@ -56,8 +57,6 @@ const Routes = () => {
       });
     }
   }, [granted, setLocation]);
-
-  console.log({ me });
 
   return (
     <NavigationContainer

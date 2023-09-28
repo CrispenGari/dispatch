@@ -43,6 +43,7 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
       clearInterval(intervalId);
     };
   }, [messageIndex]);
+
   React.useEffect(() => {
     if (!!me) {
       setMe(me);
@@ -50,8 +51,8 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
       setMe(null);
     }
   }, [me]);
-  const toggle = () => setOpen((state) => !state);
 
+  const toggle = () => setOpen((state) => !state);
   if (fetching) return <Loading />;
   return (
     <View style={{ flex: 1 }}>

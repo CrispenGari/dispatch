@@ -28,12 +28,13 @@ const Profile = () => {
     }
     mutateLogout().then(async (res) => {
       if (res) {
-        await del(KEYS.TOKEN_KEY);
-        setMe(null);
+        const res = await del(KEYS.TOKEN_KEY);
+        if (res) {
+          setMe(null);
+        }
       }
     });
   };
-
   if (!!!me) return null;
   return (
     <View

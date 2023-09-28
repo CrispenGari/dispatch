@@ -12,7 +12,7 @@ import React from "react";
 import { AppNavProps } from "../../../params";
 import FeedHeader from "../../../components/FeedHeader/FeedHeader";
 import { useMediaQuery, usePlatform } from "../../../hooks";
-import { COLORS, FONTS, KEYS } from "../../../constants";
+import { COLORS, FONTS } from "../../../constants";
 import { MaterialIcons } from "@expo/vector-icons";
 import { trpc } from "../../../utils/trpc";
 import * as Location from "expo-location";
@@ -28,6 +28,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     isLoading: loading,
     isFetching: fetching,
   } = trpc.tweet.tweets.useQuery();
+  const { data: me, isFetching: getting } = trpc.user.me.useQuery();
   const { os } = usePlatform();
   const { settings } = useSettingsStore();
   const {
@@ -35,7 +36,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   } = useMediaQuery();
   const zIndex = React.useRef(new Animated.Value(1)).current;
   const opacity = React.useRef(new Animated.Value(1)).current;
-  const { me } = useMeStore();
+  const { setMe } = useMeStore();
   const { location } = useLocationStore();
   const [address, setAddress] = React.useState<
     Location.LocationGeocodedAddress | undefined
@@ -75,6 +76,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const onMomentumScrollBegin = (
     e: NativeSyntheticEvent<NativeScrollEvent>
   ) => {
+    e.persist();
     Animated.sequence([
       Animated.timing(zIndex, {
         duration: 0,
@@ -89,6 +91,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     ]).start();
   };
   const onMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    e.persist();
     Animated.sequence([
       Animated.timing(zIndex, {
         duration: 300,
@@ -108,6 +111,14 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       header: ({}) => <FeedHeader navigation={navigation} />,
     });
   }, [navigation]);
+  React.useEffect(() => {
+    if (!!me) {
+      setMe(me);
+    } else {
+      setMe(null);
+    }
+  }, [me]);
+
   return (
     <View
       style={{ backgroundColor: COLORS.main, flex: 1, position: "relative" }}
@@ -151,7 +162,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
-            refreshing={fetching || loading}
+            refreshing={fetching || loading || getting}
             size={4}
             onRefresh={async () => {
               await refetch();

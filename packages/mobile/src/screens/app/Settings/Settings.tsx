@@ -1,4 +1,4 @@
-import { View, Linking, ScrollView, Alert } from "react-native";
+import { View, Linking, Alert } from "react-native";
 import React from "react";
 import { AppNavProps } from "../../../params";
 import { APP_NAME, COLORS, FONTS, KEYS } from "../../../constants";

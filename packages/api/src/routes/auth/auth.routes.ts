@@ -30,28 +30,10 @@ import {
 import { decodeFromBase64 } from "@crispengari/utils";
 import { verifyJwt, signJwt } from "../../utils/jwt";
 import { v4 as uuid_v4 } from "uuid";
-import { User } from "@prisma/client";
-import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
 
 const ee = new EventEmitter();
 export const authRouter = router({
-  onAuthStateChanged: publicProcedure
-    .input(onAuthStateChangedSchema)
-    .subscription(async ({ ctx: {}, input: { uid } }) => {
-      return observable<User>((emit) => {
-        const handler = (user: User) => {
-          if (user.id === uid) {
-            emit.next(user);
-          }
-        };
-        ee.on(Events.ON_AUTH_STATE_CHANGED, handler);
-        return () => {
-          ee.off(Events.ON_AUTH_STATE_CHANGED, handler);
-        };
-      });
-    }),
-
   changePassword: publicProcedure
     .input(changePasswordSchema)
     .mutation(
@@ -129,6 +111,7 @@ export const authRouter = router({
             },
           });
           const _jwt = await signJwt(user);
+
           await redis.del(key);
           return {
             jwt: _jwt,
@@ -224,6 +207,7 @@ export const authRouter = router({
             "Verify your Email"
           );
           const jwt = await signJwt(user);
+
           return {
             jwt,
           };
@@ -275,6 +259,7 @@ export const authRouter = router({
           data: { confirmed: true },
         });
         const _jwt = await signJwt(user);
+
         return { jwt: _jwt };
       } catch (error) {
         console.log(error);
@@ -413,11 +398,12 @@ export const authRouter = router({
             return { error: "The account email was not confirmed." };
           const correct = await compare(password.trim(), me.password);
           if (!correct) return { error: "Invalid account password." };
-          const u = await prisma.user.update({
+          const user = await prisma.user.update({
             where: { id: me.id },
             data: { isAuthenticated: true },
           });
-          const jwt = await signJwt(u);
+
+          const jwt = await signJwt(user);
           return { jwt };
         } catch (error) {
           return {
@@ -438,11 +424,10 @@ export const authRouter = router({
         },
       });
       if (!!!me) return false;
-      const user = await prisma.user.update({
+      await prisma.user.update({
         where: { id: me.id },
         data: { isAuthenticated: false },
       });
-      ee.emit(Events.ON_AUTH_STATE_CHANGED, user);
       return true;
     } catch (error) {
       return false;

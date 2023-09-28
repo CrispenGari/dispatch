@@ -42,7 +42,7 @@ export type AppParamList = {
   };
   ChangePassword: undefined;
   ChangeEmail: undefined;
-};
+} & { Landing: undefined };
 
 export type AppNavProps<T extends keyof AppParamList> = {
   navigation: StackNavigationProp<AppParamList, T>;
