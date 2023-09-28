@@ -1,6 +1,6 @@
-import { View, Text, ScrollView } from "react-native";
+import { Text, ScrollView } from "react-native";
 import React from "react";
-import { AppNavProps } from "../../../params";
+import type { AppNavProps } from "../../../params";
 import { COLORS, FONTS } from "../../../constants";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { styles } from "../../../styles";

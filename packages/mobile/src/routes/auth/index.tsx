@@ -8,7 +8,7 @@ import {
   ForgotPassword,
   ResetPassword,
 } from "../../screens/auth";
-import { AuthParamList } from "../../params";
+import type { AuthParamList } from "../../params";
 import { PrivacyPolicy, TermsOfUse } from "../../screens/app";
 
 const Stack = createStackNavigator<AuthParamList>();

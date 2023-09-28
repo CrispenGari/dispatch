@@ -1,7 +1,7 @@
-import { View, Text, ScrollView } from "react-native";
+import { Text, ScrollView } from "react-native";
 import React from "react";
 import { COLORS, FONTS } from "../../../constants";
-import { AppNavProps } from "../../../params";
+import type { AppNavProps } from "../../../params";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { styles } from "../../../styles";
 import { usePlatform } from "../../../hooks";

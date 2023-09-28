@@ -12,7 +12,7 @@ import {
   viewProfile,
 } from "../../schema/user.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
-import { signJwt, verifyJwt } from "../../utils/jwt";
+import { signJwt } from "../../utils/jwt";
 import {
   isValidEmail,
   isValidPassword,
@@ -25,6 +25,7 @@ import { compare, hash } from "bcryptjs";
 import { User } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
+import { isAuth } from "../../middleware/isAuth.middleware";
 const ee = new EventEmitter();
 export const userRouter = router({
   onUpdate: publicProcedure
@@ -58,37 +59,29 @@ export const userRouter = router({
       });
     }),
 
-  deleteAccount: publicProcedure.mutation(async ({ ctx: { req, prisma } }) => {
-    try {
-      const jwt = req.headers?.authorization?.split(/\s/)[1];
-      if (!!!jwt) {
+  deleteAccount: publicProcedure
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma } }) => {
+      try {
+        if (!!!me) {
+          return {
+            error:
+              "Failed to delete account because you are not authenticated.",
+          };
+        }
+        await prisma.user.delete({ where: { id: me.id } });
+        return { success: true };
+      } catch (error) {
         return {
-          error: "Failed to delete account because you are not authenticated.",
+          error: "Failed to delete the account for whatever reason.",
         };
       }
-      const { id } = await verifyJwt(jwt);
-      const me = await prisma.user.findFirst({ where: { id } });
-      if (!!!me) {
-        return {
-          error: "Failed to delete account because you are not authenticated.",
-        };
-      }
-      await prisma.user.delete({ where: { id: me.id } });
-      return { success: true };
-    } catch (error) {
-      return {
-        error: "Failed to delete the account for whatever reason.",
-      };
-    }
-  }),
+    }),
   user: publicProcedure
     .input(userSchema)
-    .query(async ({ ctx: { req, prisma } }) => {
+    .use(isAuth)
+    .query(async ({ ctx: { me, prisma }, input: { id } }) => {
       try {
-        const jwt = req.headers.authorization?.split(/\s/)[1];
-        if (!!!jwt) return null;
-        const { id } = await verifyJwt(jwt);
-        const me = await prisma.user.findFirst({ where: { id } });
         if (!!!me) return null;
         const user = await prisma.user.findFirst({
           where: { id },
@@ -99,29 +92,12 @@ export const userRouter = router({
         return null;
       }
     }),
-  me: publicProcedure.query(async ({ ctx: { req, prisma } }) => {
-    try {
-      const jwt = req.headers.authorization?.split(/\s/)[1];
-      if (!!!jwt) return null;
-      const { id } = await verifyJwt(jwt);
-      const me = await prisma.user.findFirst({ where: { id } });
-      return me;
-    } catch (err) {
-      return null;
-    }
-  }),
+  me: publicProcedure.use(isAuth).query(async ({ ctx: { me } }) => me),
   updateNickname: publicProcedure
+    .use(isAuth)
     .input(updateNicknameSchema)
-    .mutation(async ({ ctx: { req, prisma }, input: { nickname } }) => {
+    .mutation(async ({ ctx: { me, prisma }, input: { nickname } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token)
-          return {
-            error:
-              "Failed to update the username because you are not authenticated.",
-          };
-        const { id } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id } });
         if (!!!me)
           return {
             error:
@@ -147,16 +123,9 @@ export const userRouter = router({
     }),
   updateEmail: publicProcedure
     .input(updateEmailSchema)
-    .mutation(async ({ ctx: { req, prisma, redis }, input: { email } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma, redis }, input: { email } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token)
-          return {
-            error:
-              "Failed to update the username because you are not authenticated.",
-          };
-        const { id } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id } });
         if (!!!me)
           return {
             error:
@@ -212,14 +181,9 @@ export const userRouter = router({
     }),
   updateGender: publicProcedure
     .input(updateGenderSchema)
-    .mutation(async ({ ctx: { req, prisma }, input: { gender } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma }, input: { gender } }) => {
       try {
-        const jwt = req.headers?.authorization?.split(/\s/)[1];
-        if (!!!jwt) {
-          return { error: "The was no token passed in this request." };
-        }
-        const { id } = await verifyJwt(jwt);
-        const me = await prisma.user.findFirst({ where: { id } });
         if (!!!me) {
           return {
             error:
@@ -246,14 +210,9 @@ export const userRouter = router({
 
   updateBio: publicProcedure
     .input(updateBioSchema)
-    .mutation(async ({ ctx: { req, prisma }, input: { bio } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma }, input: { bio } }) => {
       try {
-        const jwt = req.headers?.authorization?.split(/\s/)[1];
-        if (!!!jwt) {
-          return { error: "The was no token passed in this request." };
-        }
-        const { id } = await verifyJwt(jwt);
-        const me = await prisma.user.findFirst({ where: { id } });
         if (!!!me) {
           return {
             error:
@@ -279,21 +238,13 @@ export const userRouter = router({
     }),
   changePassword: publicProcedure
     .input(changePasswordSchema)
+    .use(isAuth)
     .mutation(
       async ({
-        ctx: { req, prisma },
+        ctx: { me, prisma },
         input: { confirmNewPassword, newPassword, currentPassword },
       }) => {
         try {
-          const jwt = req.headers?.authorization?.split(/\s/)[1];
-          if (!!!jwt) {
-            return {
-              error:
-                "Failed to update the user password because you are not authenticated.",
-            };
-          }
-          const { id } = await verifyJwt(jwt);
-          const me = await prisma.user.findFirst({ where: { id } });
           if (!!!me) {
             return {
               error:
@@ -349,14 +300,9 @@ export const userRouter = router({
     ),
   tweets: publicProcedure
     .input(tweetsSchema)
-    .query(async ({ ctx: { req, prisma }, input: { id } }) => {
+    .use(isAuth)
+    .query(async ({ ctx: { me, prisma }, input: { id } }) => {
       try {
-        const jwt = req.headers.authorization?.split(/\s/)[1];
-        if (!!!jwt) return [];
-        const { id: uid } = await verifyJwt(jwt);
-        const me = await prisma.user.findFirst({
-          where: { id: uid },
-        });
         if (!!!me) return [];
         const user = await prisma.user.findFirst({
           where: { id },
@@ -370,14 +316,9 @@ export const userRouter = router({
     }),
   viewProfile: publicProcedure
     .input(viewProfile)
-    .mutation(async ({ ctx: { req, prisma }, input: { id } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma }, input: { id } }) => {
       try {
-        const jwt = req.headers.authorization?.split(/\s/)[1];
-        if (!!!jwt) return false;
-        const { id: uid } = await verifyJwt(jwt);
-        const me = await prisma.user.findFirst({
-          where: { id: uid },
-        });
         if (!!!me) return false;
 
         if (me.id === id) return false;

@@ -7,7 +7,6 @@ import {
   KeyboardTypeOptions,
   TextInputSubmitEditingEventData,
   NativeSyntheticEvent,
-  Text,
   TextStyle,
   TextInputContentSizeChangeEventData,
 } from "react-native";

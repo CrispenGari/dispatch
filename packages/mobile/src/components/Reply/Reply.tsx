@@ -1,6 +1,5 @@
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import React from "react";
-import type { User, Comment as C, Reaction } from "@dispatch/api";
 import { useMeStore, useSettingsStore } from "../../store";
 import {
   APP_NAME,
@@ -85,7 +84,7 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
       onImpact();
     }
     if (viewing || !!!reply) return;
-    mutateViewProfile({ id: reply.userId }).then((res) => {
+    mutateViewProfile({ id: reply.userId }).then((_res) => {
       navigation.navigate("User", { from: "Tweet", id: reply.userId });
     });
   };

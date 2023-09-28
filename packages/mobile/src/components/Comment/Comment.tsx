@@ -126,7 +126,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
       onImpact();
     }
     if (viewing || !!!comment) return;
-    mutateViewProfile({ id: comment.userId }).then((res) => {
+    mutateViewProfile({ id: comment.userId }).then((_res) => {
       navigation.navigate("User", { from: "Tweet", id: comment.userId });
     });
   };

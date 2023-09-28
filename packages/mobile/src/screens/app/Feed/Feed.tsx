@@ -9,7 +9,7 @@ import {
   RefreshControl,
 } from "react-native";
 import React from "react";
-import { AppNavProps } from "../../../params";
+import type { AppNavProps } from "../../../params";
 import FeedHeader from "../../../components/FeedHeader/FeedHeader";
 import { useMediaQuery, usePlatform } from "../../../hooks";
 import { COLORS, FONTS } from "../../../constants";
@@ -20,6 +20,7 @@ import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import Tweet from "../../../components/Tweet/Tweet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { onImpact } from "../../../utils";
+import TweetSkeleton from "../../../components/skeletons/TweetSkeleton";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const {
@@ -162,8 +163,8 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
           <RefreshControl
+            shouldRasterizeIOS={true}
             refreshing={fetching || loading || getting}
-            size={4}
             onRefresh={async () => {
               await refetch();
             }}
@@ -199,18 +200,16 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
             />
           </TouchableOpacity>
         </View>
-        {!!tweets ? (
-          tweets.tweets.map((tweet) => (
-            <Tweet
-              navigation={navigation}
-              tweet={tweet}
-              key={tweet.id}
-              from="Feed"
-            />
-          ))
-        ) : (
-          <Text>No Tweets</Text>
-        )}
+        {!!tweets
+          ? tweets.tweets.map((tweet) => (
+              <Tweet
+                navigation={navigation}
+                tweet={tweet}
+                key={tweet.id}
+                from="Feed"
+              />
+            ))
+          : Array(10).map((_, i) => <TweetSkeleton key={i} />)}
       </ScrollView>
     </View>
   );

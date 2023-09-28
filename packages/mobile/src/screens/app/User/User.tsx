@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Image } from "react-native";
 import React from "react";
-import { AppNavProps } from "../../../params";
+import type { AppNavProps } from "../../../params";
 import { COLORS, FONTS, profile } from "../../../constants";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { useMeStore, useSettingsStore } from "../../../store";
@@ -23,10 +23,11 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
   const { data: user, refetch } = trpc.user.user.useQuery({
     id: route.params.id,
   });
+
   trpc.user.onViewProfile.useSubscription(
     { uid: me?.id || "" },
     {
-      onData: async (data) => {
+      onData: async (_data) => {
         await refetch();
       },
     }

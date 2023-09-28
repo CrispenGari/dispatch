@@ -12,11 +12,12 @@ import {
   replySchema,
 } from "../../schema/comment.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
-import { verifyJwt } from "../../utils/jwt";
+
 import { Events } from "../../constants";
 import EventEmitter from "events";
 import { Tweet, User, Notification, Comment, Reply } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
+import { isAuth } from "../../middleware/isAuth.middleware";
 
 const ee = new EventEmitter();
 export const commentRoute = router({
@@ -100,12 +101,9 @@ export const commentRoute = router({
 
   comment: publicProcedure
     .input(commentSchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { id, comment } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me }, input: { id, comment } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token) return false;
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me) return false;
         const twt = await prisma.tweet.findFirst({
           where: { id },
@@ -143,13 +141,10 @@ export const commentRoute = router({
     }),
   reply: publicProcedure
     .input(replySchema)
+    .use(isAuth)
     .mutation(
-      async ({ ctx: { prisma, req }, input: { id, reply, mention } }) => {
+      async ({ ctx: { prisma, me }, input: { id, reply, mention } }) => {
         try {
-          const token = req.headers.authorization?.split(/\s/)[1];
-          if (!!!token) return false;
-          const { id: uid } = await verifyJwt(token);
-          const me = await prisma.user.findFirst({ where: { id: uid } });
           if (!!!me) return false;
           const comment = await prisma.comment.findFirst({
             where: { id },
@@ -242,16 +237,9 @@ export const commentRoute = router({
 
   deleteComment: publicProcedure
     .input(deleteCommentSchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { id } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me }, input: { id } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token)
-          return {
-            error:
-              "You can not delete the comment if you are not authenticated.",
-          };
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me)
           return {
             error:
@@ -260,7 +248,7 @@ export const commentRoute = router({
         const comment = await prisma.comment.findFirst({ where: { id } });
         if (!!!comment)
           return { error: "This comment is no longer available." };
-        if (uid !== comment.userId)
+        if (me.id !== comment.userId)
           return {
             error: "You can not delete the comment that does't belong to you.",
           };
@@ -274,16 +262,9 @@ export const commentRoute = router({
 
   deleteCommentReply: publicProcedure
     .input(deleteCommentReplySchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { id } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me }, input: { id } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token)
-          return {
-            error:
-              "You can not delete a comment reply if you are not authenticated.",
-          };
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me)
           return {
             error:
@@ -292,7 +273,7 @@ export const commentRoute = router({
         const reply = await prisma.reply.findFirst({ where: { id } });
         if (!!!reply)
           return { error: "This comment reply is no longer available." };
-        if (uid !== reply.userId)
+        if (me.id !== reply.userId)
           return {
             error:
               "You can not delete the comment reply that does't belong to you.",

@@ -1,18 +1,17 @@
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import React from "react";
-import { AppNavProps } from "../../../params";
-
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { APP_NAME, COLORS, FONTS, KEYS } from "../../../constants";
 import { useMeStore, useSettingsStore } from "../../../store";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
-import { del, onImpact, store } from "../../../utils";
+import { del, onImpact } from "../../../utils";
 import { usePlatform } from "../../../hooks";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
 import { styles } from "../../../styles";
 import Message from "../../../components/Message/Message";
 import { trpc } from "../../../utils/trpc";
+import type { AppNavProps } from "../../../params";
 
 const ChangePassword: React.FunctionComponent<
   AppNavProps<"ChangePassword">

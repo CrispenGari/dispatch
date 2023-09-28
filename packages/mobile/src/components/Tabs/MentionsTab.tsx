@@ -8,7 +8,7 @@ interface Props {
 
   navigation: StackNavigationProp<AppParamList, "User">;
 }
-const MentionsTab: React.FunctionComponent<Props> = ({ uid }) => {
+const MentionsTab: React.FunctionComponent<Props> = ({}) => {
   return (
     <View>
       <Text>MentionsTab</Text>

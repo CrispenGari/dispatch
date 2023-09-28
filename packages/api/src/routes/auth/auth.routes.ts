@@ -28,27 +28,22 @@ import {
   verificationEmailTemplate,
 } from "../../utils/templates";
 import { decodeFromBase64 } from "@crispengari/utils";
-import { verifyJwt, signJwt } from "../../utils/jwt";
+import { signJwt } from "../../utils/jwt";
 import { v4 as uuid_v4 } from "uuid";
-import EventEmitter from "events";
 
-const ee = new EventEmitter();
+import { isAuth } from "../../middleware/isAuth.middleware";
+
 export const authRouter = router({
   changePassword: publicProcedure
     .input(changePasswordSchema)
+    .use(isAuth)
     .mutation(
       async ({
-        ctx: { req, prisma, redis },
+        ctx: { prisma, redis, me },
         input: { password, confirmPassword, token },
       }) => {
         const _token = decodeFromBase64(token);
         try {
-          const jwt = req.headers?.authorization?.split(/\s/)[1];
-          if (!!!jwt) {
-            return { error: "The was no token passed in this request." };
-          }
-          const { id } = await verifyJwt(jwt);
-          const me = await prisma.user.findFirst({ where: { id } });
           if (!!!me) {
             return {
               error:
@@ -222,12 +217,10 @@ export const authRouter = router({
     ),
   verify: publicProcedure
     .input(verifySchema)
-    .mutation(async ({ ctx: { redis, prisma, req }, input: { code } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { redis, prisma, me }, input: { code } }) => {
       const _code = decodeFromBase64(code);
       try {
-        const jwt = req.headers?.authorization?.split(/\s/)[1];
-        const { id } = await verifyJwt(jwt as string);
-        const me = await prisma.user.findFirst({ where: { id } });
         if (!!!me) {
           return {
             error: "Verification incomplete. Invalid token.",
@@ -247,7 +240,7 @@ export const authRouter = router({
           nickname: string;
           id: string;
         };
-        if (id !== payload.id) {
+        if (me.id !== payload.id) {
           return { error: "You can not verify the email that is not yours." };
         }
         if (_code !== payload.code) {
@@ -266,15 +259,10 @@ export const authRouter = router({
         return { error: "Failed to verify your email for whatever reason." };
       }
     }),
-  resendVerificationEmail: publicProcedure.mutation(
-    async ({ ctx: { redis, prisma, req } }) => {
+  resendVerificationEmail: publicProcedure
+    .use(isAuth)
+    .mutation(async ({ ctx: { redis, prisma, me } }) => {
       try {
-        const jwt = req.headers.authorization?.split(/\s/)[1];
-        if (!!!jwt) return { error: "Invalid token." };
-        const { id } = await verifyJwt(jwt);
-        const me = await prisma.user.findFirst({
-          where: { id },
-        });
         if (!!!me)
           return {
             error: "The email provided does not have a dispatch account.",
@@ -303,8 +291,7 @@ export const authRouter = router({
             "Failed to send the verification email because of an unknown error.",
         };
       }
-    }
-  ),
+    }),
   sendForgotPasswordLink: publicProcedure
     .input(sendForgotPasswordLinkSchema)
     .mutation(async ({ ctx: { prisma, redis }, input: { email } }) => {
@@ -413,24 +400,18 @@ export const authRouter = router({
         }
       }
     ),
-  logout: publicProcedure.mutation(async ({ ctx: { prisma, req } }) => {
-    try {
-      const token = req.headers.authorization?.split(/\s/)[1];
-      if (!token) return false;
-      const { id } = await verifyJwt(token);
-      const me = await prisma.user.findFirst({
-        where: {
-          id,
-        },
-      });
-      if (!!!me) return false;
-      await prisma.user.update({
-        where: { id: me.id },
-        data: { isAuthenticated: false },
-      });
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }),
+  logout: publicProcedure
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me } }) => {
+      try {
+        if (!!!me) return false;
+        await prisma.user.update({
+          where: { id: me.id },
+          data: { isAuthenticated: false },
+        });
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }),
 });

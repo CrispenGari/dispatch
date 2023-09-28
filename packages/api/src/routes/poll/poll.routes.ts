@@ -5,10 +5,10 @@ import {
   voteSchema,
 } from "../../schema/poll.schema";
 import { router, publicProcedure } from "../../trpc/trpc";
-import { verifyJwt } from "../../utils/jwt";
 import { Events } from "../../constants";
 import { Tweet, User } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
+import { isAuth } from "../../middleware/isAuth.middleware";
 
 const ee = new EventEmitter();
 export const pollRouter = router({
@@ -45,12 +45,9 @@ export const pollRouter = router({
     }),
   vote: publicProcedure
     .input(voteSchema)
-    .mutation(async ({ ctx: { req, prisma }, input: { id, tweetId } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma }, input: { id, tweetId } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token) return false;
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me) return false;
         const tweet = await prisma.tweet.findFirst({
           where: { id: tweetId },

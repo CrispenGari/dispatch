@@ -64,6 +64,7 @@ export const store = async (key: string, value: string): Promise<boolean> => {
     await AsyncStorage.setItem(key, value);
     return true;
   } catch (error: any) {
+    console.log(error);
     return true;
   }
 };
@@ -73,6 +74,7 @@ export const retrieve = async (key: string): Promise<string | null> => {
     const data = await AsyncStorage.getItem(key);
     return data;
   } catch (error: any) {
+    console.log(error);
     return null;
   }
 };

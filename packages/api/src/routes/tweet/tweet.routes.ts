@@ -12,10 +12,10 @@ import {
   viewSchema,
 } from "../../schema/tweet.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
-import { verifyJwt } from "../../utils/jwt";
 import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
 import { Events } from "../../constants";
+import { isAuth } from "../../middleware/isAuth.middleware";
 
 const ee = new EventEmitter();
 export const tweetRouter = router({
@@ -94,18 +94,10 @@ export const tweetRouter = router({
     }),
   create: publicProcedure
     .input(createSchema)
+    .use(isAuth)
     .mutation(
-      async ({ input: { text, polls, cords }, ctx: { prisma, req } }) => {
+      async ({ input: { text, polls, cords }, ctx: { prisma, me } }) => {
         try {
-          const token = req.headers.authorization?.split(/\s/)[1];
-          if (!!!token)
-            return {
-              error:
-                "Failed to create a tweet because you are not authenticated.",
-            };
-          const { id } = await verifyJwt(token);
-          const me = await prisma.user.findFirst({ where: { id } });
-
           if (!!!me)
             return {
               error:
@@ -152,23 +144,16 @@ export const tweetRouter = router({
 
   del: publicProcedure
     .input(delSchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { id } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me }, input: { id } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token)
-          return {
-            error: "You can not delete the tweet if you are not authenticated.",
-          };
-        const { id: uid } = await verifyJwt(token);
-
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me)
           return {
             error: "You can not delete the tweet if you are not authenticated.",
           };
         const tweet = await prisma.tweet.findFirst({ where: { id } });
         if (!!!tweet) return { error: "This tweet is no longer available." };
-        if (uid !== tweet.userId)
+        if (me.id !== tweet.userId)
           return {
             error: "You can not delete the tweet that does't belong to you.",
           };
@@ -181,18 +166,10 @@ export const tweetRouter = router({
     }),
   edit: publicProcedure
     .input(editSchema)
+    .use(isAuth)
     .mutation(
-      async ({ ctx: { req, prisma }, input: { cords, polls, text, id } }) => {
+      async ({ ctx: { me, prisma }, input: { cords, polls, text, id } }) => {
         try {
-          const token = req.headers.authorization?.split(/\s/)[1];
-          if (!!!token)
-            return {
-              error:
-                "Failed to update a tweet because you are not authenticated.",
-            };
-          const { id: uid } = await verifyJwt(token);
-          const me = await prisma.user.findFirst({ where: { id: uid } });
-
           if (!!!me)
             return {
               error:
@@ -269,16 +246,13 @@ export const tweetRouter = router({
 
   view: publicProcedure
     .input(viewSchema)
-    .mutation(async ({ ctx: { req, prisma }, input: { id } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma }, input: { id } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token) return false;
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me) return false;
-        // const tt = await prisma.tweet.findFirst({ where: { id } });
-        // if (!!!tt) return false;
-        // if (me.id === tt.userId) return false;
+        const tt = await prisma.tweet.findFirst({ where: { id } });
+        if (!!!tt) return false;
+        if (me.id === tt.userId) return false;
         const tweet = await prisma.tweet.update({
           where: { id },
           data: {

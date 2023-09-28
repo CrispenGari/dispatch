@@ -7,7 +7,7 @@ import {
   Image,
 } from "react-native";
 import React from "react";
-import { COLORS, FONTS, KEYS, logo, profile } from "../../constants";
+import { COLORS, FONTS, profile } from "../../constants";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { AppParamList } from "../../params";

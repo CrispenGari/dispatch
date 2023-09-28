@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import React from "react";
-import { AppNavProps } from "../../../params";
+import type { AppNavProps } from "../../../params";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { APP_NAME, COLORS, FONTS, KEYS } from "../../../constants";
 import { useMeStore, useSettingsStore } from "../../../store";

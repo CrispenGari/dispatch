@@ -1,6 +1,6 @@
 import { View, Linking, Alert } from "react-native";
 import React from "react";
-import { AppNavProps } from "../../../params";
+import type { AppNavProps } from "../../../params";
 import { APP_NAME, COLORS, FONTS, KEYS } from "../../../constants";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { usePlatform } from "../../../hooks";
@@ -21,7 +21,7 @@ import {
   rateApp,
   store,
 } from "../../../utils";
-import { SettingsType } from "../../../types";
+import type { SettingsType } from "../../../types";
 import Profile from "../../../components/SettingsComponents/Profile";
 import ChangeNickname from "../../../components/SettingsComponents/ChangeNickname";
 import ChangeGender from "../../../components/SettingsComponents/ChangeGender";

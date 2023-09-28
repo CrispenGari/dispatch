@@ -1,19 +1,14 @@
+import { isAuth } from "../../middleware/isAuth.middleware";
 import { authProfileSchema } from "../../schema/profile.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
-import { signJwt, verifyJwt } from "../../utils/jwt";
+import { signJwt } from "../../utils/jwt";
 
 export const profileRouter = router({
   authProfile: publicProcedure
     .input(authProfileSchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { gender, bio } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me }, input: { gender, bio } }) => {
       try {
-        const jwt = req.headers?.authorization?.split(/\s/)[1];
-        if (!!!jwt) {
-          return { error: "The was no token passed in this request." };
-        }
-        const { id } = await verifyJwt(jwt);
-        const me = await prisma.user.findFirst({ where: { id } });
-
         if (!!!me) {
           return {
             error:

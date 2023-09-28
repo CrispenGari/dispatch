@@ -1,5 +1,5 @@
 import { COLORS } from "../../constants";
-import { AppParamList } from "../../params";
+import type { AppParamList } from "../../params";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import React from "react";

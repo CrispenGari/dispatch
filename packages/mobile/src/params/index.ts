@@ -1,5 +1,5 @@
-import { RouteProp } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import type { RouteProp } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
 
 // Auth Stack
 export type AuthParamList = {
@@ -42,7 +42,7 @@ export type AppParamList = {
   };
   ChangePassword: undefined;
   ChangeEmail: undefined;
-} & { Landing: undefined };
+};
 
 export type AppNavProps<T extends keyof AppParamList> = {
   navigation: StackNavigationProp<AppParamList, T>;

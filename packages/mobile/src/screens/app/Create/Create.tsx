@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import React from "react";
-import { AppNavProps } from "../../../params";
+import type { AppNavProps } from "../../../params";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { APP_NAME, COLORS, FONTS, profile } from "../../../constants";
 import { usePlatform } from "../../../hooks";
@@ -213,7 +213,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                 }));
               }}
             />
-            <Text style={[styles.p, { fontSize: 20, marginLeft: 10 }]}>
+            <Text style={[styles.p, { fontSize: 16, marginLeft: 10 }]}>
               {form.enablePolls ? "Disable Polls" : "Enable Polls"}
             </Text>
           </View>
@@ -289,11 +289,12 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                 borderRadius: 5,
                 alignSelf: "flex-end",
                 marginTop: 10,
-                maxWidth: 200,
+                maxWidth: 100,
+                paddingHorizontal: 5,
               },
             ]}
           >
-            <Text style={[styles.button__text]}>TWEET</Text>
+            <Text style={[styles.button__text, { fontSize: 16 }]}>TWEET</Text>
           </TouchableOpacity>
         </View>
       </View>

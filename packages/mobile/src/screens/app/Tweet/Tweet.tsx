@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Alert, Image } from "react-native";
 import React from "react";
-import { AppNavProps } from "../../../params";
+
 import {
   APP_NAME,
   COLORS,
@@ -29,6 +29,7 @@ import TweetSkeleton from "../../../components/skeletons/TweetSkeleton";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import ContentLoader from "../../../components/ContentLoader/ContentLoader";
 import { onImpact } from "../../../utils";
+import type { AppNavProps } from "../../../params";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -105,9 +106,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       onImpact();
     }
     if (!!!tweet) return;
-    mutateReactToTweet({ id: tweet.id }).then((res) => {
-      console.log({ res });
-    });
+    mutateReactToTweet({ id: tweet.id }).then((_res) => {});
   };
   const commentOnTweet = () => {
     if (settings.haptics) {
@@ -216,7 +215,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
 
   const viewProfile = () => {
     if (viewing || !!!tweet) return;
-    mutateViewProfile({ id: tweet.userId }).then((res) => {
+    mutateViewProfile({ id: tweet.userId }).then((_res) => {
       navigation.navigate("User", { from: "Tweet", id: tweet.userId });
     });
   };

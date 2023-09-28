@@ -1,21 +1,21 @@
+import { isAuth } from "../../middleware/isAuth.middleware";
 import { blockSchema, unblockSchema } from "../../schema/blocked.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
-import { verifyJwt } from "../../utils/jwt";
 
 export const blockedRouter = router({
   block: publicProcedure
     .input(unblockSchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { uid } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me: usr }, input: { uid } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token)
+        if (!!!usr)
           return {
             error:
               "Failed to block the user because you are not authenticated.",
           };
-        const { id } = await verifyJwt(token);
+
         const me = await prisma.user.findFirst({
-          where: { id },
+          where: { id: usr.id },
           include: { blocked: true },
         });
         if (!!!me)
@@ -51,17 +51,17 @@ export const blockedRouter = router({
     }),
   unblock: publicProcedure
     .input(unblockSchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { uid } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me: usr }, input: { uid } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token)
+        if (!!!usr)
           return {
             error:
               "Failed to unblock the user because you are not authenticated.",
           };
-        const { id } = await verifyJwt(token);
+
         const me = await prisma.user.findFirst({
-          where: { id },
+          where: { id: usr.id },
           include: { blocked: true },
         });
         if (!!!me)

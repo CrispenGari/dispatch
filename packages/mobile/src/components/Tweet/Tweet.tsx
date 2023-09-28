@@ -20,11 +20,12 @@ import {
 } from "@expo/vector-icons";
 import { useMeStore, useSettingsStore } from "../../store";
 import { trpc } from "../../utils/trpc";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppParamList } from "../../params";
+
 import Poll from "../Poll/Poll";
 import TweetSkeleton from "../skeletons/TweetSkeleton";
 import { onImpact } from "../../utils";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import type { AppParamList } from "../../params";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -126,7 +127,7 @@ const Tweet: React.FunctionComponent<Props> = ({
 
   const { mutateAsync: mutateDeleteTweet, isLoading: deleting } =
     trpc.tweet.del.useMutation();
-  const { mutateAsync: mutateReactToTweet, isLoading: reacting } =
+  const { mutateAsync: mutateReactToTweet, isLoading: _reacting } =
     trpc.reaction.reactToTweet.useMutation();
   const { mutateAsync: mutateViewTweet, isLoading: viewing } =
     trpc.tweet.view.useMutation();
@@ -139,7 +140,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       onImpact();
     }
     if (viewingP || !!!tweet) return;
-    mutateViewProfile({ id: tweet.userId }).then((res) => {
+    mutateViewProfile({ id: tweet.userId }).then((_res) => {
       navigation.navigate("User", { from: "Tweet", id: tweet.userId });
     });
   };
@@ -181,9 +182,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       onImpact();
     }
     if (!!!tweet) return;
-    mutateReactToTweet({ id: tweet.id }).then((res) => {
-      console.log({ res });
-    });
+    mutateReactToTweet({ id: tweet.id }).then((_res) => {});
   };
 
   const view = () => {
@@ -191,7 +190,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       onImpact();
     }
     if (!!!tweet) return;
-    mutateViewTweet({ id: tweet.id }).then((res) => {
+    mutateViewTweet({ id: tweet.id }).then((_res) => {
       navigation.navigate("Tweet", { id: tweet.id, from });
     });
   };
@@ -212,7 +211,7 @@ const Tweet: React.FunctionComponent<Props> = ({
     }
   }, [tweet, me]);
 
-  if (!!!tweet) return <TweetSkeleton />;
+  if (!!!tweet || fetching) return <TweetSkeleton />;
 
   return (
     <TouchableOpacity

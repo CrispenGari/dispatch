@@ -3,7 +3,6 @@ import React from "react";
 import { useMeStore, useSettingsStore } from "../../store";
 import TypeWriter from "react-native-typewriter";
 import { styles } from "../../styles";
-import CustomTextInput from "../CustomTextInput/CustomTextInput";
 import { COLORS, FONTS, KEYS, genders } from "../../constants";
 import { trpc } from "../../utils/trpc";
 import { onImpact, store } from "../../utils";

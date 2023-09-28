@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import React from "react";
-import { AppNavProps } from "../../../params";
+import type { AppNavProps } from "../../../params";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { APP_NAME, COLORS, FONTS, profile } from "../../../constants";
 import { usePlatform } from "../../../hooks";

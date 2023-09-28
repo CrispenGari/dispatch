@@ -9,10 +9,10 @@ import {
   reactToTweetSchema,
 } from "../../schema/reaction.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
-import { verifyJwt } from "../../utils/jwt";
 import { Events } from "../../constants";
 import { Tweet, User, Notification, Comment, Reply } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
+import { isAuth } from "../../middleware/isAuth.middleware";
 
 const ee = new EventEmitter();
 export const reactionRoute = router({
@@ -78,12 +78,9 @@ export const reactionRoute = router({
     }),
   reactToTweet: publicProcedure
     .input(reactToTweetSchema)
-    .mutation(async ({ ctx: { prisma, req }, input: { id } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { prisma, me }, input: { id } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token) return false;
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me) return false;
         const tweet = await prisma.tweet.findFirst({
           where: { id },
@@ -139,12 +136,9 @@ export const reactionRoute = router({
     }),
   reactToComment: publicProcedure
     .input(reactToCommentSchema)
-    .mutation(async ({ ctx: { req, prisma }, input: { id } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma }, input: { id } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token) return false;
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me) return false;
         const comment = await prisma.comment.findFirst({
           where: { id },
@@ -200,12 +194,9 @@ export const reactionRoute = router({
     }),
   reactToCommentReply: publicProcedure
     .input(reactToCommentReplySchema)
-    .mutation(async ({ ctx: { req, prisma }, input: { id } }) => {
+    .use(isAuth)
+    .mutation(async ({ ctx: { me, prisma }, input: { id } }) => {
       try {
-        const token = req.headers.authorization?.split(/\s/)[1];
-        if (!!!token) return false;
-        const { id: uid } = await verifyJwt(token);
-        const me = await prisma.user.findFirst({ where: { id: uid } });
         if (!!!me) return false;
         const reply = await prisma.reply.findFirst({
           where: { id },

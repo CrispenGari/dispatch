@@ -32,7 +32,7 @@ const Poll: React.FunctionComponent<Props> = ({
       onImpact();
     }
     if (me?.id === creatorId) return;
-    mutateVote({ id: poll.id || "", tweetId }).then((res) => {});
+    mutateVote({ id: poll.id || "", tweetId }).then((_res) => {});
   };
   const percentage = !!!totalVotes ? 0 : (poll.votes.length / totalVotes) * 100;
   return (
