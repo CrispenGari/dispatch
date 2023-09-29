@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image } from "react-native";
+import { View, Text, Image, useWindowDimensions } from "react-native";
 import React from "react";
 import type { AppNavProps } from "../../../params";
 import { COLORS, FONTS, profile } from "../../../constants";
@@ -7,11 +7,12 @@ import { useMeStore, useSettingsStore } from "../../../store";
 import { usePlatform } from "../../../hooks";
 import { trpc } from "../../../utils/trpc";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
-import { Tabs } from "../../../components/Tabs/Tabs";
+
 import { styles } from "../../../styles";
 import TweetsTab from "../../../components/Tabs/TweetsTab";
 import MentionsTab from "../../../components/Tabs/MentionsTab";
 import { onImpact } from "../../../utils";
+import { SceneMap, TabBar, TabView } from "react-native-tab-view";
 
 const User: React.FunctionComponent<AppNavProps<"User">> = ({
   navigation,
@@ -20,6 +21,12 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
   const { os } = usePlatform();
   const { me } = useMeStore();
   const { settings } = useSettingsStore();
+  const layout = useWindowDimensions();
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    { key: "tweets", title: "tweets" },
+    { key: "mentions", title: "mentions" },
+  ]);
   const { data: user, refetch } = trpc.user.user.useQuery({
     id: route.params.id,
   });
@@ -32,11 +39,7 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
       },
     }
   );
-  const [form, setForm] = React.useState<{
-    tab: "tweets" | "mentions";
-  }>({
-    tab: "tweets",
-  });
+
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle:
@@ -64,13 +67,7 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
   }, [navigation, user, me, route, settings]);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: COLORS.main }}
-      bounces={false}
-      showsHorizontalScrollIndicator={false}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 100 }}
-    >
+    <View style={{ flex: 1, backgroundColor: COLORS.main }}>
       <View
         style={{
           width: "100%",
@@ -152,16 +149,43 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
             </Text>
           </View>
         </View>
-        <Tabs setForm={setForm} tab={form.tab} />
       </View>
-      {!!user ? (
-        form.tab === "tweets" ? (
-          <TweetsTab uid={user.id} navigation={navigation} />
-        ) : (
-          <MentionsTab uid={user.id} navigation={navigation} />
-        )
-      ) : null}
-    </ScrollView>
+
+      <TabView
+        style={{
+          backgroundColor: COLORS.main,
+          borderBottomWidth: 0,
+          shadowOffset: { width: 0, height: 0 },
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBlockColor: "transparent",
+        }}
+        navigationState={{ index, routes }}
+        renderScene={SceneMap({
+          tweets: () => (
+            <TweetsTab uid={user?.id || ""} navigation={navigation} />
+          ),
+          mentions: () => (
+            <MentionsTab uid={user?.id || ""} navigation={navigation} />
+          ),
+        })}
+        onIndexChange={setIndex}
+        initialLayout={{ width: layout.width }}
+        renderTabBar={(props) => (
+          <TabBar
+            {...props}
+            indicatorStyle={{ backgroundColor: COLORS.primary, height: 5 }}
+            style={{ backgroundColor: COLORS.main }}
+            tabStyle={{ paddingVertical: 15 }}
+            labelStyle={[
+              styles.h1,
+              { color: COLORS.black, fontSize: 16, textTransform: "lowercase" },
+            ]}
+          />
+        )}
+        tabBarPosition="top"
+      />
+    </View>
   );
 };
 

@@ -39,7 +39,7 @@ export const commentRoute = router({
 
   onTweetComment: publicProcedure
     .input(onTweetCommentSchema)
-    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
+    .subscription(async ({ ctx: {}, input: { tweetId } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
           if (tweet.id === tweetId) {
@@ -54,7 +54,7 @@ export const commentRoute = router({
     }),
   onCommentReply: publicProcedure
     .input(onCommentReplySchema)
-    .subscription(async ({ ctx: {}, input: { uid, commentId } }) => {
+    .subscription(async ({ ctx: {}, input: { commentId } }) => {
       return observable<Comment & { creator: User }>((emit) => {
         const handler = (comment: Comment & { creator: User }) => {
           if (comment.id === commentId) {
@@ -70,7 +70,7 @@ export const commentRoute = router({
 
   onCommentDelete: publicProcedure
     .input(onCommentDeleteSchema)
-    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
+    .subscription(async ({ ctx: {}, input: { tweetId } }) => {
       return observable<Comment>((emit) => {
         const handler = (comment: Comment) => {
           if (comment.tweetId === tweetId) {
@@ -85,7 +85,7 @@ export const commentRoute = router({
     }),
   onCommentReplyDelete: publicProcedure
     .input(onCommentReplyDeleteSchema)
-    .subscription(async ({ ctx: {}, input: { uid, commentId } }) => {
+    .subscription(async ({ ctx: {}, input: { commentId } }) => {
       return observable<Reply>((emit) => {
         const handler = (reply: Reply) => {
           if (reply.commentId === commentId) {

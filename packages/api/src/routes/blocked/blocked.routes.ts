@@ -4,7 +4,7 @@ import { publicProcedure, router } from "../../trpc/trpc";
 
 export const blockedRouter = router({
   block: publicProcedure
-    .input(unblockSchema)
+    .input(blockSchema)
     .use(isAuth)
     .mutation(async ({ ctx: { prisma, me: usr }, input: { uid } }) => {
       try {

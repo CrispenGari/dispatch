@@ -1,6 +1,12 @@
 -- CreateEnum
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'UNDEFINED');
 
+-- CreateEnum
+CREATE TYPE "NotificationCategory" AS ENUM ('general', 'mention');
+
+-- CreateEnum
+CREATE TYPE "NotificationType" AS ENUM ('reaction', 'comment', 'repy', 'new_tweet');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -65,6 +71,8 @@ CREATE TABLE "Notification" (
     "title" TEXT NOT NULL,
     "message" TEXT NOT NULL,
     "read" BOOLEAN NOT NULL DEFAULT false,
+    "category" "NotificationCategory" NOT NULL,
+    "type" "NotificationType" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "userId" TEXT NOT NULL

@@ -25,7 +25,7 @@ export const verificationEmailTemplate = (
   qrcode.toString(
     url,
     { type: "terminal", small: true, width: 200 },
-    function (err, url) {
+    function (_err, url) {
       console.log(url);
     }
   );
@@ -62,7 +62,7 @@ export const resetPasswordLinkEmailTemplate = (
   qrcode.toString(
     url,
     { type: "terminal", small: true, width: 200 },
-    function (err, url) {
+    function (_err, url) {
       console.log(url);
     }
   );

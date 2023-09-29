@@ -4,6 +4,7 @@
     "strict": true,
     "allowUnusedLabels": false,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true
   }
 }

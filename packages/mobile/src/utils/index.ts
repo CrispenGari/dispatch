@@ -4,6 +4,43 @@ import * as Haptics from "expo-haptics";
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 import { APP_NAME } from "../constants";
+import { Audio } from "expo-av";
+
+let tweetedSound: Audio.Sound | undefined;
+let reactedSound: Audio.Sound | undefined;
+
+export const playTweeted = async () => {
+  const { sound: s, status } = await Audio.Sound.createAsync(
+    require("../../assets/sounds/tweeted.wav"),
+    {
+      shouldPlay: true,
+      isLooping: false,
+      isMuted: false,
+    }
+  );
+  if (status.isLoaded) {
+    tweetedSound = s;
+  }
+  if (!!tweetedSound) {
+    await tweetedSound.playAsync().catch((err) => console.log(err));
+  }
+};
+export const playReacted = async () => {
+  const { sound: s, status } = await Audio.Sound.createAsync(
+    require("../../assets/sounds/reaction.mp3"),
+    {
+      shouldPlay: true,
+      isLooping: false,
+      isMuted: false,
+    }
+  );
+  if (status.isLoaded) {
+    reactedSound = s;
+  }
+  if (!!reactedSound) {
+    await reactedSound.playAsync().catch((err) => console.log(err));
+  }
+};
 
 export const rateApp = async () => {
   const available = await StoreReview.isAvailableAsync();

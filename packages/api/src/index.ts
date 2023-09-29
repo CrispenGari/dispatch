@@ -62,7 +62,7 @@ const TRPC_PLAYGROUND_ENDPOINT = "/api/trpc-playground";
     }),
     { prefix: TRPC_PLAYGROUND_ENDPOINT }
   );
-  fastify.listen({ port: PORT, host: HOST }, (error, address) => {
+  fastify.listen({ port: PORT, host: HOST }, (error, _address) => {
     if (error) {
       console.error(error);
       process.exit(1);

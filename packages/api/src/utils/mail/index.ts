@@ -1,6 +1,3 @@
-import { User } from "@prisma/client";
-import jwt from "jsonwebtoken";
-
 import nodemailer from "nodemailer";
 
 export const sendVerificationCodeAsEmail = async (

@@ -5,12 +5,10 @@ import {
   __code__exp__,
   __reset__password__prefix__,
   __token__exp__,
-  Events,
 } from "../../constants";
 import {
   changePasswordSchema,
   loginSchema,
-  onAuthStateChangedSchema,
   registerSchema,
   resendForgotPasswordLinkSchema,
   sendForgotPasswordLinkSchema,
@@ -261,7 +259,7 @@ export const authRouter = router({
     }),
   resendVerificationEmail: publicProcedure
     .use(isAuth)
-    .mutation(async ({ ctx: { redis, prisma, me } }) => {
+    .mutation(async ({ ctx: { redis, me } }) => {
       try {
         if (!!!me)
           return {

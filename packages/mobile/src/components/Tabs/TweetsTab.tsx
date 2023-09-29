@@ -1,19 +1,24 @@
-import { View, Text } from "react-native";
+import { ScrollView } from "react-native";
 import React from "react";
 import { trpc } from "../../utils/trpc";
 import Tweet from "../Tweet/Tweet";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppParamList } from "../../params";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import type { AppParamList } from "../../params";
 
 interface Props {
   uid: string;
   navigation: StackNavigationProp<AppParamList, "User">;
 }
 const TweetsTab: React.FunctionComponent<Props> = ({ uid, navigation }) => {
-  const { data: tweets, isLoading } = trpc.user.tweets.useQuery({ id: uid });
+  const { data: tweets } = trpc.user.tweets.useQuery({ id: uid });
   if (!!!tweets) return null;
   return (
-    <View style={{ marginTop: 10 }}>
+    <ScrollView
+      style={{ marginTop: 10, flex: 1 }}
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 100 }}
+    >
       {tweets.map((tweet) => (
         <Tweet
           tweet={tweet}
@@ -22,7 +27,7 @@ const TweetsTab: React.FunctionComponent<Props> = ({ uid, navigation }) => {
           from="User"
         />
       ))}
-    </View>
+    </ScrollView>
   );
 };
 

@@ -19,12 +19,12 @@ export const helloRouter = router({
       })
     )
     .output(z.object({ message: z.string() }))
-    .query(({ ctx, input: { name } }) => {
+    .query(({ input: { name } }) => {
       return {
         message: `Hello ${name}`,
       };
     }),
-  fromTRPC: publicProcedure.query(({ ctx }) => "Hello from TRPC"),
+  fromTRPC: publicProcedure.query(({}) => "Hello from TRPC"),
   hi: publicProcedure
     .input(
       z.object({

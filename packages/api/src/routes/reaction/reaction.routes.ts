@@ -18,7 +18,7 @@ const ee = new EventEmitter();
 export const reactionRoute = router({
   onTweetReaction: publicProcedure
     .input(onTweetReactionSchema)
-    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
+    .subscription(async ({ ctx: {}, input: { tweetId } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
           if (tweetId === tweet.id) {
@@ -33,7 +33,7 @@ export const reactionRoute = router({
     }),
   onTweetCommentReaction: publicProcedure
     .input(onTweetCommentReactionSchema)
-    .subscription(async ({ ctx: {}, input: { uid, commentId } }) => {
+    .subscription(async ({ ctx: {}, input: { commentId } }) => {
       return observable<Comment & { creator: User }>((emit) => {
         const handler = (comment: Comment & { creator: User }) => {
           if (commentId === comment.id) {
@@ -48,7 +48,7 @@ export const reactionRoute = router({
     }),
   onTweetCommentReplyReaction: publicProcedure
     .input(onTweetCommentReplyReactionSchema)
-    .subscription(async ({ ctx: {}, input: { uid, replyId } }) => {
+    .subscription(async ({ ctx: {}, input: { replyId } }) => {
       return observable<Reply & { creator: User }>((emit) => {
         const handler = (reply: Reply & { creator: User }) => {
           if (replyId === reply.id) {

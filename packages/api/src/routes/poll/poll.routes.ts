@@ -30,7 +30,7 @@ export const pollRouter = router({
 
   onVote: publicProcedure
     .input(onVoteSchema)
-    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
+    .subscription(async ({ ctx: {}, input: { tweetId } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
           if (tweet.id === tweetId) {

@@ -36,7 +36,7 @@ export const tweetRouter = router({
     }),
   onView: publicProcedure
     .input(onViewSchema)
-    .subscription(async ({ ctx: {}, input: { uid, tweetId } }) => {
+    .subscription(async ({ ctx: {}, input: { tweetId } }) => {
       return observable<Tweet & { creator: User }>((emit) => {
         const handler = (tweet: Tweet & { creator: User }) => {
           if (tweetId === tweet.id) {
@@ -81,7 +81,7 @@ export const tweetRouter = router({
     }),
   onDeleteTweet: publicProcedure
     .input(onDeleteTweetSchema)
-    .subscription(async ({ ctx: {}, input: { uid } }) => {
+    .subscription(async ({ ctx: {}, input: {} }) => {
       return observable<Tweet>((emit) => {
         const handler = (tweet: Tweet) => {
           emit.next(tweet);
