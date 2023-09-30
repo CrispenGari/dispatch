@@ -54,7 +54,7 @@ const User: React.FunctionComponent<{
               : `@${reactor.creator.nickname}`}{" "}
           </Text>
           {reactor.creator.verified ? (
-            <MaterialIcons name="verified" size={16} color={COLORS.primary} />
+            <MaterialIcons name="verified" size={14} color={COLORS.primary} />
           ) : null}
           <Text style={{ fontFamily: FONTS.extraBold, fontSize: 14 }}> •</Text>
           <Text style={[styles.p, { fontSize: 16 }]}>

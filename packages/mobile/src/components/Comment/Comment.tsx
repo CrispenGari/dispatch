@@ -108,13 +108,16 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
   );
 
   const reactToComment = async () => {
+    console.log("...");
     if (settings.haptics) {
       onImpact();
     }
     if (settings.sound) {
       await playReacted();
     }
+    console.log("...");
     if (reacting) return;
+    console.log("...");
     if (!!comment) {
       mutateReactToComment({ id: comment.id }).then(async (_res) => {});
     }
@@ -132,6 +135,8 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
             await playTweeted().then(() => {
               setForm((state) => ({ ...state, reply: "" }));
             });
+          } else {
+            setForm((state) => ({ ...state, reply: "" }));
           }
         }
       }
@@ -307,6 +312,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
                   color: COLORS.darkGray,
                   marginLeft: 10,
                   marginTop: -3,
+                  width: 30,
                 },
               ]}
             >

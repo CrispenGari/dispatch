@@ -369,6 +369,7 @@ const Tweet: React.FunctionComponent<Props> = ({
                   color: COLORS.darkGray,
                   marginLeft: 10,
                   marginTop: -3,
+                  width: 30,
                 },
               ]}
             >

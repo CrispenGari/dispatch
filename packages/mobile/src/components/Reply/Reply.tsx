@@ -164,7 +164,7 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
                 : `@${reply.creator.nickname}`}{" "}
             </Text>
             {reply.creator.verified ? (
-              <MaterialIcons name="verified" size={16} color={COLORS.primary} />
+              <MaterialIcons name="verified" size={14} color={COLORS.primary} />
             ) : null}
             <Text style={{ fontFamily: FONTS.extraBold, fontSize: 14 }}>
               {" "}
@@ -251,6 +251,7 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
                   color: COLORS.darkGray,
                   marginLeft: 10,
                   marginTop: -3,
+                  width: 30,
                 },
               ]}
             >

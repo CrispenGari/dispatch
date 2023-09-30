@@ -115,6 +115,7 @@ export const reactionRoute = router({
                 user: { connect: { id: _tweet.creator.id } },
                 category: "general",
                 type: "reaction",
+                tweetId: _tweet.id,
               },
               include: { user: true },
             });
@@ -170,6 +171,7 @@ export const reactionRoute = router({
                 category: "general",
                 type: "comment",
                 title: `new comment reaction`,
+                tweetId: _comment.tweetId as any,
                 message:
                   me.id === _comment.tweet?.creator.id
                     ? `@${reaction.creator.nickname} - reacted to your comment on your tweet.`
@@ -234,7 +236,8 @@ export const reactionRoute = router({
               data: {
                 title: `new reply reaction`,
                 category: "general",
-                type: "repy",
+                type: "reply",
+                tweetId: _reply.comment?.tweetId ?? "",
                 message:
                   me.id === _reply.comment?.tweet?.creator.id
                     ? `@${reaction.creator.nickname} - reacted to your reply on your tweet.`

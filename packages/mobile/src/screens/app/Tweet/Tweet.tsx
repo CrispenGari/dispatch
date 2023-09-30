@@ -96,6 +96,8 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
             await playTweeted().then(() => {
               setForm((state) => ({ ...state, comment: "" }));
             });
+          } else {
+            setForm((state) => ({ ...state, comment: "" }));
           }
         }
       }
@@ -390,6 +392,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
                       color: COLORS.darkGray,
                       marginLeft: 10,
                       marginTop: -3,
+                      width: 30,
                     },
                   ]}
                 >
