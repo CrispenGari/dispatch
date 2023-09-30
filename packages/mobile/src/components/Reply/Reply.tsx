@@ -1,30 +1,23 @@
-import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { useMeStore, useSettingsStore } from "../../store";
-import {
-  APP_NAME,
-  COLORS,
-  FONTS,
-  profile,
-  relativeTimeObject,
-} from "../../constants";
+import { COLORS, FONTS, profile, relativeTimeObject } from "../../constants";
 import dayjs from "dayjs";
 import { styles } from "../../styles";
-
 import {
   MaterialCommunityIcons,
   MaterialIcons,
   Ionicons,
 } from "@expo/vector-icons";
-import { BottomSheet } from "react-native-btr";
 import { trpc } from "../../utils/trpc";
 import ReplySkeleton from "../skeletons/ReplySkeleton";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { AppParamList } from "../../params";
-
+import type { StackNavigationProp } from "@react-navigation/stack";
+import type { AppParamList } from "../../params";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
-import { onImpact } from "../../utils";
+import { onImpact, playReacted } from "../../utils";
+import ReplyActions from "./ReplyActions";
+import ReplyReactions from "./ReplyReactions";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
@@ -39,15 +32,27 @@ interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed" | "User" | "Tweet">;
 }
 const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
-  const [open, setOpen] = React.useState(false);
+  const [openSheets, setOpenSheets] = React.useState({
+    actions: false,
+    reactions: false,
+  });
   const { me } = useMeStore();
+  const toggleActions = () =>
+    setOpenSheets((state) => ({
+      ...state,
+      actions: !openSheets.actions,
+    }));
+  const toggleReactions = () =>
+    setOpenSheets((state) => ({
+      ...state,
+      reactions: !openSheets.reactions,
+    }));
+
   const { settings } = useSettingsStore();
-  const toggle = () => setOpen((state) => !state);
+
   const [form, setForm] = React.useState({ liked: false });
   const { isLoading: reacting, mutateAsync: mutateReactToReply } =
     trpc.reaction.reactToCommentReply.useMutation();
-  const { isLoading: deleting, mutateAsync: mutateDeleteReply } =
-    trpc.comment.deleteCommentReply.useMutation();
   const { isLoading: viewing, mutateAsync: mutateViewProfile } =
     trpc.user.viewProfile.useMutation();
 
@@ -71,12 +76,15 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
     }
   );
 
-  const reactToReply = () => {
+  const reactToReply = async () => {
     if (settings.haptics) {
       onImpact();
     }
-    if (!!!reply) return;
-    mutateReactToReply({ id: reply.id }).then((res) => console.log({ res }));
+    if (settings.sound) {
+      await playReacted();
+    }
+    if (!!!reply || reacting) return;
+    mutateReactToReply({ id: reply.id }).then(async (_res) => {});
   };
 
   const viewProfile = () => {
@@ -88,28 +96,7 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
       navigation.navigate("User", { from: "Tweet", id: reply.userId });
     });
   };
-  const deleteReply = () => {
-    if (settings.haptics) {
-      onImpact();
-    }
-    if (!!!reply) return;
-    mutateDeleteReply({ id: reply.id }).then(({ error }) => {
-      if (error) {
-        Alert.alert(
-          APP_NAME,
-          error,
-          [
-            {
-              style: "default",
-              text: "OK",
-            },
-          ],
-          { cancelable: false }
-        );
-      }
-      toggle();
-    });
-  };
+
   React.useEffect(() => {
     if (!!reply && !!me) {
       const liked = reply.reactions.find((r) => r.creatorId === me.id);
@@ -130,6 +117,18 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
         alignSelf: "flex-end",
       }}
     >
+      <ReplyActions
+        open={openSheets.actions}
+        toggle={toggleActions}
+        reply={reply}
+      />
+      <ReplyReactions
+        open={openSheets.reactions}
+        toggle={toggleReactions}
+        navigation={navigation}
+        from={"Tweet"}
+        reactions={reply.reactions}
+      />
       <View
         style={{
           borderRightWidth: 1,
@@ -138,143 +137,6 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
           borderColor: COLORS.tertiary,
         }}
       />
-      <BottomSheet
-        visible={!!open}
-        onBackButtonPress={() => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          toggle();
-        }}
-        onBackdropPress={() => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          toggle();
-        }}
-      >
-        <View
-          style={{
-            height: 200,
-            backgroundColor: COLORS.main,
-            borderTopRightRadius: 10,
-            borderTopLeftRadius: 10,
-            position: "relative",
-          }}
-        >
-          <View
-            style={{
-              position: "absolute",
-              borderRadius: 999,
-              padding: 5,
-              alignSelf: "center",
-              top: -10,
-              backgroundColor: COLORS.main,
-              paddingHorizontal: 15,
-              shadowOffset: { height: 2, width: 2 },
-              shadowOpacity: 1,
-              shadowRadius: 2,
-              shadowColor: COLORS.primary,
-              elevation: 1,
-            }}
-          >
-            <Text style={[styles.h1, {}]}>Reply Actions</Text>
-          </View>
-          <View style={{ height: 10 }} />
-
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 1,
-            }}
-            activeOpacity={0.7}
-            disabled={deleting}
-          >
-            <Text
-              style={[
-                styles.h1,
-                {
-                  fontSize: 16,
-                  color:
-                    me?.id === reply.creator.id ? COLORS.darkGray : COLORS.red,
-                },
-              ]}
-            >
-              Report reply
-            </Text>
-            <Ionicons
-              name="hand-left-outline"
-              size={24}
-              color={me?.id === reply.creator.id ? COLORS.darkGray : COLORS.red}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 1,
-            }}
-            activeOpacity={0.7}
-            disabled={deleting}
-            onPress={deleteReply}
-          >
-            <Text
-              style={[
-                styles.h1,
-                {
-                  fontSize: 16,
-                  color:
-                    me?.id !== reply.creator.id ? COLORS.darkGray : COLORS.red,
-                },
-              ]}
-            >
-              Delete comment
-            </Text>
-            <MaterialIcons
-              name="delete-outline"
-              size={24}
-              color={me?.id !== reply.creator.id ? COLORS.darkGray : COLORS.red}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 1,
-            }}
-            activeOpacity={0.7}
-            disabled={deleting}
-          >
-            <Text
-              style={[
-                styles.h1,
-                {
-                  fontSize: 16,
-                  color:
-                    me?.id === reply.creator.id ? COLORS.darkGray : COLORS.red,
-                },
-              ]}
-            >
-              Block user
-            </Text>
-            <MaterialIcons
-              name="block"
-              size={24}
-              color={me?.id === reply.creator.id ? COLORS.darkGray : COLORS.red}
-            />
-          </TouchableOpacity>
-        </View>
-      </BottomSheet>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
         <TouchableOpacity activeOpacity={0.7} onPress={viewProfile}>
           <Image
@@ -331,7 +193,7 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
             if (settings.haptics) {
               onImpact();
             }
-            toggle();
+            toggleActions();
           }}
           activeOpacity={0.7}
         >
@@ -342,7 +204,7 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
           />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.p, { fontSize: 16, marginVertical: 3 }]}>
+      <Text style={[styles.p, { fontSize: 14, marginVertical: 3 }]}>
         {reply.text}
       </Text>
       <View
@@ -359,26 +221,43 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
         >
           <Ionicons name="at-outline" size={16} color={COLORS.darkGray} />
         </TouchableOpacity>
-        <TouchableOpacity
-          disabled={reacting}
-          activeOpacity={0.7}
-          onPress={reactToReply}
-          style={{ flexDirection: "row", alignItems: "center" }}
-        >
-          <MaterialIcons
-            name={form.liked ? "favorite" : "favorite-border"}
-            size={16}
-            color={COLORS.primary}
-          />
-          <Text
-            style={[
-              styles.h1,
-              { fontSize: 14, color: COLORS.darkGray, marginLeft: 10 },
-            ]}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{ justifyContent: "center", alignItems: "center" }}
+            onPress={reactToReply}
           >
-            {reply.reactions.length}
-          </Text>
-        </TouchableOpacity>
+            <MaterialIcons
+              name={form.liked ? "favorite" : "favorite-border"}
+              size={16}
+              color={COLORS.primary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ justifyContent: "center", alignItems: "center" }}
+            activeOpacity={0.7}
+            onPress={() => {
+              if (settings.haptics) {
+                onImpact();
+              }
+              toggleReactions();
+            }}
+          >
+            <Text
+              style={[
+                styles.h1,
+                {
+                  fontSize: 16,
+                  color: COLORS.darkGray,
+                  marginLeft: 10,
+                  marginTop: -3,
+                },
+              ]}
+            >
+              {reply.reactions.length}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <View />
       </View>
     </View>

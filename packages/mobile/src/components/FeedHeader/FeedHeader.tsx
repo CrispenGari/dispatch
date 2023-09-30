@@ -8,13 +8,14 @@ import {
 } from "react-native";
 import React from "react";
 import { COLORS, FONTS, profile } from "../../constants";
-import { StackNavigationProp } from "@react-navigation/stack";
+import type { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
-import { AppParamList } from "../../params";
+import type { AppParamList } from "../../params";
 import * as Animatable from "react-native-animatable";
 import { useMediaQuery } from "../../hooks";
 import { useMeStore, useSettingsStore } from "../../store";
 import { onImpact } from "../../utils";
+import { trpc } from "../../utils/trpc";
 
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed">;
@@ -25,10 +26,35 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
   } = useMediaQuery();
   const { me } = useMeStore();
   const { settings } = useSettingsStore();
+
+  const { data: notifications, refetch } =
+    trpc.notification.notifications.useQuery({
+      category: "general",
+    });
+  trpc.notification.onDelete.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (_data) => {
+        await refetch();
+      },
+    }
+  );
+
   const [headerState, setHeaderState] = React.useState({
     searchTerm: "",
     focused: false,
+    notification: false,
   });
+
+  React.useEffect(() => {
+    if (!!notifications) {
+      setHeaderState((state) => ({
+        ...state,
+        notification: !!notifications.filter(({ read }) => read === false)
+          .length,
+      }));
+    }
+  }, [notifications]);
 
   return (
     <View
@@ -85,18 +111,20 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
                 marginHorizontal: 10,
               }}
             >
-              <View
-                style={{
-                  backgroundColor: COLORS.tertiary,
-                  width: 10,
-                  height: 10,
-                  borderRadius: 10,
-                  position: "absolute",
-                  zIndex: 1,
-                  top: 0,
-                  left: 0,
-                }}
-              />
+              {headerState.notification ? (
+                <View
+                  style={{
+                    backgroundColor: COLORS.tertiary,
+                    width: 10,
+                    height: 10,
+                    borderRadius: 10,
+                    position: "absolute",
+                    zIndex: 1,
+                    top: 0,
+                    left: 0,
+                  }}
+                />
+              ) : null}
               <Ionicons
                 name="ios-notifications-outline"
                 size={26}

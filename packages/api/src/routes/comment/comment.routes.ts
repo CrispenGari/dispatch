@@ -125,6 +125,9 @@ export const commentRoute = router({
         if (tweet.creator.id !== me.id) {
           const notification = await prisma.notification.create({
             data: {
+              tweetId: tweet.id,
+              category: "general",
+              type: "comment",
               title: `new comment`,
               message: `@${cmt.creator.nickname} - commented on your tweet.`,
               user: { connect: { id: tweet.creator.id } },
@@ -181,6 +184,9 @@ export const commentRoute = router({
             } else {
               const notification = await prisma.notification.create({
                 data: {
+                  category: "general",
+                  type: "reply",
+                  tweetId: comment.tweetId as any,
                   title: `comment reply`,
                   message:
                     me.id === comment.tweet?.creator.id
@@ -209,7 +215,7 @@ export const commentRoute = router({
           include: {
             creator: true,
             replies: { select: { id: true, userId: true } },
-            reactions: { select: { id: true, creatorId: true } },
+            reactions: { include: { creator: true } },
           },
         });
         return comment;

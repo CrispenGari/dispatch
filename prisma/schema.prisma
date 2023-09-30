@@ -107,6 +107,7 @@ model Notification {
   title   String
   message String
   read    Boolean @default(false)
+  tweetId String
 
   // category [mention|general]
   category NotificationCategory
@@ -203,6 +204,7 @@ enum NotificationCategory {
 enum NotificationType {
   reaction
   comment
-  repy
+  reply
   new_tweet
+  poll_vote_in
 }

@@ -1,18 +1,12 @@
-import { View, Text, Image, Alert, TouchableOpacity } from "react-native";
+import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
-import {
-  APP_NAME,
-  COLORS,
-  FONTS,
-  profile,
-  relativeTimeObject,
-} from "../../constants";
+import { COLORS, FONTS, profile, relativeTimeObject } from "../../constants";
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
 import { styles } from "../../styles";
-import { BottomSheet } from "react-native-btr";
+
 import {
   MaterialCommunityIcons,
   Ionicons,
@@ -23,9 +17,11 @@ import { trpc } from "../../utils/trpc";
 
 import Poll from "../Poll/Poll";
 import TweetSkeleton from "../skeletons/TweetSkeleton";
-import { onImpact } from "../../utils";
+import { onImpact, playReacted } from "../../utils";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { AppParamList } from "../../params";
+import TweetActions from "./TweetActions";
+import TweetReactions from "./TweetReactions";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -44,9 +40,22 @@ const Tweet: React.FunctionComponent<Props> = ({
   from,
 }) => {
   const { settings } = useSettingsStore();
-  const [open, setOpen] = React.useState(false);
+  const [openSheets, setOpenSheets] = React.useState({
+    actions: false,
+    reactions: false,
+  });
   const { me } = useMeStore();
-  const toggle = () => setOpen((state) => !state);
+  const toggleActions = () =>
+    setOpenSheets((state) => ({
+      ...state,
+      actions: !openSheets.actions,
+    }));
+  const toggleReactions = () =>
+    setOpenSheets((state) => ({
+      ...state,
+      reactions: !openSheets.reactions,
+    }));
+
   const [form, setForm] = React.useState({
     height: 40,
     comment: "",
@@ -125,13 +134,10 @@ const Tweet: React.FunctionComponent<Props> = ({
     }
   );
 
-  const { mutateAsync: mutateDeleteTweet, isLoading: deleting } =
-    trpc.tweet.del.useMutation();
   const { mutateAsync: mutateReactToTweet, isLoading: _reacting } =
     trpc.reaction.reactToTweet.useMutation();
   const { mutateAsync: mutateViewTweet, isLoading: viewing } =
     trpc.tweet.view.useMutation();
-
   const { isLoading: viewingP, mutateAsync: mutateViewProfile } =
     trpc.user.viewProfile.useMutation();
 
@@ -144,45 +150,16 @@ const Tweet: React.FunctionComponent<Props> = ({
       navigation.navigate("User", { from: "Tweet", id: tweet.userId });
     });
   };
-  const deleteTweet = () => {
-    if (settings.haptics) {
-      onImpact();
-    }
-    if (!!!tweet) return;
-    mutateDeleteTweet({ id: tweet.id }).then(({ error }) => {
-      if (error) {
-        Alert.alert(
-          APP_NAME,
-          error,
-          [
-            {
-              style: "default",
-              text: "OK",
-            },
-          ],
-          { cancelable: false }
-        );
-      }
-      toggle();
-    });
-  };
-  const editTweet = () => {
-    if (settings.haptics) {
-      onImpact();
-    }
-    if (!!!tweet) return;
-    if (me?.id === tweet.creator.id) {
-      navigation.navigate("Edit", { id: tweet.id, from });
-      toggle();
-    }
-  };
 
-  const reactToTweet = () => {
+  const reactToTweet = async () => {
     if (settings.haptics) {
       onImpact();
     }
+    if (settings.sound) {
+      await playReacted();
+    }
     if (!!!tweet) return;
-    mutateReactToTweet({ id: tweet.id }).then((_res) => {});
+    mutateReactToTweet({ id: tweet.id }).then(async (_res) => {});
   };
 
   const view = () => {
@@ -228,178 +205,20 @@ const Tweet: React.FunctionComponent<Props> = ({
         paddingTop: 10,
       }}
     >
-      <BottomSheet
-        visible={!!open}
-        onBackButtonPress={() => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          toggle();
-        }}
-        onBackdropPress={() => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          toggle();
-        }}
-      >
-        <View
-          style={{
-            height: 200,
-            backgroundColor: COLORS.main,
-            borderTopRightRadius: 10,
-            borderTopLeftRadius: 10,
-            position: "relative",
-          }}
-        >
-          <View
-            style={{
-              position: "absolute",
-              borderRadius: 999,
-              padding: 5,
-              alignSelf: "center",
-              top: -10,
-              backgroundColor: COLORS.main,
-              paddingHorizontal: 15,
-              shadowOffset: { height: 2, width: 2 },
-              shadowOpacity: 1,
-              shadowRadius: 2,
-              shadowColor: COLORS.primary,
-              elevation: 1,
-            }}
-          >
-            <Text style={[styles.h1, {}]}>Tweet Actions</Text>
-          </View>
-          <View style={{ height: 10 }} />
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 1,
-            }}
-            onPress={editTweet}
-            activeOpacity={0.7}
-            disabled={deleting}
-          >
-            <Text
-              style={[
-                styles.h1,
-                {
-                  fontSize: 18,
-                  color:
-                    me?.id !== tweet.creator.id
-                      ? COLORS.darkGray
-                      : COLORS.primary,
-                },
-              ]}
-            >
-              Edit tweet
-            </Text>
-
-            <MaterialCommunityIcons
-              name="file-edit-outline"
-              size={24}
-              color={
-                me?.id !== tweet.creator.id ? COLORS.darkGray : COLORS.primary
-              }
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 1,
-            }}
-            activeOpacity={0.7}
-            disabled={deleting}
-          >
-            <Text
-              style={[
-                styles.h1,
-                {
-                  fontSize: 18,
-                  color:
-                    me?.id === tweet.creator.id ? COLORS.darkGray : COLORS.red,
-                },
-              ]}
-            >
-              Report tweet
-            </Text>
-            <Ionicons
-              name="hand-left-outline"
-              size={24}
-              color={me?.id === tweet.creator.id ? COLORS.darkGray : COLORS.red}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 1,
-            }}
-            activeOpacity={0.7}
-            disabled={deleting}
-            onPress={deleteTweet}
-          >
-            <Text
-              style={[
-                styles.h1,
-                {
-                  fontSize: 18,
-                  color:
-                    me?.id !== tweet.creator.id ? COLORS.darkGray : COLORS.red,
-                },
-              ]}
-            >
-              Delete tweet
-            </Text>
-            <MaterialIcons
-              name="delete-outline"
-              size={24}
-              color={me?.id !== tweet.creator.id ? COLORS.darkGray : COLORS.red}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              marginBottom: 1,
-            }}
-            activeOpacity={0.7}
-            disabled={deleting}
-          >
-            <Text
-              style={[
-                styles.h1,
-                {
-                  fontSize: 18,
-                  color:
-                    me?.id === tweet.creator.id ? COLORS.darkGray : COLORS.red,
-                },
-              ]}
-            >
-              Block user
-            </Text>
-            <MaterialIcons
-              name="block"
-              size={24}
-              color={me?.id === tweet.creator.id ? COLORS.darkGray : COLORS.red}
-            />
-          </TouchableOpacity>
-        </View>
-      </BottomSheet>
+      <TweetActions
+        navigation={navigation}
+        from={from}
+        tweet={tweet}
+        open={openSheets.actions}
+        toggle={toggleActions}
+      />
+      <TweetReactions
+        navigation={navigation}
+        from={from}
+        reactions={tweet.reactions}
+        open={openSheets.reactions}
+        toggle={toggleReactions}
+      />
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
         <TouchableOpacity onPress={viewProfile} activeOpacity={0.7}>
           <Image
@@ -457,7 +276,7 @@ const Tweet: React.FunctionComponent<Props> = ({
             if (settings.haptics) {
               onImpact();
             }
-            toggle();
+            toggleActions();
           }}
           activeOpacity={0.7}
         >
@@ -520,25 +339,43 @@ const Tweet: React.FunctionComponent<Props> = ({
             {tweet.comments.length}
           </Text>
         </View>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={reactToTweet}
-          style={{ flexDirection: "row", alignItems: "center" }}
-        >
-          <MaterialIcons
-            name={form.liked ? "favorite" : "favorite-border"}
-            size={16}
-            color={COLORS.primary}
-          />
-          <Text
-            style={[
-              styles.h1,
-              { fontSize: 16, color: COLORS.darkGray, marginLeft: 10 },
-            ]}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{ justifyContent: "center", alignItems: "center" }}
+            onPress={reactToTweet}
           >
-            {tweet.reactions.length}
-          </Text>
-        </TouchableOpacity>
+            <MaterialIcons
+              name={form.liked ? "favorite" : "favorite-border"}
+              size={16}
+              color={COLORS.primary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ justifyContent: "center", alignItems: "center" }}
+            activeOpacity={0.7}
+            onPress={() => {
+              if (settings.haptics) {
+                onImpact();
+              }
+              toggleReactions();
+            }}
+          >
+            <Text
+              style={[
+                styles.h1,
+                {
+                  fontSize: 16,
+                  color: COLORS.darkGray,
+                  marginLeft: 10,
+                  marginTop: -3,
+                },
+              ]}
+            >
+              {tweet.reactions.length}
+            </Text>
+          </TouchableOpacity>
+        </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons
             name="ios-stats-chart-outline"

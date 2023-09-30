@@ -1,11 +1,11 @@
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import { COLORS } from "../../constants";
 import { styles } from "../../styles";
-import { type Poll as P, Vote } from "@dispatch/api";
+import { type Poll as P, type Vote } from "@dispatch/api";
 import { trpc } from "../../utils/trpc";
 import { useMeStore, useSettingsStore } from "../../store";
 import React from "react";
-import { onImpact } from "../../utils";
+import { onImpact, playReacted } from "../../utils";
 
 type PollType = Partial<P> & { votes: Vote[] };
 interface Props {
@@ -27,12 +27,15 @@ const Poll: React.FunctionComponent<Props> = ({
     trpc.poll.vote.useMutation();
 
   const { settings } = useSettingsStore();
-  const vote = () => {
+  const vote = async () => {
     if (settings.haptics) {
       onImpact();
     }
+    if (settings.sound) {
+      await playReacted();
+    }
     if (me?.id === creatorId) return;
-    mutateVote({ id: poll.id || "", tweetId }).then((_res) => {});
+    mutateVote({ id: poll.id || "", tweetId }).then(async (_res) => {});
   };
   const percentage = !!!totalVotes ? 0 : (poll.votes.length / totalVotes) * 100;
   return (

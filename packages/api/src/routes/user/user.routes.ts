@@ -92,6 +92,16 @@ export const userRouter = router({
         return null;
       }
     }),
+
+  users: publicProcedure.use(isAuth).query(async ({ ctx: { me, prisma } }) => {
+    try {
+      if (!!!me) return null;
+      const user = await prisma.user.findMany({});
+      return user;
+    } catch (err) {
+      return null;
+    }
+  }),
   me: publicProcedure.use(isAuth).query(async ({ ctx: { me } }) => me),
   updateNickname: publicProcedure
     .use(isAuth)

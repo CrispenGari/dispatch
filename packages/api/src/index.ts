@@ -9,6 +9,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import ws from "@fastify/websocket";
 import { getFastifyPlugin } from "trpc-playground/handlers/fastify";
+
 export type {
   User,
   Tweet,
@@ -21,7 +22,6 @@ export type {
 } from "@prisma/client";
 import process from "process";
 require("events").EventEmitter.prototype._maxListeners = 100;
-
 _();
 process.setMaxListeners(100);
 

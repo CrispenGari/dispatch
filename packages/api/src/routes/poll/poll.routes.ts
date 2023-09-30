@@ -84,6 +84,8 @@ export const pollRouter = router({
         if (tweet.creator.id === me.id) {
           const notification = await prisma.notification.create({
             data: {
+              category: "general",
+              type: "reaction",
               title: `new vote in`,
               message: `your tweet polls received a new check the results.`,
               user: { connect: { id: tweet.creator.id } },

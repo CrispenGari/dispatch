@@ -200,7 +200,6 @@ export const authRouter = router({
             "Verify your Email"
           );
           const jwt = await signJwt(user);
-
           return {
             jwt,
           };

@@ -11,7 +11,7 @@ import { CheckBox } from "react-native-btr";
 import Indeterminate from "../../../components/ProgressIndicators/Indeterminate";
 import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import { trpc } from "../../../utils/trpc";
-import { onImpact } from "../../../utils";
+import { onImpact, playTweeted } from "../../../utils";
 
 const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   navigation,
@@ -36,7 +36,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
       { id: 1, text: "" },
     ],
   });
-
+  console.log({ settings });
   React.useEffect(() => {
     if (!!tweet) {
       setForm((state) => ({
@@ -93,16 +93,31 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
           { cancelable: false }
         );
       } else {
-        setForm({
-          tweet: "",
-          height: 40,
-          enablePolls: false,
-          polls: [
-            { id: 0, text: "" },
-            { id: 1, text: "" },
-          ],
-        });
-        navigation.replace("Feed");
+        if (settings.sound) {
+          playTweeted().then(() => {
+            setForm({
+              tweet: "",
+              height: 40,
+              enablePolls: false,
+              polls: [
+                { id: 0, text: "" },
+                { id: 1, text: "" },
+              ],
+            });
+            navigation.replace("Feed");
+          });
+        } else {
+          setForm({
+            tweet: "",
+            height: 40,
+            enablePolls: false,
+            polls: [
+              { id: 0, text: "" },
+              { id: 1, text: "" },
+            ],
+          });
+          navigation.replace("Feed");
+        }
       }
     });
   };

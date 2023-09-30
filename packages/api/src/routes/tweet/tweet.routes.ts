@@ -125,6 +125,9 @@ export const tweetRouter = router({
                 title: `new tweet`,
                 message: `@${me.nickname} - ${tweet.text}`,
                 user: { connect: { id: "" } },
+                category: "general",
+                type: "new_tweet",
+                tweetId: tweet.id,
               },
               include: { user: true },
             });
@@ -232,7 +235,12 @@ export const tweetRouter = router({
           include: {
             polls: { include: { votes: true } },
             creator: true,
-            reactions: { include: { creator: true } },
+            reactions: {
+              include: { creator: true },
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
             comments: {
               select: { id: true },
             },

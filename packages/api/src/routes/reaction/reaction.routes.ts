@@ -113,6 +113,8 @@ export const reactionRoute = router({
                 title: `new reaction`,
                 message: `@${reaction.creator.nickname} - reacted on your tweet.`,
                 user: { connect: { id: _tweet.creator.id } },
+                category: "general",
+                type: "reaction",
               },
               include: { user: true },
             });
@@ -165,6 +167,8 @@ export const reactionRoute = router({
           if (_comment.creator.id !== me.id) {
             const notification = await prisma.notification.create({
               data: {
+                category: "general",
+                type: "comment",
                 title: `new comment reaction`,
                 message:
                   me.id === _comment.tweet?.creator.id
@@ -229,6 +233,8 @@ export const reactionRoute = router({
             const notification = await prisma.notification.create({
               data: {
                 title: `new reply reaction`,
+                category: "general",
+                type: "repy",
                 message:
                   me.id === _reply.comment?.tweet?.creator.id
                     ? `@${reaction.creator.nickname} - reacted to your reply on your tweet.`
