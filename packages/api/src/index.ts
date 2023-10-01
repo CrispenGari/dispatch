@@ -21,10 +21,10 @@ export type {
   Vote,
 } from "@prisma/client";
 import process from "process";
+
 require("events").EventEmitter.prototype._maxListeners = 100;
 _();
 process.setMaxListeners(100);
-
 const PORT: any = process.env.PORT || 3001;
 const HOST =
   process.env.NODE_ENV === "production"

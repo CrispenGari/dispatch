@@ -1,7 +1,7 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { COLORS, FONTS, profile, relativeTimeObject } from "../../constants";
-
+import moment from "moment";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
@@ -312,7 +312,8 @@ const Tweet: React.FunctionComponent<Props> = ({
               },
             ]}
           >
-            {tweet.polls.flatMap((p) => p.votes).length} votes
+            {tweet.polls.flatMap((p) => p.votes).length} votes •{" expires "}
+            {moment(tweet.pollExpiresIn).fromNow()}
           </Text>
         ) : null}
       </View>

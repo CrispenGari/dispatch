@@ -16,6 +16,7 @@ import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
 import { Events } from "../../constants";
 import { isAuth } from "../../middleware/isAuth.middleware";
+import { expiryDate } from "../../utils";
 
 const ee = new EventEmitter();
 export const tweetRouter = router({
@@ -96,7 +97,10 @@ export const tweetRouter = router({
     .input(createSchema)
     .use(isAuth)
     .mutation(
-      async ({ input: { text, polls, cords }, ctx: { prisma, me } }) => {
+      async ({
+        input: { text, polls, cords, pollExpiresIn },
+        ctx: { prisma, me },
+      }) => {
         try {
           if (!!!me)
             return {
@@ -113,6 +117,9 @@ export const tweetRouter = router({
                   data: [...polls.map((p) => ({ text: p.text.trim() }))],
                 },
               },
+              pollExpiresIn: pollExpiresIn
+                ? expiryDate(pollExpiresIn)
+                : undefined,
             },
             include: {
               creator: true,

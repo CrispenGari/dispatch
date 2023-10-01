@@ -8,7 +8,7 @@ import { trpc } from "../../utils/trpc";
 import { onImpact, store } from "../../utils";
 import Ripple from "../ProgressIndicators/Ripple";
 import Message from "../Message/Message";
-import { GenderType } from "../../types";
+import type { GenderType } from "../../types";
 import DropdownSelect from "react-native-input-select";
 
 const ChangeGender = () => {

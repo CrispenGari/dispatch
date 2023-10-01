@@ -4,6 +4,7 @@ export const createSchema = z.object({
   text: z.string(),
   cords: z.object({ lat: z.number(), lon: z.number() }),
   polls: z.object({ text: z.string() }).array(),
+  pollExpiresIn: z.string().optional(),
 });
 
 export const editSchema = z.object({

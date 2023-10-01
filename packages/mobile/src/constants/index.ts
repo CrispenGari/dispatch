@@ -1,4 +1,4 @@
-import { GenderType } from "../types";
+import type { GenderType } from "../types";
 
 export const KEYS = {
   TOKEN_KEY: "qid:",
@@ -13,6 +13,22 @@ export const genders: {
   { id: 0, name: "Male", value: "MALE" },
   { id: 1, name: "Female", value: "FEMALE" },
   { id: 2, name: "Prefer not to say", value: "UNDEFINED" },
+];
+
+export const expires: {
+  value: string;
+  id: number;
+  name: string;
+}[] = [
+  { id: 0, name: "1 minute", value: "1 m" },
+  { id: 1, name: "10 minutes", value: "10 m" },
+  { id: 2, name: "30 minutes", value: "30 m" },
+  { id: 3, name: "1 hour", value: "3 h" }, // behind with 2h
+  { id: 4, name: "12 hours", value: "12 h" },
+  { id: 5, name: "1 day", value: "1 d" },
+  { id: 6, name: "1 week", value: "7 d" },
+  { id: 7, name: "1 month", value: "30 d" },
+  { id: 8, name: "1 year", value: "365 d" },
 ];
 
 export const APP_NAME = "dispatch";

@@ -3,7 +3,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import React from "react";
 import type { AppNavProps } from "../../../params";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
-import { APP_NAME, COLORS, FONTS, profile } from "../../../constants";
+import { APP_NAME, COLORS, FONTS, expires, profile } from "../../../constants";
 import { usePlatform } from "../../../hooks";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import { styles } from "../../../styles";
@@ -12,6 +12,7 @@ import Indeterminate from "../../../components/ProgressIndicators/Indeterminate"
 import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import { trpc } from "../../../utils/trpc";
 import { onImpact, playTweeted } from "../../../utils";
+import DropdownSelect from "react-native-input-select";
 
 const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
   navigation,
@@ -30,7 +31,12 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
       { id: 0, text: "" },
       { id: 1, text: "" },
     ],
+    pollExpiresIn: expires[0].value,
   });
+
+  const onValueChange = (exp: string) => {
+    setForm((state) => ({ ...state, pollExpiresIn: exp }));
+  };
 
   const tweet = () => {
     if (settings.haptics) {
@@ -61,6 +67,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
         if (settings.sound) {
           playTweeted().then(() => {
             setForm({
+              pollExpiresIn: "",
               tweet: "",
               height: 40,
               enablePolls: false,
@@ -80,6 +87,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
               { id: 0, text: "" },
               { id: 1, text: "" },
             ],
+            pollExpiresIn: "",
           });
           navigation.replace("Feed");
         }
@@ -248,8 +256,77 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                       ),
                     }))
                   }
+                  containerStyles={{ borderWidth: 0, borderBottomWidth: 1 }}
                 />
               ))}
+              <DropdownSelect
+                placeholder="Change Poll Expiry"
+                options={expires}
+                optionLabel={"name"}
+                optionValue={"value"}
+                selectedValue={form.pollExpiresIn}
+                isMultiple={false}
+                helperText="Set the expiry time for your polls."
+                dropdownContainerStyle={{
+                  maxWidth: 500,
+                  marginTop: 4,
+                  flex: 1,
+                  padding: 0,
+                  backgroundColor: COLORS.main,
+                  marginBottom: 0,
+                }}
+                dropdownIconStyle={{ top: 0, right: 15 }}
+                dropdownStyle={{
+                  borderWidth: 0,
+                  borderBottomWidth: 1,
+                  paddingVertical: 0,
+                  paddingHorizontal: 20,
+                  minHeight: 30,
+                  flex: 1,
+                  maxWidth: 500,
+                  borderColor: COLORS.primary,
+                  borderRadius: 0,
+                  backgroundColor: COLORS.main,
+                }}
+                selectedItemStyle={{
+                  color: COLORS.black,
+                  fontFamily: FONTS.regular,
+                  fontSize: 16,
+                }}
+                placeholderStyle={{
+                  fontFamily: FONTS.regular,
+                  fontSize: 16,
+                }}
+                onValueChange={onValueChange}
+                labelStyle={{
+                  fontFamily: FONTS.regularBold,
+                  fontSize: 16,
+                }}
+                primaryColor={COLORS.primary}
+                dropdownHelperTextStyle={{
+                  color: COLORS.black,
+                  fontFamily: FONTS.regular,
+                  fontSize: 15,
+                }}
+                modalOptionsContainerStyle={{
+                  padding: 10,
+                  backgroundColor: COLORS.main,
+                }}
+                checkboxComponentStyles={{
+                  checkboxSize: 10,
+                  checkboxStyle: {
+                    backgroundColor: COLORS.primary,
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: COLORS.tertiary,
+                  },
+                  checkboxLabelStyle: {
+                    color: COLORS.black,
+                    fontSize: 16,
+                    fontFamily: FONTS.regular,
+                  },
+                }}
+              />
               <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity
                   activeOpacity={0.7}
