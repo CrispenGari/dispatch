@@ -65,6 +65,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     liked: false,
     showResults: false,
     totalVotes: 0,
+    expired: false,
   });
   const { mutateAsync: mutateReactToTweet, isLoading: reacting } =
     trpc.reaction.reactToTweet.useMutation();
@@ -185,11 +186,18 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       const voted = !!tweet.polls
         .flatMap((p) => p.votes)
         .find((v) => v.userId === me?.id);
+
+      const expired =
+        dayjs(tweet.pollExpiresIn).toDate().getTime() -
+          dayjs().toDate().getTime() <=
+        0;
+
       setForm((state) => ({
         ...state,
         liked: !!liked,
-        showResults: me?.id === tweet.creator.id || voted,
+        showResults: me?.id === tweet.creator.id || voted || expired,
         totalVotes: tweet.polls.flatMap((p) => p.votes).length,
+        expired,
       }));
     }
   }, [tweet, me]);
@@ -318,6 +326,8 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
                 poll={poll}
                 showResults={form.showResults}
                 creatorId={tweet.creator.id}
+                tweet={tweet}
+                refetch={refetch}
                 totalVotes={tweet.polls.flatMap((p) => p.votes).length}
               />
             ))}
@@ -332,7 +342,10 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
                   },
                 ]}
               >
-                {tweet.polls.flatMap((p) => p.votes).length} votes
+                {tweet.polls.flatMap((p) => p.votes).length} votes •{" "}
+                {form.expired
+                  ? "expired"
+                  : `expires ${dayjs(tweet.pollExpiresIn).fromNow()}`}
               </Text>
             ) : null}
           </View>

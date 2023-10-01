@@ -1,11 +1,12 @@
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import { COLORS } from "../../constants";
 import { styles } from "../../styles";
-import { type Poll as P, type Vote } from "@dispatch/api";
+import { type Poll as P, type Tweet, type Vote } from "@dispatch/api";
 import { trpc } from "../../utils/trpc";
 import { useMeStore, useSettingsStore } from "../../store";
 import React from "react";
 import { onImpact, playReacted } from "../../utils";
+import dayjs from "dayjs";
 
 type PollType = Partial<P> & { votes: Vote[] };
 interface Props {
@@ -14,6 +15,8 @@ interface Props {
   tweetId: string;
   totalVotes: number;
   showResults: boolean;
+  tweet: Tweet;
+  refetch: () => void;
 }
 const Poll: React.FunctionComponent<Props> = ({
   poll,
@@ -21,6 +24,8 @@ const Poll: React.FunctionComponent<Props> = ({
   tweetId,
   totalVotes,
   showResults,
+  tweet,
+  refetch,
 }) => {
   const { me } = useMeStore();
   const { mutateAsync: mutateVote, isLoading: voting } =
@@ -33,6 +38,17 @@ const Poll: React.FunctionComponent<Props> = ({
     }
     if (settings.sound) {
       await playReacted();
+    }
+    if (showResults) {
+      return;
+    }
+    const expired =
+      dayjs(tweet.pollExpiresIn).toDate().getTime() -
+        dayjs().toDate().getTime() <=
+      0;
+    if (expired) {
+      await refetch();
+      return;
     }
     if (me?.id === creatorId) return;
     mutateVote({ id: poll.id || "", tweetId }).then(async (_res) => {});

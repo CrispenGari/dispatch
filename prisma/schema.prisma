@@ -163,7 +163,7 @@ model Tweet {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  pollExpiresIn DateTime?
+  pollExpiresIn DateTime
 
   // relations
   polls Poll[]

@@ -50,6 +50,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
         lat: location.coords.latitude,
         lon: location.coords.longitude,
       },
+      pollExpiresIn: form.pollExpiresIn,
     }).then((data) => {
       if (data.error) {
         Alert.alert(
@@ -259,6 +260,45 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                   containerStyles={{ borderWidth: 0, borderBottomWidth: 1 }}
                 />
               ))}
+              <View style={{ flexDirection: "row" }}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={addNewPollField}
+                  disabled={tweeting}
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: COLORS.primary,
+                      padding: 5,
+                      borderRadius: 5,
+                      alignSelf: "flex-start",
+                      marginTop: 10,
+                      maxWidth: 100,
+                      marginRight: 10,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.button__text]}>ADD</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={removePollField}
+                  disabled={tweeting}
+                  style={[
+                    styles.button,
+                    {
+                      backgroundColor: COLORS.tertiary,
+                      padding: 5,
+                      borderRadius: 5,
+                      alignSelf: "flex-start",
+                      marginTop: 10,
+                      maxWidth: 100,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.button__text]}>REMOVE</Text>
+                </TouchableOpacity>
+              </View>
               <DropdownSelect
                 placeholder="Change Poll Expiry"
                 options={expires}
@@ -275,7 +315,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                   backgroundColor: COLORS.main,
                   marginBottom: 0,
                 }}
-                dropdownIconStyle={{ top: 0, right: 15 }}
+                dropdownIconStyle={{ top: 5, right: 15 }}
                 dropdownStyle={{
                   borderWidth: 0,
                   borderBottomWidth: 1,
@@ -327,45 +367,6 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                   },
                 }}
               />
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={addNewPollField}
-                  disabled={tweeting}
-                  style={[
-                    styles.button,
-                    {
-                      backgroundColor: COLORS.primary,
-                      padding: 5,
-                      borderRadius: 5,
-                      alignSelf: "flex-start",
-                      marginTop: 10,
-                      maxWidth: 100,
-                      marginRight: 10,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.button__text]}>ADD</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={removePollField}
-                  disabled={tweeting}
-                  style={[
-                    styles.button,
-                    {
-                      backgroundColor: COLORS.tertiary,
-                      padding: 5,
-                      borderRadius: 5,
-                      alignSelf: "flex-start",
-                      marginTop: 10,
-                      maxWidth: 100,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.button__text]}>REMOVE</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           ) : null}
 

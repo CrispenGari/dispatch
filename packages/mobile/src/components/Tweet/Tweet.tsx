@@ -1,12 +1,10 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { COLORS, FONTS, profile, relativeTimeObject } from "../../constants";
-import moment from "moment";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
 import { styles } from "../../styles";
-
 import {
   MaterialCommunityIcons,
   Ionicons,
@@ -62,6 +60,7 @@ const Tweet: React.FunctionComponent<Props> = ({
     liked: false,
     showResults: false,
     totalVotes: 0,
+    expired: false,
   });
   const {
     isLoading: fetching,
@@ -179,11 +178,17 @@ const Tweet: React.FunctionComponent<Props> = ({
         .flatMap((p) => p.votes)
         .find((v) => v.userId === me?.id);
 
+      const expired =
+        dayjs(tweet.pollExpiresIn).toDate().getTime() -
+          dayjs().toDate().getTime() <=
+        0;
+
       setForm((state) => ({
         ...state,
         liked: !!liked,
         showResults: me?.id === tweet.creator.id || voted,
         totalVotes: tweet.polls.flatMap((p) => p.votes).length,
+        expired,
       }));
     }
   }, [tweet, me]);
@@ -298,6 +303,8 @@ const Tweet: React.FunctionComponent<Props> = ({
             poll={poll}
             showResults={form.showResults}
             creatorId={tweet.creator.id}
+            tweet={tweet}
+            refetch={refetch}
             totalVotes={tweet.polls.flatMap((p) => p.votes).length}
           />
         ))}
@@ -312,8 +319,10 @@ const Tweet: React.FunctionComponent<Props> = ({
               },
             ]}
           >
-            {tweet.polls.flatMap((p) => p.votes).length} votes •{" expires "}
-            {moment(tweet.pollExpiresIn).fromNow()}
+            {tweet.polls.flatMap((p) => p.votes).length} votes •{" "}
+            {form.expired
+              ? "expired"
+              : `expires ${dayjs(tweet.pollExpiresIn).fromNow()}`}
           </Text>
         ) : null}
       </View>

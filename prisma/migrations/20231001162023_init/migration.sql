@@ -107,6 +107,7 @@ CREATE TABLE "Tweet" (
     "lon" DOUBLE PRECISION NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "pollExpiresIn" TIMESTAMP(3) NOT NULL,
     "userId" TEXT NOT NULL
 );
 
