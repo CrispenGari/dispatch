@@ -31,6 +31,7 @@ import { onImpact, playReacted, playTweeted } from "../../../utils";
 import type { AppNavProps } from "../../../params";
 import TweetActions from "../../../components/Tweet/TweetActions";
 import TweetReactions from "../../../components/Tweet/TweetReactions";
+import Ripple from "../../../components/ProgressIndicators/Ripple";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -43,6 +44,8 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   route,
 }) => {
   const { os } = usePlatform();
+  const { settings } = useSettingsStore();
+  const { me } = useMeStore();
   const {
     isLoading: fetching,
     refetch,
@@ -53,7 +56,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     actions: false,
     reactions: false,
   });
-  const { me } = useMeStore();
+
   const toggleActions = () =>
     setOpenSheets((state) => ({
       ...state,
@@ -64,7 +67,6 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       ...state,
       reactions: !openSheets.reactions,
     }));
-  const { settings } = useSettingsStore();
 
   const [form, setForm] = React.useState({
     height: 60,
@@ -539,6 +541,18 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
           <Comment key={id} id={id} navigation={navigation} />
         ))}
       </View>
+
+      {fetching ? (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 30,
+          }}
+        >
+          <Ripple color={COLORS.tertiary} size={10} />
+        </View>
+      ) : null}
     </KeyboardAwareScrollView>
   );
 };

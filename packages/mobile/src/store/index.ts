@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { NetworkType, SettingsType } from "../types";
-import { User } from "@dispatch/api";
+import type { NetworkType, SettingsType } from "../types";
+import type { User } from "@dispatch/api";
 import * as Location from "expo-location";
 
 export const useNetworkStore = create<{
@@ -19,7 +19,7 @@ export const useSettingsStore = create<{
   settings: Required<SettingsType>;
   setSettings: (settings: SettingsType) => void;
 }>((set) => ({
-  settings: { haptics: true, sound: true },
+  settings: { haptics: true, sound: true, pageLimit: 3 },
   setSettings: (settings: SettingsType) => set({ settings }),
 }));
 

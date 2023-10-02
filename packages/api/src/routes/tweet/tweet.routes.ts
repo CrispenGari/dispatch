@@ -9,6 +9,7 @@ import {
   onTweetUpdateSchema,
   onViewSchema,
   tweetSchema,
+  tweetsSchema,
   viewSchema,
 } from "../../schema/tweet.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
@@ -214,23 +215,32 @@ export const tweetRouter = router({
       }
     ),
 
-  tweets: publicProcedure.query(async ({ ctx: { prisma } }) => {
-    /*
+  tweets: publicProcedure
+    .input(tweetsSchema)
+    .query(async ({ ctx: { prisma }, input: { cursor, limit } }) => {
+      /*
       fetch only the ids of recent tweets.
     */
-    try {
-      const tweets = await prisma.tweet.findMany({
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-        },
-      });
-      return { tweets };
-    } catch (error) {
-      console.log(error);
-      return { tweets: [] };
-    }
-  }),
+      try {
+        const tweets = await prisma.tweet.findMany({
+          take: limit + 1,
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+          },
+          cursor: cursor ? { id: cursor } : undefined,
+        });
+        let nextCursor: typeof cursor | undefined = undefined;
+        if (tweets.length > limit) {
+          const nextItem = tweets.pop() as (typeof tweets)[number];
+          nextCursor = nextItem.id;
+        }
+        return { tweets, nextCursor };
+      } catch (error) {
+        console.log(error);
+        return { tweets: [] };
+      }
+    }),
   tweet: publicProcedure
     .input(tweetSchema)
     .query(async ({ ctx: { prisma }, input: { id } }) => {
@@ -248,6 +258,9 @@ export const tweetRouter = router({
             },
             comments: {
               select: { id: true },
+              orderBy: {
+                createdAt: "desc",
+              },
             },
           },
         });

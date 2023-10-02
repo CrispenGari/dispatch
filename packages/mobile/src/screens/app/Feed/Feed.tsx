@@ -21,17 +21,30 @@ import Tweet from "../../../components/Tweet/Tweet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { onImpact } from "../../../utils";
 import TweetSkeleton from "../../../components/skeletons/TweetSkeleton";
+import Ripple from "../../../components/ProgressIndicators/Ripple";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
+  const { settings } = useSettingsStore();
+
+  const { data: me, isFetching: getting } = trpc.user.me.useQuery();
+  const { os } = usePlatform();
   const {
-    data: tweets,
+    data,
     refetch,
     isLoading: loading,
     isFetching: fetching,
-  } = trpc.tweet.tweets.useQuery();
-  const { data: me, isFetching: getting } = trpc.user.me.useQuery();
-  const { os } = usePlatform();
-  const { settings } = useSettingsStore();
+    fetchNextPage,
+    hasNextPage,
+  } = trpc.tweet.tweets.useInfiniteQuery(
+    {
+      limit: settings.pageLimit,
+    },
+    {
+      keepPreviousData: true,
+      getNextPageParam: ({ nextCursor }) => nextCursor,
+    }
+  );
+
   const {
     dimension: { height },
   } = useMediaQuery();
@@ -42,6 +55,17 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const [address, setAddress] = React.useState<
     Location.LocationGeocodedAddress | undefined
   >();
+  const [tweets, setTweets] = React.useState<
+    {
+      id: string;
+    }[]
+  >([]);
+
+  React.useEffect(() => {
+    if (!!data?.pages) {
+      setTweets(data.pages.flatMap((page) => page.tweets));
+    }
+  }, [data]);
 
   // feed listiners
   trpc.tweet.onNewTweet.useSubscription(
@@ -107,6 +131,17 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     ]).start();
   };
 
+  const onScroll = async (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    e.persist();
+    const paddingToBottom = 10;
+    const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+    const close =
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom;
+    if (close && hasNextPage) {
+      await fetchNextPage();
+    }
+  };
   React.useLayoutEffect(() => {
     navigation.setOptions({
       header: ({}) => <FeedHeader navigation={navigation} />,
@@ -156,6 +191,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       <ScrollView
         onMomentumScrollBegin={onMomentumScrollBegin}
         onMomentumScrollEnd={onMomentumScrollEnd}
+        onScroll={onScroll}
         style={{ flex: 1, backgroundColor: COLORS.main }}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
@@ -200,8 +236,8 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
             />
           </TouchableOpacity>
         </View>
-        {!!tweets
-          ? tweets.tweets.map((tweet) => (
+        {tweets.length !== 0
+          ? tweets.map((tweet) => (
               <Tweet
                 navigation={navigation}
                 tweet={tweet}
@@ -210,6 +246,18 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
               />
             ))
           : Array(10).map((_, i) => <TweetSkeleton key={i} />)}
+
+        {fetching ? (
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              paddingVertical: 30,
+            }}
+          >
+            <Ripple color={COLORS.tertiary} size={10} />
+          </View>
+        ) : null}
       </ScrollView>
     </View>
   );

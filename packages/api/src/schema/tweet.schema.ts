@@ -6,6 +6,10 @@ export const createSchema = z.object({
   polls: z.object({ text: z.string() }).array(),
   pollExpiresIn: z.string(),
 });
+export const tweetsSchema = z.object({
+  cursor: z.string().nullish(),
+  limit: z.number().min(1).max(100).default(3),
+});
 
 export const editSchema = z.object({
   text: z.string(),
