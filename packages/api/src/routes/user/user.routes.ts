@@ -85,7 +85,7 @@ export const userRouter = router({
         if (!!!me) return null;
         const user = await prisma.user.findFirst({
           where: { id },
-          include: { tweets: { select: { id: true } } },
+          include: { tweets: { select: { id: true } }, profileViews: true },
         });
         return user;
       } catch (err) {
@@ -330,14 +330,27 @@ export const userRouter = router({
     .mutation(async ({ ctx: { me, prisma }, input: { id } }) => {
       try {
         if (!!!me) return false;
-
         if (me.id === id) return false;
-
+        const viewers = await prisma.user.findFirst({
+          where: { id },
+          include: {
+            profileViews: {
+              select: { id: true },
+            },
+          },
+        });
+        const viewed = !!viewers?.profileViews.find((u) => u.id === me.id);
+        if (viewed) return false;
         const user = await prisma.user.update({
           where: { id },
-          data: { views: { increment: 1 } },
+          data: {
+            profileViews: {
+              connect: {
+                id: me.id,
+              },
+            },
+          },
         });
-
         ee.emit(Events.ON_PROFILE_VIEW, user);
         return true;
       } catch (error) {

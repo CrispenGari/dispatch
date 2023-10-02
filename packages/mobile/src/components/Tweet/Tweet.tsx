@@ -152,7 +152,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       await playReacted();
     }
     if (!!!tweet) return;
-    mutateReactToTweet({ id: tweet.id });
+    mutateReactToTweet({ id: tweet.id }).then(async (_res) => {});
   };
 
   const view = () => {
@@ -169,16 +169,14 @@ const Tweet: React.FunctionComponent<Props> = ({
       const voted = !!tweet.polls
         .flatMap((p) => p.votes)
         .find((v) => v.userId === me?.id);
-
       const expired =
         dayjs(tweet.pollExpiresIn).toDate().getTime() -
           dayjs().toDate().getTime() <=
         0;
-
       setForm((state) => ({
         ...state,
         liked: !!liked,
-        showResults: me?.id === tweet.creator.id || voted,
+        showResults: me?.id === tweet.creator.id || voted || expired,
         totalVotes: tweet.polls.flatMap((p) => p.votes).length,
         expired,
       }));
@@ -390,7 +388,7 @@ const Tweet: React.FunctionComponent<Props> = ({
               { fontSize: 16, color: COLORS.darkGray, marginLeft: 10 },
             ]}
           >
-            {tweet.views}
+            {tweet.views.length || 0}
           </Text>
         </View>
       </View>

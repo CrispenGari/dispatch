@@ -52,9 +52,11 @@ const Notification: React.FunctionComponent<Props> = ({ id, navigation }) => {
       onImpact();
     }
     if (!!!notification || reading || deleting || unreading) return;
-    navigation.navigate("Tweet", {
-      id: "",
-      from: "Notifications",
+    mutateReadNotification({ id: notification.id }).then(() => {
+      navigation.navigate("Tweet", {
+        id: notification.tweetId,
+        from: "Notifications",
+      });
     });
   };
   const readNotification = () => {

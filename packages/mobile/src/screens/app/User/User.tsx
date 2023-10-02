@@ -7,7 +7,6 @@ import { useMeStore, useSettingsStore } from "../../../store";
 import { usePlatform } from "../../../hooks";
 import { trpc } from "../../../utils/trpc";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
-
 import { styles } from "../../../styles";
 import TweetsTab from "../../../components/Tabs/TweetsTab";
 import MentionsTab from "../../../components/Tabs/MentionsTab";
@@ -23,15 +22,17 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
   const { settings } = useSettingsStore();
   const layout = useWindowDimensions();
   const [index, setIndex] = React.useState(0);
+  const [viewCount, setViewCount] = React.useState(0);
   const [routes] = React.useState([
     { key: "tweets", title: "tweets" },
     { key: "mentions", title: "mentions" },
   ]);
+  const { mutateAsync: mutateViewProfile } =
+    trpc.user.viewProfile.useMutation();
+
   const { data: user, refetch } = trpc.user.user.useQuery({
     id: route.params.id,
   });
-  const { mutateAsync: mutateViewProfile } =
-    trpc.user.viewProfile.useMutation();
 
   trpc.user.onViewProfile.useSubscription(
     { uid: me?.id || "" },
@@ -43,8 +44,10 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
   );
 
   React.useEffect(() => {
-    if (!!user) {
-      mutateViewProfile({ id: user.id });
+    if (!!user && viewCount <= 0) {
+      mutateViewProfile({ id: user.id }).then(() => {
+        setViewCount((state) => state + 1);
+      });
     }
   }, [user]);
   React.useLayoutEffect(() => {
@@ -152,7 +155,7 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
                 { fontSize: 16, color: COLORS.darkGray, marginLeft: 10 },
               ]}
             >
-              {user?.views} views
+              {user?.profileViews.length || 0} views
             </Text>
           </View>
         </View>

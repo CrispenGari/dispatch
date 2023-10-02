@@ -19,7 +19,10 @@ model User {
   isAuthenticated Boolean @default(false)
   gender          Gender  @default(UNDEFINED)
   bio             String?
-  views           Int     @default(0)
+
+  userId    String?
+  user      User?   @relation("UserProfileViews", fields: [userId], references: [id])
+  profileViews User[]  @relation("UserProfileViews")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -153,16 +156,16 @@ model Vote {
 }
 
 model Tweet {
-  id    String @unique @default(uuid())
+  id    String   @unique @default(uuid())
   text  String
-  views Int    @default(0)
+  views String[]
 
   // tweet location coodinates
   lat Float
   lon Float
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   pollExpiresIn DateTime
 
   // relations

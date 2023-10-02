@@ -117,9 +117,7 @@ export const tweetRouter = router({
                   data: [...polls.map((p) => ({ text: p.text.trim() }))],
                 },
               },
-              pollExpiresIn: pollExpiresIn
-                ? expiryDate(pollExpiresIn)
-                : undefined,
+              pollExpiresIn: expiryDate(pollExpiresIn),
             },
             include: {
               creator: true,
@@ -268,10 +266,12 @@ export const tweetRouter = router({
         const tt = await prisma.tweet.findFirst({ where: { id } });
         if (!!!tt) return false;
         if (me.id === tt.userId) return false;
+        const viewed = !!tt.views.find((_id) => _id === me.id);
+        if (viewed) return false;
         const tweet = await prisma.tweet.update({
           where: { id },
           data: {
-            views: { increment: 1 },
+            views: [...new Set([...tt.views, me.id])],
           },
           include: { creator: true },
         });

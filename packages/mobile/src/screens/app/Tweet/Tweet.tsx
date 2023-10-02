@@ -73,14 +73,13 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     showResults: false,
     totalVotes: 0,
     expired: false,
+    viewCount: 0,
   });
   const { mutateAsync: mutateReactToTweet, isLoading: reacting } =
     trpc.reaction.reactToTweet.useMutation();
   const { mutateAsync: mutateCommentOnTweet, isLoading: commenting } =
     trpc.comment.comment.useMutation();
-
-  const { mutateAsync: mutateViewTweet, isLoading: viewing } =
-    trpc.tweet.view.useMutation();
+  const { mutateAsync: mutateViewTweet } = trpc.tweet.view.useMutation();
 
   const reactToTweet = async () => {
     if (settings.haptics) {
@@ -163,6 +162,18 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       },
     }
   );
+  const viewProfile = () => {
+    if (!!!tweet) return;
+    navigation.navigate("User", { from: "Tweet", id: tweet.userId });
+  };
+
+  React.useEffect(() => {
+    if (!!tweet && form.viewCount <= 0) {
+      mutateViewTweet({ id: tweet.id }).then((_res) => {
+        setForm((state) => ({ ...state, viewCount: state.viewCount + 1 }));
+      });
+    }
+  }, [tweet]);
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "View Tweet",
@@ -209,15 +220,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       }));
     }
   }, [tweet, me]);
-  React.useEffect(() => {
-    if (!!tweet) {
-      mutateViewTweet({ id: tweet.id });
-    }
-  }, [tweet]);
-  const viewProfile = () => {
-    if (viewing || !!!tweet) return;
-    navigation.navigate("User", { from: "Tweet", id: tweet.userId });
-  };
+
   if (fetching || !!!tweet) return <TweetSkeleton />;
   return (
     <KeyboardAwareScrollView
@@ -447,7 +450,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
                   { fontSize: 16, color: COLORS.darkGray, marginLeft: 10 },
                 ]}
               >
-                {tweet.views}
+                {tweet.views.length}
               </Text>
             </TouchableOpacity>
           </View>
