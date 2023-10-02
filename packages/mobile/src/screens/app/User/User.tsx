@@ -30,6 +30,8 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
   const { data: user, refetch } = trpc.user.user.useQuery({
     id: route.params.id,
   });
+  const { mutateAsync: mutateViewProfile } =
+    trpc.user.viewProfile.useMutation();
 
   trpc.user.onViewProfile.useSubscription(
     { uid: me?.id || "" },
@@ -40,6 +42,11 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
     }
   );
 
+  React.useEffect(() => {
+    if (!!user) {
+      mutateViewProfile({ id: user.id });
+    }
+  }, [user]);
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle:

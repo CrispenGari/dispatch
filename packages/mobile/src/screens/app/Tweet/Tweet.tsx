@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  RefreshControl,
+} from "react-native";
 import React from "react";
 
 import { COLORS, FONTS, profile, relativeTimeObject } from "../../../constants";
@@ -41,6 +47,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     isLoading: fetching,
     refetch,
     data: tweet,
+    isFetching: _fetching,
   } = trpc.tweet.tweet.useQuery({ id: route.params.id });
   const [openSheets, setOpenSheets] = React.useState({
     actions: false,
@@ -71,8 +78,9 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     trpc.reaction.reactToTweet.useMutation();
   const { mutateAsync: mutateCommentOnTweet, isLoading: commenting } =
     trpc.comment.comment.useMutation();
-  const { isLoading: viewing, mutateAsync: mutateViewProfile } =
-    trpc.user.viewProfile.useMutation();
+
+  const { mutateAsync: mutateViewTweet, isLoading: viewing } =
+    trpc.tweet.view.useMutation();
 
   const reactToTweet = async () => {
     if (settings.haptics) {
@@ -82,7 +90,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       await playReacted();
     }
     if (!!!tweet || reacting) return;
-    mutateReactToTweet({ id: tweet.id }).then(async (_res) => {});
+    mutateReactToTweet({ id: tweet.id });
   };
   const commentOnTweet = () => {
     if (settings.haptics) {
@@ -201,18 +209,29 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       }));
     }
   }, [tweet, me]);
-
+  React.useEffect(() => {
+    if (!!tweet) {
+      mutateViewTweet({ id: tweet.id });
+    }
+  }, [tweet]);
   const viewProfile = () => {
     if (viewing || !!!tweet) return;
-    mutateViewProfile({ id: tweet.userId }).then((_res) => {
-      navigation.navigate("User", { from: "Tweet", id: tweet.userId });
-    });
+    navigation.navigate("User", { from: "Tweet", id: tweet.userId });
   };
   if (fetching || !!!tweet) return <TweetSkeleton />;
   return (
     <KeyboardAwareScrollView
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          shouldRasterizeIOS={true}
+          refreshing={fetching || _fetching}
+          onRefresh={async () => {
+            await refetch();
+          }}
+        />
+      }
       style={{ backgroundColor: COLORS.main, flex: 1, position: "relative" }}
     >
       <View style={{ flex: 1 }}>

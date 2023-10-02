@@ -135,19 +135,13 @@ const Tweet: React.FunctionComponent<Props> = ({
 
   const { mutateAsync: mutateReactToTweet, isLoading: _reacting } =
     trpc.reaction.reactToTweet.useMutation();
-  const { mutateAsync: mutateViewTweet, isLoading: viewing } =
-    trpc.tweet.view.useMutation();
-  const { isLoading: viewingP, mutateAsync: mutateViewProfile } =
-    trpc.user.viewProfile.useMutation();
 
   const viewProfile = () => {
     if (settings.haptics) {
       onImpact();
     }
-    if (viewingP || !!!tweet) return;
-    mutateViewProfile({ id: tweet.userId }).then((_res) => {
-      navigation.navigate("User", { from: "Tweet", id: tweet.userId });
-    });
+    if (!!!tweet) return;
+    navigation.navigate("User", { from: "Tweet", id: tweet.userId });
   };
 
   const reactToTweet = async () => {
@@ -158,7 +152,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       await playReacted();
     }
     if (!!!tweet) return;
-    mutateReactToTweet({ id: tweet.id }).then(async (_res) => {});
+    mutateReactToTweet({ id: tweet.id });
   };
 
   const view = () => {
@@ -166,9 +160,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       onImpact();
     }
     if (!!!tweet) return;
-    mutateViewTweet({ id: tweet.id }).then((_res) => {
-      navigation.navigate("Tweet", { id: tweet.id, from });
-    });
+    navigation.navigate("Tweet", { id: tweet.id, from });
   };
 
   React.useEffect(() => {
@@ -199,7 +191,6 @@ const Tweet: React.FunctionComponent<Props> = ({
     <TouchableOpacity
       onPress={view}
       activeOpacity={0.7}
-      disabled={viewing}
       style={{
         width: "100%",
         maxWidth: 500,

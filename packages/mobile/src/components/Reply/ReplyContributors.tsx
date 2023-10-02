@@ -1,11 +1,11 @@
 import { View, Text, FlatList } from "react-native";
 import React from "react";
-import type { Reaction, User } from "@dispatch/api";
+import type { User } from "@dispatch/api";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { AppParamList } from "../../params";
 import { BottomSheet } from "react-native-btr";
 import { COLORS, relativeTimeObject } from "../../constants";
-import Reactor from "../User/User";
+
 import { useSettingsStore } from "../../store";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
@@ -13,6 +13,7 @@ import { onImpact } from "../../utils";
 import dayjs from "dayjs";
 import { styles } from "../../styles";
 import { useMediaQuery } from "../../hooks";
+import Contributor from "../User/Contributer";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
@@ -22,7 +23,7 @@ dayjs.updateLocale("en", {
 });
 
 interface Props {
-  reactions: (Reaction & { creator: User })[];
+  contributors: User[];
   open: boolean;
   toggle: () => void;
   from: keyof AppParamList;
@@ -31,7 +32,7 @@ interface Props {
 const ReplyContributors: React.FunctionComponent<Props> = ({
   navigation,
   from,
-  reactions,
+  contributors,
   toggle,
   open,
 }) => {
@@ -80,13 +81,13 @@ const ReplyContributors: React.FunctionComponent<Props> = ({
             elevation: 1,
           }}
         >
-          <Text style={[styles.h1, {}]}>Tweet Reactions</Text>
+          <Text style={[styles.h1, {}]}>Comment Contributors</Text>
         </View>
         <FlatList
-          data={reactions}
-          keyExtractor={(reaction) => reaction.id}
+          data={contributors}
+          keyExtractor={(contributor) => contributor.id}
           renderItem={({ item }) => (
-            <Reactor
+            <Contributor
               onPress={() => {
                 if (settings.haptics) {
                   onImpact();
@@ -94,10 +95,10 @@ const ReplyContributors: React.FunctionComponent<Props> = ({
                 toggle();
                 navigation.navigate("User", {
                   from,
-                  id: item.creatorId,
+                  id: item.id,
                 });
               }}
-              reactor={item}
+              contributor={item}
             />
           )}
           contentContainerStyle={{ paddingTop: 15, paddingBottom: 50 }}

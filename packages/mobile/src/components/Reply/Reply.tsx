@@ -53,8 +53,6 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
   const [form, setForm] = React.useState({ liked: false });
   const { isLoading: reacting, mutateAsync: mutateReactToReply } =
     trpc.reaction.reactToCommentReply.useMutation();
-  const { isLoading: viewing, mutateAsync: mutateViewProfile } =
-    trpc.user.viewProfile.useMutation();
 
   const {
     refetch,
@@ -91,10 +89,8 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
     if (settings.haptics) {
       onImpact();
     }
-    if (viewing || !!!reply) return;
-    mutateViewProfile({ id: reply.userId }).then((_res) => {
-      navigation.navigate("User", { from: "Tweet", id: reply.userId });
-    });
+    if (!!!reply) return;
+    navigation.navigate("User", { from: "Tweet", id: reply.userId });
   };
 
   React.useEffect(() => {

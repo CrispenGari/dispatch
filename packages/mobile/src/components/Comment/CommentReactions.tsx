@@ -5,7 +5,7 @@ import type { StackNavigationProp } from "@react-navigation/stack";
 import type { AppParamList } from "../../params";
 import { BottomSheet } from "react-native-btr";
 import { COLORS, relativeTimeObject } from "../../constants";
-import Reactor from "../User/User";
+import Reactor from "../User/Reactor";
 import { useSettingsStore } from "../../store";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";

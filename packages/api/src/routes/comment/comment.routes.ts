@@ -214,10 +214,13 @@ export const commentRoute = router({
           where: { id },
           include: {
             creator: true,
-            replies: { select: { id: true, userId: true } },
+            replies: {
+              include: { creator: true },
+            },
             reactions: { include: { creator: true } },
           },
         });
+
         return comment;
       } catch (error) {
         return null;

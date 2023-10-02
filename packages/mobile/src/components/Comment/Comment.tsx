@@ -22,6 +22,8 @@ import updateLocal from "dayjs/plugin/updateLocale";
 import { onImpact, playReacted, playTweeted } from "../../utils";
 import CommentAction from "./CommentAction";
 import CommentReactions from "./CommentReactions";
+import ReplyContributors from "../Reply/ReplyContributors";
+import type { User } from "@dispatch/api";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
@@ -44,6 +46,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
   const [openSheets, setOpenSheets] = React.useState({
     actions: false,
     reactions: false,
+    contributors: false,
   });
   const { me } = useMeStore();
   const toggleActions = () =>
@@ -56,14 +59,16 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
       ...state,
       reactions: !openSheets.reactions,
     }));
+  const toggleContributors = () =>
+    setOpenSheets((state) => ({
+      ...state,
+      contributors: !openSheets.contributors,
+    }));
 
   const { settings } = useSettingsStore();
   const { data: comment, refetch } = trpc.comment.get.useQuery({ id });
   const { mutateAsync: mutateReactToComment, isLoading: reacting } =
     trpc.reaction.reactToComment.useMutation();
-
-  const { isLoading: viewing, mutateAsync: mutateViewProfile } =
-    trpc.user.viewProfile.useMutation();
 
   const { isLoading: replying, mutateAsync: mutateReplyComment } =
     trpc.comment.reply.useMutation();
@@ -108,16 +113,13 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
   );
 
   const reactToComment = async () => {
-    console.log("...");
     if (settings.haptics) {
       onImpact();
     }
     if (settings.sound) {
       await playReacted();
     }
-    console.log("...");
     if (reacting) return;
-    console.log("...");
     if (!!comment) {
       mutateReactToComment({ id: comment.id }).then(async (_res) => {});
     }
@@ -146,10 +148,9 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     if (settings.haptics) {
       onImpact();
     }
-    if (viewing || !!!comment) return;
-    mutateViewProfile({ id: comment.userId }).then((_res) => {
-      navigation.navigate("User", { from: "Tweet", id: comment.userId });
-    });
+    if (!!!comment) return;
+
+    navigation.navigate("User", { from: "Tweet", id: comment.userId });
   };
 
   React.useEffect(() => {
@@ -182,6 +183,17 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
         reactions={comment.reactions}
         open={openSheets.reactions}
         toggle={toggleReactions}
+        from="Tweet"
+        navigation={navigation}
+      />
+      <ReplyContributors
+        contributors={[
+          ...new Set(
+            comment.replies.map((reply) => JSON.stringify(reply.creator))
+          ),
+        ].map((v) => JSON.parse(v) as User)}
+        open={openSheets.contributors}
+        toggle={toggleContributors}
         from="Tweet"
         navigation={navigation}
       />
@@ -320,7 +332,16 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <TouchableOpacity
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggleContributors();
+          }}
+          activeOpacity={0.7}
+          style={{ flexDirection: "row", alignItems: "center" }}
+        >
           <Ionicons
             name="ios-people-outline"
             size={16}
@@ -334,7 +355,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
           >
             {new Set(comment.replies.map((r) => r.userId)).size}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {comment.replies.map(({ id }) => (

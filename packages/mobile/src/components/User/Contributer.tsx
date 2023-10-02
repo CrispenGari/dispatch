@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import React from "react";
-import type { Reaction, User as U } from "@dispatch/api";
+import type { User } from "@dispatch/api";
 import dayjs from "dayjs";
 import { COLORS, profile, FONTS, relativeTimeObject } from "../../constants";
 import { useMeStore } from "../../store";
@@ -16,10 +16,10 @@ dayjs.updateLocale("en", {
   relativeTime: relativeTimeObject,
 });
 
-const User: React.FunctionComponent<{
+const Contributor: React.FunctionComponent<{
   onPress: () => void;
-  reactor: Reaction & { creator: U };
-}> = ({ onPress, reactor }) => {
+  contributor: User;
+}> = ({ onPress, contributor }) => {
   const { me } = useMeStore();
   return (
     <TouchableOpacity
@@ -49,25 +49,23 @@ const User: React.FunctionComponent<{
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={{ fontFamily: FONTS.extraBold, fontSize: 14 }}>
-            {reactor.creatorId === me?.id
-              ? "you"
-              : `@${reactor.creator.nickname}`}{" "}
+            {contributor.id === me?.id ? "you" : `@${contributor.nickname}`}{" "}
           </Text>
-          {reactor.creator.verified ? (
+          {contributor.verified ? (
             <MaterialIcons name="verified" size={14} color={COLORS.primary} />
           ) : null}
           <Text style={{ fontFamily: FONTS.extraBold, fontSize: 14 }}> •</Text>
           <Text style={[styles.p, { fontSize: 16 }]}>
             {" "}
-            {dayjs(reactor.createdAt).fromNow()}
+            {dayjs(contributor.createdAt).fromNow()}
           </Text>
         </View>
         <Text style={[styles.p, { color: COLORS.darkGray, fontSize: 12 }]}>
-          {reactor.creator.email}
+          {contributor.email}
         </Text>
       </View>
     </TouchableOpacity>
   );
 };
 
-export default User;
+export default Contributor;
