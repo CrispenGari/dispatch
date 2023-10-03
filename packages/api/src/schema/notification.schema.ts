@@ -7,4 +7,6 @@ export const onDeleteSchema = z.object({ uid: z.string() });
 export const notificationSchema = z.object({ id: z.string() });
 export const notificationsSchema = z.object({
   category: z.enum(["general", "mention"]),
+  cursor: z.string().nullish(),
+  limit: z.number().min(1).max(100).default(3),
 });

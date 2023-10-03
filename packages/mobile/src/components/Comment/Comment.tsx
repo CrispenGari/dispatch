@@ -24,6 +24,7 @@ import CommentAction from "./CommentAction";
 import CommentReactions from "./CommentReactions";
 import ReplyContributors from "../Reply/ReplyContributors";
 import type { User } from "@dispatch/api";
+import Ripple from "../ProgressIndicators/Ripple";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
@@ -66,6 +67,32 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     }));
 
   const { settings } = useSettingsStore();
+  const [replies, setReplies] = React.useState<
+    {
+      id: string;
+    }[]
+  >([]);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    refetch: refetchReplies,
+    isFetchingNextPage,
+  } = trpc.comment.replies.useInfiniteQuery(
+    {
+      commentId: id,
+      limit: settings.pageLimit,
+    },
+    {
+      keepPreviousData: true,
+      getNextPageParam: ({ nextCursor }) => nextCursor,
+    }
+  );
+  React.useEffect(() => {
+    if (!!data?.pages) {
+      setReplies(data.pages.flatMap((page) => page.replies));
+    }
+  }, [data]);
   const { data: comment, refetch } = trpc.comment.get.useQuery({ id });
   const { mutateAsync: mutateReactToComment, isLoading: reacting } =
     trpc.reaction.reactToComment.useMutation();
@@ -93,7 +120,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     {
       onData: async (data) => {
         if (!!data) {
-          await refetch();
+          await Promise.all([refetch(), refetchReplies()]);
         }
       },
     }
@@ -106,7 +133,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     {
       onData: async (data) => {
         if (!!data) {
-          await refetch();
+          await Promise.all([refetch(), refetchReplies()]);
         }
       },
     }
@@ -151,6 +178,11 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     if (!!!comment) return;
 
     navigation.navigate("User", { from: "Tweet", id: comment.userId });
+  };
+
+  const moreReplies = async () => {
+    if (!hasNextPage) return;
+    await fetchNextPage();
   };
 
   React.useEffect(() => {
@@ -358,9 +390,57 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {comment.replies.map(({ id }) => (
+      {replies.map(({ id }) => (
         <Reply key={id} id={id} navigation={navigation} />
       ))}
+
+      {isFetchingNextPage ? (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 5,
+          }}
+        >
+          <Ripple color={COLORS.tertiary} size={5} />
+        </View>
+      ) : null}
+      {hasNextPage && !isFetchingNextPage ? (
+        <TouchableOpacity
+          style={{
+            paddingVertical: 5,
+            width: "80%",
+            alignSelf: "flex-end",
+          }}
+          activeOpacity={0.7}
+          onPress={moreReplies}
+        >
+          <Text
+            style={[
+              styles.h1,
+              {
+                color: COLORS.primary,
+              },
+            ]}
+          >
+            More Replies
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {!hasNextPage && replies.length > 0 ? (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 10,
+          }}
+        >
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
+            End of replies.
+          </Text>
+        </View>
+      ) : null}
 
       <View
         style={{

@@ -5,6 +5,17 @@ export const replySchema = z.object({
   reply: z.string(),
   mention: z.boolean().default(false),
 });
+
+export const commentsSchema = z.object({
+  tweetId: z.string(),
+  cursor: z.string().nullish(),
+  limit: z.number().min(1).max(100).default(3),
+});
+export const repliesSchema = z.object({
+  commentId: z.string(),
+  cursor: z.string().nullish(),
+  limit: z.number().min(1).max(100).default(3),
+});
 export const commentSchema = z.object({ id: z.string(), comment: z.string() });
 export const getSchema = z.object({ id: z.string() });
 export const getReplySchema = z.object({ id: z.string() });

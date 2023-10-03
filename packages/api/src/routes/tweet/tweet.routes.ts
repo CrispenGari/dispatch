@@ -20,6 +20,7 @@ import { isAuth } from "../../middleware/isAuth.middleware";
 import { expiryDate } from "../../utils";
 
 const ee = new EventEmitter();
+ee.setMaxListeners(100);
 export const tweetRouter = router({
   onNewTweetNotification: publicProcedure
     .input(onNewTweetNotificationSchema)
@@ -221,6 +222,7 @@ export const tweetRouter = router({
       /*
       fetch only the ids of recent tweets.
     */
+
       try {
         const tweets = await prisma.tweet.findMany({
           take: limit + 1,

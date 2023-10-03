@@ -13,6 +13,7 @@ import { Events } from "../../constants";
 import { Notification } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
 const ee = new EventEmitter();
+ee.setMaxListeners(100);
 export const notificationRouter = router({
   onDelete: publicProcedure
     .input(onDeleteSchema)
@@ -112,22 +113,53 @@ export const notificationRouter = router({
         };
       }
     }),
+
   notifications: publicProcedure
     .input(notificationsSchema)
     .use(isAuth)
-    .query(async ({ ctx: { me, prisma }, input: { category } }) => {
-      try {
-        if (!!!me) return [];
-        const notifications = await prisma.notification.findMany({
-          where: { userId: me.id, AND: { category } },
-          select: { id: true, read: true },
-        });
-        return notifications;
-      } catch (error) {
-        return [];
+    .query(
+      async ({ ctx: { me, prisma }, input: { category, cursor, limit } }) => {
+        try {
+          if (!!!me)
+            return {
+              notifications: [],
+              nextCursor: undefined,
+            };
+          const notifications = await prisma.notification.findMany({
+            where: { userId: me.id, AND: { category } },
+            take: limit + 1,
+            select: { id: true, read: true },
+            orderBy: { createdAt: "desc" },
+            cursor: cursor ? { id: cursor } : undefined,
+          });
+          let nextCursor: typeof cursor | undefined = undefined;
+          if (notifications.length > limit) {
+            const nextItem =
+              notifications.pop() as (typeof notifications)[number];
+            nextCursor = nextItem.id;
+          }
+          return { notifications, nextCursor };
+        } catch (error) {
+          return {
+            notifications: [],
+            nextCursor: undefined,
+          };
+        }
       }
-    }),
+    ),
 
+  all: publicProcedure.use(isAuth).query(async ({ ctx: { me, prisma } }) => {
+    try {
+      if (!!!me) return [];
+      const notifications = await prisma.notification.findMany({
+        where: { userId: me.id },
+        select: { read: true },
+      });
+      return notifications;
+    } catch (error) {
+      return [];
+    }
+  }),
   notification: publicProcedure
     .input(notificationSchema)
     .use(isAuth)

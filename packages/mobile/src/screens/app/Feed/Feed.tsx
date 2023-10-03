@@ -20,8 +20,8 @@ import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import Tweet from "../../../components/Tweet/Tweet";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { onImpact } from "../../../utils";
-import TweetSkeleton from "../../../components/skeletons/TweetSkeleton";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
+import { styles } from "../../../styles";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const { settings } = useSettingsStore();
@@ -35,6 +35,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     isFetching: fetching,
     fetchNextPage,
     hasNextPage,
+    isFetchingNextPage,
   } = trpc.tweet.tweets.useInfiniteQuery(
     {
       limit: settings.pageLimit,
@@ -44,7 +45,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       getNextPageParam: ({ nextCursor }) => nextCursor,
     }
   );
-
+  const [end, setEnd] = React.useState(false);
   const {
     dimension: { height },
   } = useMediaQuery();
@@ -138,6 +139,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     const close =
       layoutMeasurement.height + contentOffset.y >=
       contentSize.height - paddingToBottom;
+    setEnd(close);
     if (close && hasNextPage) {
       await fetchNextPage();
     }
@@ -236,18 +238,30 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
             />
           </TouchableOpacity>
         </View>
-        {tweets.length !== 0
-          ? tweets.map((tweet) => (
-              <Tweet
-                navigation={navigation}
-                tweet={tweet}
-                key={tweet.id}
-                from="Feed"
-              />
-            ))
-          : Array(10).map((_, i) => <TweetSkeleton key={i} />)}
+        {tweets.length === 0 ? (
+          <View
+            style={{
+              justifyContent: "center",
+              padding: 20,
+              alignItems: "center",
+            }}
+          >
+            <Text style={[styles.h1, { fontSize: 18, textAlign: "center" }]}>
+              No new tweets in {address ? address.city : "the City"}.
+            </Text>
+          </View>
+        ) : (
+          tweets.map((tweet) => (
+            <Tweet
+              navigation={navigation}
+              tweet={tweet}
+              key={tweet.id}
+              from="Feed"
+            />
+          ))
+        )}
 
-        {fetching ? (
+        {isFetchingNextPage && end ? (
           <View
             style={{
               justifyContent: "center",
@@ -256,6 +270,20 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
             }}
           >
             <Ripple color={COLORS.tertiary} size={10} />
+          </View>
+        ) : null}
+
+        {!hasNextPage && tweets.length > 0 ? (
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              paddingVertical: 30,
+            }}
+          >
+            <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+              End of tweets.
+            </Text>
           </View>
         ) : null}
       </ScrollView>

@@ -1,5 +1,6 @@
 import {
   commentSchema,
+  commentsSchema,
   deleteCommentReplySchema,
   deleteCommentSchema,
   getReplySchema,
@@ -9,6 +10,7 @@ import {
   onCommentReplySchema,
   onNewCommentNotificationSchema,
   onTweetCommentSchema,
+  repliesSchema,
   replySchema,
 } from "../../schema/comment.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
@@ -20,6 +22,7 @@ import { observable } from "@trpc/server/observable";
 import { isAuth } from "../../middleware/isAuth.middleware";
 
 const ee = new EventEmitter();
+ee.setMaxListeners(100);
 export const commentRoute = router({
   onNewCommentNotification: publicProcedure
     .input(onNewCommentNotificationSchema)
@@ -294,6 +297,57 @@ export const commentRoute = router({
         return {
           error: "Unable to delete the comment reply for whatever reason.",
         };
+      }
+    }),
+
+  comments: publicProcedure
+    .input(commentsSchema)
+    .query(async ({ ctx: { prisma }, input: { cursor, limit, tweetId } }) => {
+      /*
+      fetch only the ids of recent comments.
+    */
+      try {
+        const comments = await prisma.comment.findMany({
+          take: limit + 1,
+          where: { tweetId },
+          orderBy: { createdAt: "desc" },
+          cursor: cursor ? { id: cursor } : undefined,
+          select: { id: true },
+        });
+        let nextCursor: typeof cursor | undefined = undefined;
+        if (comments.length > limit) {
+          const nextItem = comments.pop() as (typeof comments)[number];
+          nextCursor = nextItem.id;
+        }
+        return { comments, nextCursor };
+      } catch (error) {
+        console.log(error);
+        return { comments: [], nextCursor: undefined };
+      }
+    }),
+  replies: publicProcedure
+    .input(repliesSchema)
+    .query(async ({ ctx: { prisma }, input: { cursor, limit, commentId } }) => {
+      /*
+      fetch only the ids of recent replies.
+    */
+      try {
+        const replies = await prisma.reply.findMany({
+          take: limit + 1,
+          where: { commentId },
+          orderBy: { createdAt: "asc" },
+          cursor: cursor ? { id: cursor } : undefined,
+          select: { id: true },
+        });
+        let nextCursor: typeof cursor | undefined = undefined;
+        if (replies.length > limit) {
+          const nextItem = replies.pop() as (typeof replies)[number];
+          nextCursor = nextItem.id;
+        }
+        return { replies, nextCursor };
+      } catch (error) {
+        console.log(error);
+        return { replies: [], nextCursor: undefined };
       }
     }),
 });

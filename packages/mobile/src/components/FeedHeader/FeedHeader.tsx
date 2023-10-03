@@ -26,11 +26,7 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
   } = useMediaQuery();
   const { me } = useMeStore();
   const { settings } = useSettingsStore();
-
-  const { data: notifications, refetch } =
-    trpc.notification.notifications.useQuery({
-      category: "general",
-    });
+  const { data: notifications, refetch } = trpc.notification.all.useQuery();
   trpc.notification.onDelete.useSubscription(
     { uid: me?.id || "" },
     {

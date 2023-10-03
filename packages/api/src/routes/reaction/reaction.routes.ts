@@ -15,6 +15,7 @@ import { observable } from "@trpc/server/observable";
 import { isAuth } from "../../middleware/isAuth.middleware";
 
 const ee = new EventEmitter();
+ee.setMaxListeners(100);
 export const reactionRoute = router({
   onTweetReaction: publicProcedure
     .input(onTweetReactionSchema)

@@ -4,6 +4,8 @@ import {
   TouchableOpacity,
   Image,
   RefreshControl,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
 import React from "react";
 
@@ -67,7 +69,33 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       ...state,
       reactions: !openSheets.reactions,
     }));
+  const [comments, setComments] = React.useState<
+    {
+      id: string;
+    }[]
+  >([]);
+  const {
+    data,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    refetch: refetchComments,
+  } = trpc.comment.comments.useInfiniteQuery(
+    {
+      tweetId: route.params.id,
+      limit: settings.pageLimit,
+    },
+    {
+      keepPreviousData: true,
+      getNextPageParam: ({ nextCursor }) => nextCursor,
+    }
+  );
 
+  React.useEffect(() => {
+    if (!!data?.pages) {
+      setComments(data.pages.flatMap((page) => page.comments));
+    }
+  }, [data]);
   const [form, setForm] = React.useState({
     height: 60,
     comment: "",
@@ -76,6 +104,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     totalVotes: 0,
     expired: false,
     viewCount: 0,
+    end: false,
   });
   const { mutateAsync: mutateReactToTweet, isLoading: reacting } =
     trpc.reaction.reactToTweet.useMutation();
@@ -154,12 +183,22 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       },
     }
   );
+  trpc.comment.onTweetComment.useSubscription(
+    { uid: me?.id || "", tweetId: tweet?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetchComments();
+        }
+      },
+    }
+  );
   trpc.comment.onCommentDelete.useSubscription(
     { uid: me?.id || "", tweetId: tweet?.id || "" },
     {
       onData: async (data) => {
         if (!!data) {
-          await refetch();
+          await Promise.all([refetch(), refetchComments()]);
         }
       },
     }
@@ -169,6 +208,18 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     navigation.navigate("User", { from: "Tweet", id: tweet.userId });
   };
 
+  const onScroll = async (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    e.persist();
+    const paddingToBottom = 10;
+    const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+    const close =
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom;
+    setForm((state) => ({ ...state, end: close }));
+    if (close && hasNextPage) {
+      await fetchNextPage();
+    }
+  };
   React.useEffect(() => {
     if (!!tweet && form.viewCount <= 0) {
       mutateViewTweet({ id: tweet.id }).then((_res) => {
@@ -228,10 +279,13 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     <KeyboardAwareScrollView
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
+      scrollEventThrottle={16}
+      onScroll={onScroll}
+      contentContainerStyle={{ paddingBottom: 100 }}
       refreshControl={
         <RefreshControl
           shouldRasterizeIOS={true}
-          refreshing={fetching || _fetching}
+          refreshing={fetching}
           onRefresh={async () => {
             await refetch();
           }}
@@ -537,12 +591,12 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
           )}
         </View>
 
-        {tweet.comments.map(({ id }) => (
+        {comments.map(({ id }) => (
           <Comment key={id} id={id} navigation={navigation} />
         ))}
       </View>
 
-      {fetching ? (
+      {isFetchingNextPage && form.end ? (
         <View
           style={{
             justifyContent: "center",
@@ -551,6 +605,34 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
           }}
         >
           <Ripple color={COLORS.tertiary} size={10} />
+        </View>
+      ) : null}
+
+      {!hasNextPage && comments.length > 0 ? (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 30,
+          }}
+        >
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+            End of comments.
+          </Text>
+        </View>
+      ) : null}
+
+      {comments.length === 0 ? (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 30,
+          }}
+        >
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+            No comments.
+          </Text>
         </View>
       ) : null}
     </KeyboardAwareScrollView>
