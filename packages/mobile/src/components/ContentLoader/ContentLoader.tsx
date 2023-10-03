@@ -1,4 +1,4 @@
-import { View, Animated, StyleProp, ViewStyle } from "react-native";
+import { View, Animated, type StyleProp, type ViewStyle } from "react-native";
 import React from "react";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 interface Props {

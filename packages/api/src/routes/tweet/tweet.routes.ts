@@ -218,7 +218,7 @@ export const tweetRouter = router({
 
   tweets: publicProcedure
     .input(tweetsSchema)
-    .query(async ({ ctx: { prisma }, input: { cursor, limit } }) => {
+    .query(async ({ ctx: { prisma }, input: { cursor, limit, orderBy } }) => {
       /*
       fetch only the ids of recent tweets.
     */
@@ -226,7 +226,7 @@ export const tweetRouter = router({
       try {
         const tweets = await prisma.tweet.findMany({
           take: limit + 1,
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: orderBy },
           select: {
             id: true,
           },

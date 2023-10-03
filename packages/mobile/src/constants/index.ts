@@ -15,6 +15,14 @@ export const genders: {
   { id: 2, name: "Prefer not to say", value: "UNDEFINED" },
 ];
 
+export const sorts: {
+  id: number;
+  value: "asc" | "desc";
+  name: string;
+}[] = [
+  { id: 0, name: "New First", value: "desc" },
+  { id: 1, name: "Old First", value: "asc" },
+];
 export const expires: {
   value: string;
   id: number;

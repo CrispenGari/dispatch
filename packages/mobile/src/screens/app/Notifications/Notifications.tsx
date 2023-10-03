@@ -1,4 +1,4 @@
-import { View, useWindowDimensions } from "react-native";
+import { View, useWindowDimensions, Text } from "react-native";
 import React from "react";
 import type { AppNavProps } from "../../../params";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
@@ -10,6 +10,8 @@ import { usePlatform } from "../../../hooks";
 import { useSettingsStore } from "../../../store";
 import All from "../../../components/NotificationsTabs/All";
 import Mentions from "../../../components/NotificationsTabs/Mentions";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
   navigation,
@@ -49,9 +51,39 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
       ),
     });
   }, [navigation, settings]);
-
   return (
     <View style={{ flex: 1 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          paddingHorizontal: 10,
+          justifyContent: "space-between",
+          backgroundColor: COLORS.main,
+          paddingTop: 20,
+        }}
+      >
+        <Text style={{ fontFamily: FONTS.regularBold, fontSize: 25, flex: 1 }}>
+          Latest
+        </Text>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={{
+            width: 50,
+            height: 50,
+            justifyContent: "center",
+            alignItems: "center",
+            marginLeft: 2,
+            borderRadius: 50,
+          }}
+        >
+          <MaterialCommunityIcons
+            name="filter-variant"
+            size={24}
+            color="black"
+          />
+        </TouchableOpacity>
+      </View>
       <TabView
         style={{
           backgroundColor: COLORS.main,
@@ -73,7 +105,7 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
             {...props}
             indicatorStyle={{ backgroundColor: COLORS.primary, height: 5 }}
             style={{ backgroundColor: COLORS.main }}
-            tabStyle={{ paddingVertical: 15 }}
+            tabStyle={{ paddingVertical: 0 }}
             labelStyle={[
               styles.h1,
               { color: COLORS.black, fontSize: 16, textTransform: "lowercase" },
