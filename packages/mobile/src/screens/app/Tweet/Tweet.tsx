@@ -409,8 +409,53 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
               />
             </TouchableOpacity>
           </View>
-          <View style={{ marginVertical: 5 }}>
-            <Text style={[styles.p, { fontSize: 16 }]}>{tweet.text}</Text>
+          <View
+            style={{
+              marginVertical: 5,
+              flexDirection: "row",
+              flexWrap: "wrap",
+            }}
+          >
+            {tweet.text.split(/\s/).map((word, index) => {
+              if (
+                tweet.mentions
+                  .map((u) => u.user.nickname)
+                  .indexOf(word.replace("@", "")) !== -1
+              ) {
+                return (
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      const id = tweet.mentions.find(
+                        (m) => m.user.nickname === word.replace("@", "")
+                      )?.userId;
+                      if (!!id) {
+                        navigation.navigate("User", {
+                          from: "Tweet",
+                          id,
+                        });
+                      }
+                    }}
+                  >
+                    <Text
+                      key={index}
+                      style={[
+                        styles.h1,
+                        { fontSize: 16, color: COLORS.primary },
+                      ]}
+                    >
+                      {word}{" "}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              } else {
+                return (
+                  <Text key={index} style={[styles.p, { fontSize: 16 }]}>
+                    {word}{" "}
+                  </Text>
+                );
+              }
+            })}
           </View>
           <View style={{ marginVertical: 3 }}>
             {tweet.polls.map((poll) => (

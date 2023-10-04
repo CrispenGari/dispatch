@@ -30,8 +30,20 @@ interface Props {
   id: string;
 
   navigation: StackNavigationProp<AppParamList, "Feed" | "User" | "Tweet">;
+  updateForm: React.Dispatch<
+    React.SetStateAction<{
+      height: number;
+      text: string;
+      liked: boolean;
+      mentions: string[];
+    }>
+  >;
 }
-const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
+const Reply: React.FunctionComponent<Props> = ({
+  id,
+  navigation,
+  updateForm,
+}) => {
   const [openSheets, setOpenSheets] = React.useState({
     actions: false,
     reactions: false,
@@ -91,6 +103,20 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
     }
     if (!!!reply) return;
     navigation.navigate("User", { from: "Tweet", id: reply.userId });
+  };
+
+  const mentionHim = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
+    if (!!!me || !!!reply) return;
+    if (me.id === reply.userId) return;
+
+    updateForm((state) => ({
+      ...state,
+      mentions: [reply.creator.nickname, ...state.mentions],
+      text: `${state.text.concat(`@${reply.creator.nickname} `)}`,
+    }));
   };
 
   React.useEffect(() => {
@@ -200,9 +226,47 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
           />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.p, { fontSize: 14, marginVertical: 3 }]}>
-        {reply.text}
-      </Text>
+      <View
+        style={{ marginVertical: 5, flexDirection: "row", flexWrap: "wrap" }}
+      >
+        {reply.text.split(/\s/).map((word, index) => {
+          if (
+            reply.mentions
+              ?.map((u) => u.user.nickname)
+              .indexOf(word.replace("@", "")) !== -1
+          ) {
+            return (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  const id = reply.mentions.find(
+                    (m) => m.user.nickname === word.replace("@", "")
+                  )?.userId;
+                  if (!!id) {
+                    navigation.navigate("User", {
+                      from: "Feed",
+                      id,
+                    });
+                  }
+                }}
+              >
+                <Text
+                  key={index}
+                  style={[styles.h1, { fontSize: 14, color: COLORS.primary }]}
+                >
+                  {word}{" "}
+                </Text>
+              </TouchableOpacity>
+            );
+          } else {
+            return (
+              <Text key={index} style={[styles.p, { fontSize: 14 }]}>
+                {word}{" "}
+              </Text>
+            );
+          }
+        })}
+      </View>
       <View
         style={{
           flexDirection: "row",
@@ -214,6 +278,7 @@ const Reply: React.FunctionComponent<Props> = ({ id, navigation }) => {
         <TouchableOpacity
           activeOpacity={0.7}
           style={{ flexDirection: "row", alignItems: "center" }}
+          onPress={mentionHim}
         >
           <Ionicons name="at-outline" size={16} color={COLORS.darkGray} />
         </TouchableOpacity>

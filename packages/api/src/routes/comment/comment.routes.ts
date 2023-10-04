@@ -283,6 +283,9 @@ export const commentRoute = router({
               include: { creator: true },
             },
             reactions: { include: { creator: true } },
+            mentions: {
+              include: { user: { select: { nickname: true, id: true } } },
+            },
           },
         });
 
@@ -301,6 +304,9 @@ export const commentRoute = router({
           include: {
             creator: true,
             reactions: { include: { creator: true } },
+            mentions: {
+              include: { user: { select: { nickname: true, id: true } } },
+            },
           },
         });
         return reply;

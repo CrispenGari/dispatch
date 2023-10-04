@@ -304,6 +304,9 @@ export const tweetRouter = router({
           include: {
             polls: { include: { votes: true } },
             creator: true,
+            mentions: {
+              include: { user: { select: { nickname: true, id: true } } },
+            },
             reactions: {
               include: { creator: true },
               orderBy: {

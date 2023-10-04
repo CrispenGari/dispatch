@@ -313,9 +313,47 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
           />
         </TouchableOpacity>
       </View>
-      <Text style={[styles.p, { fontSize: 16, marginVertical: 3 }]}>
-        {comment.text}
-      </Text>
+      <View
+        style={{ marginVertical: 5, flexDirection: "row", flexWrap: "wrap" }}
+      >
+        {comment.text.split(/\s/).map((word, index) => {
+          if (
+            comment.mentions
+              ?.map((u) => u.user.nickname)
+              .indexOf(word.replace("@", "")) !== -1
+          ) {
+            return (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  const id = comment.mentions.find(
+                    (m) => m.user.nickname === word.replace("@", "")
+                  )?.userId;
+                  if (!!id) {
+                    navigation.navigate("User", {
+                      from: "Feed",
+                      id,
+                    });
+                  }
+                }}
+              >
+                <Text
+                  key={index}
+                  style={[styles.h1, { fontSize: 14, color: COLORS.primary }]}
+                >
+                  {word}{" "}
+                </Text>
+              </TouchableOpacity>
+            );
+          } else {
+            return (
+              <Text key={index} style={[styles.p, { fontSize: 14 }]}>
+                {word}{" "}
+              </Text>
+            );
+          }
+        })}
+      </View>
       <View
         style={{
           flexDirection: "row",
@@ -408,7 +446,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
       </View>
 
       {replies.map(({ id }) => (
-        <Reply key={id} id={id} navigation={navigation} />
+        <Reply key={id} id={id} navigation={navigation} updateForm={setForm} />
       ))}
 
       {isFetchingNextPage ? (
