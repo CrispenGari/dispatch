@@ -2,21 +2,26 @@ import { View, useWindowDimensions, Text } from "react-native";
 import React from "react";
 import type { AppNavProps } from "../../../params";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
-import { COLORS, FONTS } from "../../../constants";
+import { COLORS, FONTS, notificationsSorts } from "../../../constants";
 import { styles } from "../../../styles";
 import { onImpact } from "../../../utils";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { usePlatform } from "../../../hooks";
 import { useSettingsStore } from "../../../store";
-import All from "../../../components/NotificationsTabs/All";
-import Mentions from "../../../components/NotificationsTabs/Mentions";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import Mentions from "../../../components/NotificationsTabs/Mentions";
+import All from "../../../components/NotificationsTabs/All";
+import NotificationBadge from "../../../components/NotificationBadge/NotificationBadge";
+import NotificationSort from "../../../components/BottomSheets/NotificationSort";
 
 const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
   navigation,
 }) => {
   const layout = useWindowDimensions();
+  const [sort, setSort] = React.useState(notificationsSorts[0]);
+  const [open, setOpen] = React.useState(false);
+  const toggle = () => setOpen((state) => !state);
   const { os } = usePlatform();
   const { settings } = useSettingsStore();
   const [index, setIndex] = React.useState(0);
@@ -40,12 +45,10 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
         <AppStackBackButton
           label={os === "ios" ? "Feed" : ""}
           onPress={() => {
-            () => {
-              if (settings.haptics) {
-                onImpact();
-              }
-              navigation.replace("Feed");
-            };
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
           }}
         />
       ),
@@ -53,6 +56,13 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
   }, [navigation, settings]);
   return (
     <View style={{ flex: 1 }}>
+      <NotificationSort
+        sort={sort}
+        setSort={setSort}
+        open={open}
+        toggle={toggle}
+      />
+
       <View
         style={{
           flexDirection: "row",
@@ -64,7 +74,7 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
         }}
       >
         <Text style={{ fontFamily: FONTS.regularBold, fontSize: 25, flex: 1 }}>
-          Latest
+          {sort.name}
         </Text>
         <TouchableOpacity
           activeOpacity={0.7}
@@ -75,6 +85,12 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
             alignItems: "center",
             marginLeft: 2,
             borderRadius: 50,
+          }}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggle();
           }}
         >
           <MaterialCommunityIcons
@@ -110,6 +126,7 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
               styles.h1,
               { color: COLORS.black, fontSize: 16, textTransform: "lowercase" },
             ]}
+            renderBadge={({ route }) => <NotificationBadge route={route} />}
           />
         )}
         tabBarPosition="top"

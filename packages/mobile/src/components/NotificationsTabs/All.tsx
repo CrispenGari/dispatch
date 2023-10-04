@@ -8,15 +8,14 @@ import {
 } from "react-native";
 import React from "react";
 import type { StackNavigationProp } from "@react-navigation/stack";
-import type { AppParamList } from "../../params";
+import Ripple from "../ProgressIndicators/Ripple";
+import NotificationSkeleton from "../skeletons/NotificationSkeleton";
 import { COLORS } from "../../constants";
-
+import type { AppParamList } from "../../params";
+import { useSettingsStore, useMeStore } from "../../store";
+import { styles } from "../../styles";
 import { trpc } from "../../utils/trpc";
 import Notification from "../Notification/Notification";
-import NotificationSkeleton from "../skeletons/NotificationSkeleton";
-import { useMeStore, useSettingsStore } from "../../store";
-import { styles } from "../../styles";
-import Ripple from "../ProgressIndicators/Ripple";
 
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Notifications">;
@@ -60,6 +59,15 @@ const All: React.FunctionComponent<Props> = ({ navigation }) => {
       },
     }
   );
+  trpc.notification.onNotificationRead.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (_data) => {
+        await refetch();
+      },
+    }
+  );
+
   const onScroll = async (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     e.persist();
     const paddingToBottom = 10;

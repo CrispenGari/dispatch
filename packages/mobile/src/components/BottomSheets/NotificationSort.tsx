@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import React from "react";
 import { useSettingsStore } from "../../store";
 import { BottomSheet } from "react-native-btr";
-import { COLORS, tweetsSorts } from "../../constants";
+import { COLORS, notificationsSorts } from "../../constants";
 import { styles } from "../../styles";
 import { onImpact } from "../../utils";
 
@@ -11,18 +11,18 @@ interface Props {
   toggle: () => void;
   sort: {
     id: number;
-    value: "asc" | "desc";
+    value: "asc" | "desc" | "read" | "unread";
     name: string;
   };
   setSort: React.Dispatch<
     React.SetStateAction<{
       id: number;
-      value: "asc" | "desc";
+      value: "asc" | "desc" | "read" | "unread";
       name: string;
     }>
   >;
 }
-const TweetSort: React.FunctionComponent<Props> = ({
+const NotificationSort: React.FunctionComponent<Props> = ({
   open,
   toggle,
   sort,
@@ -47,7 +47,7 @@ const TweetSort: React.FunctionComponent<Props> = ({
     >
       <View
         style={{
-          height: 130,
+          height: 220,
           backgroundColor: COLORS.main,
           borderTopRightRadius: 10,
           borderTopLeftRadius: 10,
@@ -70,10 +70,10 @@ const TweetSort: React.FunctionComponent<Props> = ({
             elevation: 1,
           }}
         >
-          <Text style={[styles.h1, {}]}>Sort Tweets</Text>
+          <Text style={[styles.h1, {}]}>Sort Notifications</Text>
         </View>
         <View style={{ height: 20 }} />
-        {tweetsSorts.map((s) => (
+        {notificationsSorts.map((s) => (
           <TouchableOpacity
             key={s.id}
             style={{
@@ -121,4 +121,4 @@ const TweetSort: React.FunctionComponent<Props> = ({
   );
 };
 
-export default TweetSort;
+export default NotificationSort;

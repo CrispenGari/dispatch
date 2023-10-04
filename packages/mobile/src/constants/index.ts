@@ -15,7 +15,7 @@ export const genders: {
   { id: 2, name: "Prefer not to say", value: "UNDEFINED" },
 ];
 
-export const sorts: {
+export const tweetsSorts: {
   id: number;
   value: "asc" | "desc";
   name: string;
@@ -23,6 +23,18 @@ export const sorts: {
   { id: 0, name: "New First", value: "desc" },
   { id: 1, name: "Old First", value: "asc" },
 ];
+
+export const notificationsSorts: {
+  id: number;
+  value: "asc" | "desc" | "unread" | "read";
+  name: string;
+}[] = [
+  { id: 0, name: "Latest", value: "desc" },
+  { id: 1, name: "Oldest", value: "asc" },
+  { id: 2, name: "Unread First", value: "unread" },
+  { id: 3, name: "Read First", value: "read" },
+];
+
 export const expires: {
   value: string;
   id: number;
@@ -40,7 +52,7 @@ export const expires: {
 ];
 
 export const APP_NAME = "dispatch";
-export const domain: string = "1f86-213-172-134-217.ngrok-free.app";
+export const domain: string = "96b2-213-172-134-187.ngrok-free.app";
 export const serverBaseHttpURL: string = `https://${domain}`;
 export const serverBaseWsURL: string = `wss://${domain}`;
 export const clientHttpURL: string = `${serverBaseHttpURL}/api/trpc`;

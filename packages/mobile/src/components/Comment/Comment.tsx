@@ -324,6 +324,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
           ) {
             return (
               <TouchableOpacity
+                key={index}
                 activeOpacity={0.7}
                 onPress={() => {
                   const id = comment.mentions.find(
@@ -338,7 +339,6 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
                 }}
               >
                 <Text
-                  key={index}
                   style={[styles.h1, { fontSize: 14, color: COLORS.primary }]}
                 >
                   {word}{" "}

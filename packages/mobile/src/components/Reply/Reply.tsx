@@ -249,9 +249,9 @@ const Reply: React.FunctionComponent<Props> = ({
                     });
                   }
                 }}
+                key={index}
               >
                 <Text
-                  key={index}
                   style={[styles.h1, { fontSize: 14, color: COLORS.primary }]}
                 >
                   {word}{" "}

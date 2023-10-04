@@ -5,6 +5,7 @@ import {
   notificationSchema,
   notificationsSchema,
   onDeleteSchema,
+  onNotificationReadSchema,
   onReadSchema,
   readSchema,
 } from "../../schema/notification.schema";
@@ -36,6 +37,21 @@ export const notificationRouter = router({
       return observable<Notification>((emit) => {
         const handler = (notification: Notification) => {
           if (id === notification.id) {
+            emit.next(notification);
+          }
+        };
+        ee.on(Events.ON_NOTIFICATION_READ, handler);
+        return () => {
+          ee.off(Events.ON_NOTIFICATION_READ, handler);
+        };
+      });
+    }),
+  onNotificationRead: publicProcedure
+    .input(onNotificationReadSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<Notification>((emit) => {
+        const handler = (notification: Notification) => {
+          if (uid === notification.userId) {
             emit.next(notification);
           }
         };
@@ -153,7 +169,7 @@ export const notificationRouter = router({
       if (!!!me) return [];
       const notifications = await prisma.notification.findMany({
         where: { userId: me.id },
-        select: { read: true },
+        select: { read: true, category: true },
       });
       return notifications;
     } catch (error) {

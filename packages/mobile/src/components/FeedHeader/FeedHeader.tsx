@@ -35,6 +35,14 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
       },
     }
   );
+  trpc.notification.onNotificationRead.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (_data) => {
+        await refetch();
+      },
+    }
+  );
 
   const [headerState, setHeaderState] = React.useState({
     searchTerm: "",

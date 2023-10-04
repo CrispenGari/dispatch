@@ -12,7 +12,7 @@ import React from "react";
 import type { AppNavProps } from "../../../params";
 import FeedHeader from "../../../components/FeedHeader/FeedHeader";
 import { useMediaQuery, usePlatform } from "../../../hooks";
-import { COLORS, FONTS, sorts } from "../../../constants";
+import { COLORS, FONTS, tweetsSorts } from "../../../constants";
 import { MaterialIcons } from "@expo/vector-icons";
 import { trpc } from "../../../utils/trpc";
 import * as Location from "expo-location";
@@ -26,7 +26,7 @@ import TweetSort from "../../../components/BottomSheets/TweetSort";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const { settings } = useSettingsStore();
-  const [sort, setSort] = React.useState(sorts[0]);
+  const [sort, setSort] = React.useState(tweetsSorts[0]);
   const { data: me, isFetching: getting } = trpc.user.me.useQuery();
   const [open, setOpen] = React.useState(false);
   const toggle = () => setOpen((state) => !state);

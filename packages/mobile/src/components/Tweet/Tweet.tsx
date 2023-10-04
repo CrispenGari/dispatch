@@ -305,9 +305,9 @@ const Tweet: React.FunctionComponent<Props> = ({
                     });
                   }
                 }}
+                key={index}
               >
                 <Text
-                  key={index}
                   style={[styles.h1, { fontSize: 16, color: COLORS.primary }]}
                 >
                   {word}{" "}
