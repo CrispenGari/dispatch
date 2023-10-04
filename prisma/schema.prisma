@@ -20,8 +20,8 @@ model User {
   gender          Gender  @default(UNDEFINED)
   bio             String?
 
-  userId    String?
-  user      User?   @relation("UserProfileViews", fields: [userId], references: [id])
+  userId       String?
+  user         User?   @relation("UserProfileViews", fields: [userId], references: [id])
   profileViews User[]  @relation("UserProfileViews")
 
   createdAt DateTime @default(now())
@@ -50,10 +50,11 @@ model Comment {
   reactions Reaction[]
   replies   Reply[]
 
-  creator User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId  String
-  tweet   Tweet?  @relation(fields: [tweetId], references: [id])
-  tweetId String?
+  mentions Mention[]
+  creator  User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId   String
+  tweet    Tweet?    @relation(fields: [tweetId], references: [id])
+  tweetId  String?
 }
 
 model Reply {
@@ -64,6 +65,7 @@ model Reply {
   updatedAt DateTime @updatedAt
 
   reactions Reaction[]
+  mentions  Mention[]
 
   creator User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId  String
@@ -191,8 +193,12 @@ model Mention {
   user   User   @relation(fields: [userId], references: [id])
   userId String
 
-  tweet   Tweet  @relation(fields: [tweetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  tweetId String
+  tweet     Tweet?   @relation(fields: [tweetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tweetId   String?
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  commentId String?
+  peply     Reply?   @relation(fields: [replyId], references: [id])
+  replyId   String?
 }
 
 enum Gender {

@@ -4,7 +4,7 @@ import React from "react";
 import type { AppNavProps } from "../../../params";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { APP_NAME, COLORS, FONTS, expires, profile } from "../../../constants";
-import { usePlatform } from "../../../hooks";
+import { useDebounce, usePlatform } from "../../../hooks";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import { styles } from "../../../styles";
 import { CheckBox } from "react-native-btr";
@@ -13,6 +13,7 @@ import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import { trpc } from "../../../utils/trpc";
 import { onImpact, playTweeted } from "../../../utils";
 import DropdownSelect from "react-native-input-select";
+import Mentions from "../../../components/BottomSheets/Mentions";
 
 const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
   navigation,
@@ -24,7 +25,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
   const { settings } = useSettingsStore();
   const { location } = useLocationStore();
   const [{ height, ...form }, setForm] = React.useState({
-    tweet: "",
+    text: "",
     height: 45,
     enablePolls: false,
     polls: [
@@ -32,7 +33,14 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
       { id: 1, text: "" },
     ],
     pollExpiresIn: expires[0].value,
+    mentions: [] as string[],
   });
+  const nickname = useDebounce(
+    form.text.split(/\s/).pop()?.startsWith("@")
+      ? form.text.split(/\s/).pop()
+      : undefined,
+    500
+  );
 
   const onValueChange = (exp: string) => {
     setForm((state) => ({ ...state, pollExpiresIn: exp }));
@@ -45,12 +53,13 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
     if (!!!location?.coords) return;
     mutateCreateTweet({
       polls: form.enablePolls ? form.polls : [],
-      text: form.tweet,
+      text: form.text,
       cords: {
         lat: location.coords.latitude,
         lon: location.coords.longitude,
       },
       pollExpiresIn: form.pollExpiresIn,
+      mentions: form.mentions,
     }).then((data) => {
       if (data.error) {
         Alert.alert(
@@ -69,19 +78,21 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
           playTweeted().then(() => {
             setForm({
               pollExpiresIn: "",
-              tweet: "",
+              text: "",
               height: 40,
               enablePolls: false,
               polls: [
                 { id: 0, text: "" },
                 { id: 1, text: "" },
               ],
+              mentions: [],
             });
             navigation.replace("Feed");
           });
         } else {
           setForm({
-            tweet: "",
+            text: "",
+            mentions: [],
             height: 40,
             enablePolls: false,
             polls: [
@@ -160,6 +171,12 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
     >
+      {!!nickname && !!nickname.replace("@", "") ? (
+        <Mentions
+          nickname={nickname.replace("@", "")}
+          setForm={setForm as any}
+        />
+      ) : null}
       <View
         style={{
           flex: 1,
@@ -202,7 +219,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
               placeholder={`Tweet news ${me?.nickname}...`}
               inputStyle={{ height, maxHeight: 300 }}
               multiline
-              text={form.tweet}
+              text={form.text}
               onContentSizeChange={(e) => {
                 e.persist();
                 setForm((state) => ({
@@ -211,7 +228,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                 }));
               }}
               onChangeText={(tweet) =>
-                setForm((state) => ({ ...state, tweet }))
+                setForm((state) => ({ ...state, text: tweet }))
               }
             />
           </View>
@@ -309,7 +326,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
                 helperText="Set the expiry time for your polls."
                 dropdownContainerStyle={{
                   maxWidth: 500,
-                  marginTop: 4,
+                  marginTop: 10,
                   flex: 1,
                   padding: 0,
                   backgroundColor: COLORS.main,

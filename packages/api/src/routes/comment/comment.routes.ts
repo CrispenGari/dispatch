@@ -105,51 +105,90 @@ export const commentRoute = router({
   comment: publicProcedure
     .input(commentSchema)
     .use(isAuth)
-    .mutation(async ({ ctx: { prisma, me }, input: { id, comment } }) => {
-      try {
-        if (!!!me) return false;
-        const twt = await prisma.tweet.findFirst({
-          where: { id },
-        });
-        if (!!!twt) return false;
-        const cmt = await prisma.comment.create({
-          data: { text: comment.trim(), creator: { connect: { id: me.id } } },
-          include: { creator: true },
-        });
-        const tweet = await prisma.tweet.update({
-          where: { id },
-          data: {
-            comments: {
-              connect: { id: cmt.id },
-            },
-          },
-          include: { creator: true },
-        });
-        if (tweet.creator.id !== me.id) {
-          const notification = await prisma.notification.create({
-            data: {
-              tweetId: tweet.id,
-              category: "general",
-              type: "comment",
-              title: `new comment`,
-              message: `@${cmt.creator.nickname} - commented on your tweet.`,
-              user: { connect: { id: tweet.creator.id } },
-            },
-            include: { user: true },
+    .mutation(
+      async ({ ctx: { prisma, me }, input: { id, comment, mentions } }) => {
+        try {
+          if (!!!me) return false;
+          const twt = await prisma.tweet.findFirst({
+            where: { id },
           });
-          ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          if (!!!twt) return false;
+          const mentioned = await prisma.user.findMany({
+            where: { nickname: { in: mentions } },
+            select: { id: true },
+          });
+
+          const cmt = await prisma.comment.create({
+            data: {
+              text: comment.trim(),
+              creator: { connect: { id: me.id } },
+              mentions: {
+                create: mentioned.map(({ id }) => ({
+                  userId: id,
+                })),
+              },
+            },
+            include: { creator: true },
+          });
+          const tweet = await prisma.tweet.update({
+            where: { id },
+            data: {
+              comments: {
+                connect: { id: cmt.id },
+              },
+            },
+            include: { creator: true },
+          });
+          if (tweet.creator.id !== me.id) {
+            const notification = await prisma.notification.create({
+              data: {
+                tweetId: tweet.id,
+                category: "general",
+                type: "comment",
+                title: `new comment`,
+                message: `@${cmt.creator.nickname} - commented on your tweet.`,
+                user: { connect: { id: tweet.creator.id } },
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          }
+          ee.emit(Events.ON_TWEET_COMMENT, tweet);
+          mentioned.forEach(async (mention) => {
+            const notification = await prisma.notification.create({
+              data: {
+                tweetId: tweet.id,
+                category: "mention",
+                type: "comment",
+                title: `new mention`,
+                message: `@${cmt.creator.nickname} - mentioned you in ${
+                  me.gender === "FEMALE" ? "her" : "his"
+                } comment on ${
+                  tweet.userId === me.id
+                    ? me.gender === "FEMALE"
+                      ? "her"
+                      : "his"
+                    : tweet.creator.nickname + "'s"
+                } tweet.`,
+                user: { connect: { id: mention.id } },
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          });
+
+          return true;
+        } catch (error) {
+          console.log(error);
+          return false;
         }
-        ee.emit(Events.ON_TWEET_COMMENT, tweet);
-        return true;
-      } catch (error) {
-        return false;
       }
-    }),
+    ),
   reply: publicProcedure
     .input(replySchema)
     .use(isAuth)
     .mutation(
-      async ({ ctx: { prisma, me }, input: { id, reply, mention } }) => {
+      async ({ ctx: { prisma, me }, input: { id, reply, mentions } }) => {
         try {
           if (!!!me) return false;
           const comment = await prisma.comment.findFirst({
@@ -161,50 +200,73 @@ export const commentRoute = router({
               },
             },
           });
+          const mentioned = await prisma.user.findMany({
+            where: { nickname: { in: mentions } },
+            select: { id: true },
+          });
           if (!!!comment) return false;
+
           const commentReply = await prisma.reply.create({
             data: {
               text: reply.trim(),
               creator: { connect: { id: me.id } },
               comment: { connect: { id: comment.id } },
+              mentions: {
+                create: mentioned.map(({ id }) => ({
+                  userId: id,
+                })),
+              },
             },
             include: { creator: true },
           });
+
           if (comment.creator.id !== me.id) {
-            if (mention) {
-              // const notification = await prisma.notification.create({
-              //   data: {
-              //     title: `comment reply`,
-              //     message:
-              //       me.id === comment.tweet?.creator.id
-              //         ? `@${commentReply.creator.nickname} - reply to your comment on your tweet.`
-              //         : `@${commentReply.creator.nickname} - reply to your comment on ${comment.tweet?.creator.nickname}'s tweet.`,
-              //     user: { connect: { id: comment.creator.id } },
-              //   },
-              //   include: { user: true },
-              // });
-              // ee.emit(Events.ON_NEW_NOTIFICATION, notification);
-            } else {
-              const notification = await prisma.notification.create({
-                data: {
-                  category: "general",
-                  type: "reply",
-                  tweetId: comment.tweetId as any,
-                  title: `comment reply`,
-                  message:
-                    me.id === comment.tweet?.creator.id
-                      ? `@${commentReply.creator.nickname} - reply to your comment on your tweet.`
-                      : `@${commentReply.creator.nickname} - reply to your comment on ${comment.tweet?.creator.nickname}'s tweet.`,
-                  user: { connect: { id: comment.creator.id } },
-                },
-                include: { user: true },
-              });
-              ee.emit(Events.ON_NEW_NOTIFICATION, notification);
-            }
+            const notification = await prisma.notification.create({
+              data: {
+                category: "general",
+                type: "reply",
+                tweetId: comment.tweetId as any,
+                title: `comment reply`,
+                message:
+                  me.id === comment.tweet?.creator.id
+                    ? `@${commentReply.creator.nickname} - reply to your comment on your tweet.`
+                    : `@${commentReply.creator.nickname} - reply to your comment on ${comment.tweet?.creator.nickname}'s tweet.`,
+                user: { connect: { id: comment.creator.id } },
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           }
           ee.emit(Events.ON_COMMENT_REPLY, comment);
+
+          mentioned.forEach(async (mention) => {
+            const notification = await prisma.notification.create({
+              data: {
+                tweetId: comment.tweetId!,
+                category: "mention",
+                type: "reply",
+                title: `new mention`,
+                message: `@${
+                  commentReply.creator.nickname
+                } - mentioned you in ${
+                  me.gender === "FEMALE" ? "her" : "his"
+                } reply on ${
+                  comment.tweet?.userId === me.id
+                    ? me.gender === "FEMALE"
+                      ? "her"
+                      : "his"
+                    : comment?.tweet?.creator.nickname + "'s"
+                } tweet.`,
+                user: { connect: { id: mention.id } },
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          });
+
           return true;
         } catch (error) {
+          console.log(error);
           return false;
         }
       }

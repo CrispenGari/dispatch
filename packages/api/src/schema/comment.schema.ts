@@ -3,7 +3,7 @@ import { z } from "zod";
 export const replySchema = z.object({
   id: z.string(),
   reply: z.string(),
-  mention: z.boolean().default(false),
+  mentions: z.string().array(),
 });
 
 export const commentsSchema = z.object({
@@ -16,7 +16,11 @@ export const repliesSchema = z.object({
   cursor: z.string().nullish(),
   limit: z.number().min(1).max(100).default(3),
 });
-export const commentSchema = z.object({ id: z.string(), comment: z.string() });
+export const commentSchema = z.object({
+  id: z.string(),
+  comment: z.string(),
+  mentions: z.string().array(),
+});
 export const getSchema = z.object({ id: z.string() });
 export const getReplySchema = z.object({ id: z.string() });
 export const deleteCommentReplySchema = z.object({ id: z.string() });

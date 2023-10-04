@@ -25,6 +25,8 @@ import CommentReactions from "./CommentReactions";
 import ReplyContributors from "../Reply/ReplyContributors";
 import type { User } from "@dispatch/api";
 import Ripple from "../ProgressIndicators/Ripple";
+import { useDebounce } from "../../hooks";
+import Mentions from "../BottomSheets/Mentions";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
@@ -40,10 +42,17 @@ interface Props {
 const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
   const [form, setForm] = React.useState({
     height: 40,
-    reply: "",
+    text: "",
     liked: false,
+    mentions: [] as string[],
   });
 
+  const nickname = useDebounce(
+    form.text.split(/\s/).pop()?.startsWith("@")
+      ? form.text.split(/\s/).pop()
+      : undefined,
+    500
+  );
   const [openSheets, setOpenSheets] = React.useState({
     actions: false,
     reactions: false,
@@ -156,20 +165,22 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     if (settings.haptics) {
       onImpact();
     }
-    if (!!!form.reply.trim() || !!!comment) return;
-    mutateReplyComment({ id: comment.id, reply: form.reply.trim() }).then(
-      async (res) => {
-        if (res) {
-          if (settings.sound) {
-            await playTweeted().then(() => {
-              setForm((state) => ({ ...state, reply: "" }));
-            });
-          } else {
-            setForm((state) => ({ ...state, reply: "" }));
-          }
+    if (!!!form.text.trim() || !!!comment) return;
+    mutateReplyComment({
+      id: comment.id,
+      reply: form.text.trim(),
+      mentions: [...new Set(form.mentions)],
+    }).then(async (res) => {
+      if (res) {
+        if (settings.sound) {
+          await playTweeted().then(() => {
+            setForm((state) => ({ ...state, text: "", mentions: [] }));
+          });
+        } else {
+          setForm((state) => ({ ...state, text: "", mentions: [] }));
         }
       }
-    );
+    });
   };
   const viewProfile = () => {
     if (settings.haptics) {
@@ -206,6 +217,12 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
         maxWidth: 500,
       }}
     >
+      {!!nickname && !!nickname.replace("@", "") ? (
+        <Mentions
+          nickname={nickname.replace("@", "")}
+          setForm={setForm as any}
+        />
+      ) : null}
       <CommentAction
         comment={comment}
         open={openSheets.actions}
@@ -457,7 +474,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
           containerStyles={{ flex: 1 }}
           inputStyle={{ maxHeight: 100 }}
           multiline
-          text={form.reply}
+          text={form.text}
           onContentSizeChange={(e) => {
             e.persist();
             setForm((state) => ({
@@ -465,7 +482,9 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
               height: e.nativeEvent?.contentSize?.height + 20 ?? form.height,
             }));
           }}
-          onChangeText={(reply) => setForm((state) => ({ ...state, reply }))}
+          onChangeText={(reply) =>
+            setForm((state) => ({ ...state, text: reply }))
+          }
           onSubmitEditing={replyToComment}
         />
         <TouchableOpacity

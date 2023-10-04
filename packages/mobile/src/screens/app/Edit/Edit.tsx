@@ -3,8 +3,8 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import React from "react";
 import type { AppNavProps } from "../../../params";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
-import { APP_NAME, COLORS, FONTS, profile } from "../../../constants";
-import { usePlatform } from "../../../hooks";
+import { APP_NAME, COLORS, FONTS, expires, profile } from "../../../constants";
+import { useDebounce, usePlatform } from "../../../hooks";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import { styles } from "../../../styles";
 import { CheckBox } from "react-native-btr";
@@ -12,6 +12,8 @@ import Indeterminate from "../../../components/ProgressIndicators/Indeterminate"
 import { useLocationStore, useMeStore, useSettingsStore } from "../../../store";
 import { trpc } from "../../../utils/trpc";
 import { onImpact, playTweeted } from "../../../utils";
+import Mentions from "../../../components/BottomSheets/Mentions";
+import DropdownSelect from "react-native-input-select";
 
 const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   navigation,
@@ -27,16 +29,29 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   const { me } = useMeStore();
   const { settings } = useSettingsStore();
   const { location } = useLocationStore();
+
   const [{ height, ...form }, setForm] = React.useState({
-    tweet: "",
+    text: "",
     height: 45,
     enablePolls: false,
     polls: [
       { id: 0, text: "" },
       { id: 1, text: "" },
     ],
+    mentions: [] as string[],
+    pollExpiresIn: expires[0].value,
   });
-  console.log({ settings });
+  const onValueChange = (exp: string) => {
+    setForm((state) => ({ ...state, pollExpiresIn: exp }));
+  };
+
+  const nickname = useDebounce(
+    form.text.split(/\s/).pop()?.startsWith("@")
+      ? form.text.split(/\s/).pop()
+      : undefined,
+    500
+  );
+
   React.useEffect(() => {
     if (!!tweet) {
       setForm((state) => ({
@@ -73,12 +88,14 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
     if (!!!location?.coords) return;
     mutateEditTweet({
       polls: form.enablePolls ? form.polls : [],
-      text: form.tweet,
+      text: form.text,
       cords: {
         lat: location.coords.latitude,
         lon: location.coords.longitude,
       },
       id: route.params.id,
+      pollExpiresIn: form.pollExpiresIn,
+      mentions: form.mentions,
     }).then((data) => {
       if (data.error) {
         Alert.alert(
@@ -96,25 +113,29 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
         if (settings.sound) {
           playTweeted().then(() => {
             setForm({
-              tweet: "",
+              text: "",
               height: 40,
               enablePolls: false,
               polls: [
                 { id: 0, text: "" },
                 { id: 1, text: "" },
               ],
+              mentions: [],
+              pollExpiresIn: expires[0].value,
             });
             navigation.replace("Feed");
           });
         } else {
           setForm({
-            tweet: "",
+            pollExpiresIn: expires[0].value,
+            text: "",
             height: 40,
             enablePolls: false,
             polls: [
               { id: 0, text: "" },
               { id: 1, text: "" },
             ],
+            mentions: [],
           });
           navigation.replace("Feed");
         }
@@ -186,6 +207,12 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
     >
+      {!!nickname && !!nickname.replace("@", "") ? (
+        <Mentions
+          nickname={nickname.replace("@", "")}
+          setForm={setForm as any}
+        />
+      ) : null}
       <View
         style={{
           flex: 1,
@@ -242,7 +269,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
               placeholder={`Tweet news ${me?.nickname}...`}
               inputStyle={{ height, maxHeight: 300, fontSize: 16 }}
               multiline
-              text={form.tweet}
+              text={form.text}
               onContentSizeChange={(e) => {
                 e.persist();
                 setForm((state) => ({
@@ -251,7 +278,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                 }));
               }}
               onChangeText={(tweet) =>
-                setForm((state) => ({ ...state, tweet }))
+                setForm((state) => ({ ...state, text: tweet }))
               }
             />
           </View>
@@ -289,8 +316,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                   key={poll.id}
                   text={poll.text}
                   placeholder={`Poll Text ${poll.id + 1}...`}
-                  inputStyle={{ fontSize: 16, paddingVertical: 5 }}
-                  containerStyles={{ paddingVertical: 5 }}
+                  containerStyles={{ borderWidth: 0, borderBottomWidth: 1 }}
                   onChangeText={(text) =>
                     setForm((state) => ({
                       ...state,
@@ -344,6 +370,75 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
                   </Text>
                 </TouchableOpacity>
               </View>
+
+              <DropdownSelect
+                placeholder="Change Poll Expiry"
+                options={expires}
+                optionLabel={"name"}
+                optionValue={"value"}
+                selectedValue={form.pollExpiresIn}
+                isMultiple={false}
+                helperText="Set the expiry time for your polls."
+                dropdownContainerStyle={{
+                  maxWidth: 500,
+                  marginTop: 10,
+                  flex: 1,
+                  padding: 0,
+                  backgroundColor: COLORS.main,
+                  marginBottom: 0,
+                }}
+                dropdownIconStyle={{ top: 5, right: 15 }}
+                dropdownStyle={{
+                  borderWidth: 0,
+                  borderBottomWidth: 1,
+                  paddingVertical: 0,
+                  paddingHorizontal: 20,
+                  minHeight: 30,
+                  flex: 1,
+                  maxWidth: 500,
+                  borderColor: COLORS.primary,
+                  borderRadius: 0,
+                  backgroundColor: COLORS.main,
+                }}
+                selectedItemStyle={{
+                  color: COLORS.black,
+                  fontFamily: FONTS.regular,
+                  fontSize: 16,
+                }}
+                placeholderStyle={{
+                  fontFamily: FONTS.regular,
+                  fontSize: 16,
+                }}
+                onValueChange={onValueChange}
+                labelStyle={{
+                  fontFamily: FONTS.regularBold,
+                  fontSize: 16,
+                }}
+                primaryColor={COLORS.primary}
+                dropdownHelperTextStyle={{
+                  color: COLORS.black,
+                  fontFamily: FONTS.regular,
+                  fontSize: 15,
+                }}
+                modalOptionsContainerStyle={{
+                  padding: 10,
+                  backgroundColor: COLORS.main,
+                }}
+                checkboxComponentStyles={{
+                  checkboxSize: 10,
+                  checkboxStyle: {
+                    backgroundColor: COLORS.primary,
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: COLORS.tertiary,
+                  },
+                  checkboxLabelStyle: {
+                    color: COLORS.black,
+                    fontSize: 16,
+                    fontFamily: FONTS.regular,
+                  },
+                }}
+              />
             </View>
           ) : null}
 

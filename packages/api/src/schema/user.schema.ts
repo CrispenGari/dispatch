@@ -13,6 +13,9 @@ export const updateGenderSchema = z.object({
 export const updateBioSchema = z.object({
   bio: z.string(),
 });
+export const mentionsSchema = z.object({
+  nickname: z.string(),
+});
 export const changePasswordSchema = z.object({
   currentPassword: z.string(),
   newPassword: z.string(),

@@ -1,6 +1,7 @@
 import { generateVerificationCode } from "@crispengari/random-verification-codes";
 import {
   changePasswordSchema,
+  mentionsSchema,
   onUpdateSchema,
   onViewProfileSchema,
   tweetsSchema,
@@ -103,6 +104,25 @@ export const userRouter = router({
       return null;
     }
   }),
+  mentions: publicProcedure
+    .input(mentionsSchema)
+    .use(isAuth)
+    .query(async ({ ctx: { me, prisma }, input: { nickname } }) => {
+      try {
+        if (!!!me) return [];
+        const mentions = await prisma.user.findMany({
+          where: {
+            nickname: {
+              contains: `%${nickname.trim().toLowerCase()}%`,
+              mode: "insensitive",
+            },
+          },
+        });
+        return mentions.filter((mention) => mention.id !== me.id);
+      } catch (err) {
+        return [];
+      }
+    }),
   me: publicProcedure.use(isAuth).query(async ({ ctx: { me } }) => me),
   updateNickname: publicProcedure
     .use(isAuth)

@@ -5,6 +5,7 @@ export const createSchema = z.object({
   cords: z.object({ lat: z.number(), lon: z.number() }),
   polls: z.object({ text: z.string() }).array(),
   pollExpiresIn: z.string(),
+  mentions: z.string().array(),
 });
 export const tweetsSchema = z.object({
   cursor: z.string().nullish(),
@@ -17,6 +18,8 @@ export const editSchema = z.object({
   cords: z.object({ lat: z.number(), lon: z.number() }),
   polls: z.object({ text: z.string() }).array(),
   id: z.string(),
+  mentions: z.string().array(),
+  pollExpiresIn: z.string(),
 });
 export const delSchema = z.object({ id: z.string() });
 export const tweetSchema = z.object({ id: z.string() });

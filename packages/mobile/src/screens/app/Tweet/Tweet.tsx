@@ -11,7 +11,7 @@ import React from "react";
 
 import { COLORS, FONTS, profile, relativeTimeObject } from "../../../constants";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
-import { usePlatform } from "../../../hooks";
+import { useDebounce, usePlatform } from "../../../hooks";
 import { trpc } from "../../../utils/trpc";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -34,6 +34,7 @@ import type { AppNavProps } from "../../../params";
 import TweetActions from "../../../components/Tweet/TweetActions";
 import TweetReactions from "../../../components/Tweet/TweetReactions";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
+import Mentions from "../../../components/BottomSheets/Mentions";
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
 
@@ -98,14 +99,21 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   }, [data]);
   const [form, setForm] = React.useState({
     height: 60,
-    comment: "",
+    text: "",
     liked: false,
     showResults: false,
     totalVotes: 0,
     expired: false,
     viewCount: 0,
     end: false,
+    mentions: [] as string[],
   });
+  const nickname = useDebounce(
+    form.text.split(/\s/).pop()?.startsWith("@")
+      ? form.text.split(/\s/).pop()
+      : undefined,
+    500
+  );
   const { mutateAsync: mutateReactToTweet, isLoading: reacting } =
     trpc.reaction.reactToTweet.useMutation();
   const { mutateAsync: mutateCommentOnTweet, isLoading: commenting } =
@@ -127,20 +135,22 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       onImpact();
     }
     if (!!!tweet) return;
-    if (!!!form.comment.trim()) return;
-    mutateCommentOnTweet({ comment: form.comment, id: tweet.id }).then(
-      async (res) => {
-        if (res) {
-          if (settings.sound) {
-            await playTweeted().then(() => {
-              setForm((state) => ({ ...state, comment: "" }));
-            });
-          } else {
-            setForm((state) => ({ ...state, comment: "" }));
-          }
+    if (!!!form.text.trim()) return;
+    mutateCommentOnTweet({
+      comment: form.text,
+      id: tweet.id,
+      mentions: [...new Set(form.mentions)],
+    }).then(async (res) => {
+      if (res) {
+        if (settings.sound) {
+          await playTweeted().then(() => {
+            setForm((state) => ({ ...state, text: "", mentions: [] }));
+          });
+        } else {
+          setForm((state) => ({ ...state, text: "", mentions: [] }));
         }
       }
-    );
+    });
   };
 
   trpc.tweet.onTweetUpdate.useSubscription(
@@ -293,6 +303,12 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       }
       style={{ backgroundColor: COLORS.main, flex: 1, position: "relative" }}
     >
+      {!!nickname && !!nickname.replace("@", "") ? (
+        <Mentions
+          nickname={nickname.replace("@", "")}
+          setForm={setForm as any}
+        />
+      ) : null}
       <View style={{ flex: 1 }}>
         <View
           style={{
@@ -553,7 +569,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
                 containerStyles={{ flex: 1 }}
                 inputStyle={{ maxHeight: 100 }}
                 multiline
-                text={form.comment}
+                text={form.text}
                 onContentSizeChange={(e) => {
                   e.persist();
                   setForm((state) => ({
@@ -563,7 +579,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
                   }));
                 }}
                 onChangeText={(comment) =>
-                  setForm((state) => ({ ...state, comment }))
+                  setForm((state) => ({ ...state, text: comment }))
                 }
                 onSubmitEditing={commentOnTweet}
               />

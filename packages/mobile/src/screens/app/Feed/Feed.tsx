@@ -22,7 +22,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { onImpact } from "../../../utils";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
 import { styles } from "../../../styles";
-import { BottomSheet } from "react-native-btr";
+import TweetSort from "../../../components/BottomSheets/TweetSort";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const { settings } = useSettingsStore();
@@ -213,94 +213,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
           />
         }
       >
-        <BottomSheet
-          visible={!!open}
-          onBackButtonPress={() => {
-            if (settings.haptics) {
-              onImpact();
-            }
-            toggle();
-          }}
-          onBackdropPress={() => {
-            if (settings.haptics) {
-              onImpact();
-            }
-            toggle();
-          }}
-        >
-          <View
-            style={{
-              height: 130,
-              backgroundColor: COLORS.main,
-              borderTopRightRadius: 10,
-              borderTopLeftRadius: 10,
-              position: "relative",
-            }}
-          >
-            <View
-              style={{
-                position: "absolute",
-                borderRadius: 999,
-                padding: 5,
-                alignSelf: "center",
-                top: -10,
-                backgroundColor: COLORS.main,
-                paddingHorizontal: 15,
-                shadowOffset: { height: 2, width: 2 },
-                shadowOpacity: 1,
-                shadowRadius: 2,
-                shadowColor: COLORS.primary,
-                elevation: 1,
-              }}
-            >
-              <Text style={[styles.h1, {}]}>Sort Tweets</Text>
-            </View>
-            <View style={{ height: 20 }} />
-            {sorts.map((s) => (
-              <TouchableOpacity
-                key={s.id}
-                style={{
-                  flexDirection: "row",
-                  padding: 10,
-                  alignItems: "center",
-                  width: "100%",
-                }}
-                onPress={() => {
-                  if (settings.haptics) {
-                    onImpact();
-                  }
-                  setSort(s);
-                  toggle();
-                }}
-              >
-                <View
-                  style={{
-                    marginRight: 20,
-                    width: 20,
-                    height: 20,
-                    borderWidth: 2,
-                    borderRadius: 10,
-                    borderColor: COLORS.tertiary,
-                    overflow: "hidden",
-                    padding: 2,
-                  }}
-                >
-                  {sort.value === s.value ? (
-                    <View
-                      style={{
-                        backgroundColor: COLORS.primary,
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: 20,
-                      }}
-                    />
-                  ) : null}
-                </View>
-                <Text style={[styles.h1, { fontSize: 18 }]}>{s.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </BottomSheet>
+        <TweetSort sort={sort} setSort={setSort} open={open} toggle={toggle} />
         <View
           style={{
             flexDirection: "row",

@@ -100,7 +100,7 @@ export const tweetRouter = router({
     .use(isAuth)
     .mutation(
       async ({
-        input: { text, polls, cords, pollExpiresIn },
+        input: { text, polls, cords, pollExpiresIn, mentions },
         ctx: { prisma, me },
       }) => {
         try {
@@ -109,6 +109,10 @@ export const tweetRouter = router({
               error:
                 "Failed to create a tweet because you are not authenticated.",
             };
+          const mentioned = await prisma.user.findMany({
+            where: { nickname: { in: mentions } },
+            select: { id: true },
+          });
           const tweet = await prisma.tweet.create({
             data: {
               text: text.trim(),
@@ -120,6 +124,11 @@ export const tweetRouter = router({
                 },
               },
               pollExpiresIn: expiryDate(pollExpiresIn),
+              mentions: {
+                create: mentioned.map(({ id }) => ({
+                  userId: id,
+                })),
+              },
             },
             include: {
               creator: true,
@@ -140,8 +149,23 @@ export const tweetRouter = router({
             });
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           }
-
           ee.emit(Events.ON_NEW_TWEET, tweet);
+          mentioned.forEach(async (mention) => {
+            const notification = await prisma.notification.create({
+              data: {
+                tweetId: tweet.id,
+                category: "mention",
+                type: "new_tweet",
+                title: `new mention`,
+                message: `@${me.nickname} - mentioned you on ${
+                  me.gender === "FEMALE" ? "her" : "his"
+                } tweet.`,
+                user: { connect: { id: mention.id } },
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          });
           return { tweet };
         } catch (err) {
           console.log(err);
@@ -178,13 +202,20 @@ export const tweetRouter = router({
     .input(editSchema)
     .use(isAuth)
     .mutation(
-      async ({ ctx: { me, prisma }, input: { cords, polls, text, id } }) => {
+      async ({
+        ctx: { me, prisma },
+        input: { cords, polls, text, id, mentions, pollExpiresIn },
+      }) => {
         try {
           if (!!!me)
             return {
               error:
                 "Failed to update a tweet because you are not authenticated.",
             };
+          const mentioned = await prisma.user.findMany({
+            where: { nickname: { in: mentions } },
+            select: { id: true },
+          });
           const tt = await prisma.tweet.findFirst({
             where: { id },
             include: { polls: { select: { id: true } } },
@@ -201,11 +232,32 @@ export const tweetRouter = router({
                   data: [...polls.map((p) => ({ text: p.text.trim() }))],
                 },
               },
+              pollExpiresIn: expiryDate(pollExpiresIn),
+              mentions: {
+                create: mentioned.map(({ id }) => ({
+                  userId: id,
+                })),
+              },
             },
             include: { creator: true },
           });
-
           ee.emit(Events.ON_TWEET_UPDATE, tweet);
+          mentioned.forEach(async (mention) => {
+            const notification = await prisma.notification.create({
+              data: {
+                tweetId: tweet.id,
+                category: "mention",
+                type: "new_tweet",
+                title: `new mention`,
+                message: `@${me.nickname} - mentioned you on ${
+                  me.gender === "FEMALE" ? "her" : "his"
+                } edited tweet.`,
+                user: { connect: { id: mention.id } },
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          });
           return { tweet };
         } catch (err) {
           console.log(err);
