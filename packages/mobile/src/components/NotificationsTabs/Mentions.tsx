@@ -19,8 +19,13 @@ import NotificationSkeleton from "../skeletons/NotificationSkeleton";
 
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Notifications">;
+  sort: {
+    id: number;
+    value: "asc" | "desc" | "read" | "unread";
+    name: string;
+  };
 }
-const Mentions: React.FunctionComponent<Props> = ({ navigation }) => {
+const Mentions: React.FunctionComponent<Props> = ({ navigation, sort }) => {
   const { settings } = useSettingsStore();
   const [end, setEnd] = React.useState(false);
   const { me } = useMeStore();
@@ -41,6 +46,7 @@ const Mentions: React.FunctionComponent<Props> = ({ navigation }) => {
     {
       category: "mention",
       limit: settings.pageLimit,
+      sortBy: sort.value,
     },
     { keepPreviousData: true, getNextPageParam: ({ nextCursor }) => nextCursor }
   );
@@ -80,7 +86,21 @@ const Mentions: React.FunctionComponent<Props> = ({ navigation }) => {
       await fetchNextPage();
     }
   };
-  if (notifications.length === 0)
+  if (fetching)
+    return (
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          paddingVertical: 30,
+        }}
+      >
+        <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          Loading notifications...
+        </Text>
+      </View>
+    );
+  if (notifications.length)
     return (
       <View
         style={{

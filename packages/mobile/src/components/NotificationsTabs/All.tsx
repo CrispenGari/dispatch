@@ -19,8 +19,13 @@ import Notification from "../Notification/Notification";
 
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Notifications">;
+  sort: {
+    id: number;
+    value: "asc" | "desc" | "read" | "unread";
+    name: string;
+  };
 }
-const All: React.FunctionComponent<Props> = ({ navigation }) => {
+const All: React.FunctionComponent<Props> = ({ navigation, sort }) => {
   const { settings } = useSettingsStore();
   const [end, setEnd] = React.useState(false);
   const { me } = useMeStore();
@@ -41,6 +46,7 @@ const All: React.FunctionComponent<Props> = ({ navigation }) => {
     {
       category: "general",
       limit: settings.pageLimit,
+      sortBy: sort.value,
     },
     { keepPreviousData: true, getNextPageParam: ({ nextCursor }) => nextCursor }
   );
@@ -80,6 +86,20 @@ const All: React.FunctionComponent<Props> = ({ navigation }) => {
       await fetchNextPage();
     }
   };
+  if (fetching)
+    return (
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          paddingVertical: 30,
+        }}
+      >
+        <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          Loading notifications...
+        </Text>
+      </View>
+    );
   if (notifications.length === 0)
     return (
       <View

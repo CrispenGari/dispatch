@@ -682,8 +682,21 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
           </Text>
         </View>
       ) : null}
+      {_fetching ? (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 30,
+          }}
+        >
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+            Loading comments...
+          </Text>
+        </View>
+      ) : null}
 
-      {comments.length === 0 ? (
+      {comments.length === 0 && !_fetching ? (
         <View
           style={{
             justifyContent: "center",

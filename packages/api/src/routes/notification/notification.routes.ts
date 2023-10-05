@@ -134,20 +134,41 @@ export const notificationRouter = router({
     .input(notificationsSchema)
     .use(isAuth)
     .query(
-      async ({ ctx: { me, prisma }, input: { category, cursor, limit } }) => {
+      async ({
+        ctx: { me, prisma },
+        input: { category, cursor, limit, sortBy },
+      }) => {
         try {
           if (!!!me)
             return {
               notifications: [],
               nextCursor: undefined,
             };
-          const notifications = await prisma.notification.findMany({
-            where: { userId: me.id, AND: { category } },
-            take: limit + 1,
-            select: { id: true, read: true },
-            orderBy: { createdAt: "desc" },
-            cursor: cursor ? { id: cursor } : undefined,
-          });
+
+          let notifications: { id: string; read: boolean }[] = [];
+
+          switch (sortBy) {
+            case "asc":
+            case "desc":
+              notifications = await prisma.notification.findMany({
+                where: { userId: me.id, AND: { category } },
+                take: limit + 1,
+                select: { id: true, read: true },
+                orderBy: { createdAt: sortBy },
+                cursor: cursor ? { id: cursor } : undefined,
+              });
+              break;
+            default:
+              notifications = await prisma.notification.findMany({
+                where: { userId: me.id, AND: { category } },
+                take: limit + 1,
+                select: { id: true, read: true },
+                orderBy: { read: sortBy === "read" ? "asc" : "desc" },
+                cursor: cursor ? { id: cursor } : undefined,
+              });
+              break;
+          }
+
           let nextCursor: typeof cursor | undefined = undefined;
           if (notifications.length > limit) {
             const nextItem =

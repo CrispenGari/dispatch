@@ -111,8 +111,8 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
         }}
         navigationState={{ index, routes }}
         renderScene={SceneMap({
-          all: () => <All navigation={navigation} />,
-          mentions: () => <Mentions navigation={navigation} />,
+          all: () => <All sort={sort} navigation={navigation} />,
+          mentions: () => <Mentions sort={sort} navigation={navigation} />,
         })}
         onIndexChange={setIndex}
         initialLayout={{ width: layout.width }}

@@ -10,4 +10,5 @@ export const notificationsSchema = z.object({
   category: z.enum(["general", "mention"]),
   cursor: z.string().nullish(),
   limit: z.number().min(1).max(100).default(3),
+  sortBy: z.enum(["asc", "desc", "unread", "read"]),
 });
