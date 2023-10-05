@@ -145,25 +145,40 @@ export const notificationRouter = router({
               nextCursor: undefined,
             };
 
-          let notifications: { id: string; read: boolean }[] = [];
+          let notifications: { id: string; read: boolean; category: any }[] =
+            [];
 
           switch (sortBy) {
             case "asc":
             case "desc":
               notifications = await prisma.notification.findMany({
-                where: { userId: me.id, AND: { category } },
+                where: {
+                  AND: [
+                    { category },
+                    {
+                      userId: me.id,
+                    },
+                  ],
+                },
                 take: limit + 1,
-                select: { id: true, read: true },
+                select: { id: true, read: true, category: true },
                 orderBy: { createdAt: sortBy },
                 cursor: cursor ? { id: cursor } : undefined,
               });
               break;
             default:
-              notifications = await prisma.notification.findMany({
-                where: { userId: me.id, AND: { category } },
+              await prisma.notification.findMany({
+                where: {
+                  AND: [
+                    { category },
+                    {
+                      userId: me.id,
+                    },
+                  ],
+                },
                 take: limit + 1,
-                select: { id: true, read: true },
-                orderBy: { read: sortBy === "read" ? "asc" : "desc" },
+                select: { id: true, read: true, category: true },
+                orderBy: { read: sortBy === "read" ? "desc" : "asc" },
                 cursor: cursor ? { id: cursor } : undefined,
               });
               break;

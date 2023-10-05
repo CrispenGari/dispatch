@@ -190,6 +190,7 @@ model Mention {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  type MentionType
   user   User   @relation(fields: [userId], references: [id])
   userId String
 
@@ -197,7 +198,7 @@ model Mention {
   tweetId   String?
   comment   Comment? @relation(fields: [commentId], references: [id])
   commentId String?
-  peply     Reply?   @relation(fields: [replyId], references: [id])
+  reply     Reply?   @relation(fields: [replyId], references: [id])
   replyId   String?
 }
 
@@ -218,4 +219,10 @@ enum NotificationType {
   reply
   new_tweet
   poll_vote_in
+}
+
+enum MentionType {
+  comment
+  reply
+  tweet
 }

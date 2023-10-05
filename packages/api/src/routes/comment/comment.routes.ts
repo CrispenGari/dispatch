@@ -125,6 +125,7 @@ export const commentRoute = router({
               mentions: {
                 create: mentioned.map(({ id }) => ({
                   userId: id,
+                  type: "comment",
                 })),
               },
             },
@@ -214,6 +215,7 @@ export const commentRoute = router({
               mentions: {
                 create: mentioned.map(({ id }) => ({
                   userId: id,
+                  type: "comment",
                 })),
               },
             },

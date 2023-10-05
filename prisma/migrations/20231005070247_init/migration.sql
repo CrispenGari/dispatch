@@ -7,6 +7,9 @@ CREATE TYPE "NotificationCategory" AS ENUM ('general', 'mention');
 -- CreateEnum
 CREATE TYPE "NotificationType" AS ENUM ('reaction', 'comment', 'reply', 'new_tweet', 'poll_vote_in');
 
+-- CreateEnum
+CREATE TYPE "MentionType" AS ENUM ('comment', 'reply', 'tweet');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -42,7 +45,7 @@ CREATE TABLE "Reply" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "userId" TEXT NOT NULL,
-    "commentId" TEXT
+    "commentId" TEXT NOT NULL
 );
 
 -- CreateTable
@@ -116,8 +119,11 @@ CREATE TABLE "Mention" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "type" "MentionType" NOT NULL,
     "userId" TEXT NOT NULL,
-    "tweetId" TEXT NOT NULL
+    "tweetId" TEXT,
+    "commentId" TEXT,
+    "replyId" TEXT
 );
 
 -- CreateIndex
@@ -209,3 +215,9 @@ ALTER TABLE "Mention" ADD CONSTRAINT "Mention_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Mention" ADD CONSTRAINT "Mention_tweetId_fkey" FOREIGN KEY ("tweetId") REFERENCES "Tweet"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Mention" ADD CONSTRAINT "Mention_commentId_fkey" FOREIGN KEY ("commentId") REFERENCES "Comment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Mention" ADD CONSTRAINT "Mention_replyId_fkey" FOREIGN KEY ("replyId") REFERENCES "Reply"("id") ON DELETE SET NULL ON UPDATE CASCADE;

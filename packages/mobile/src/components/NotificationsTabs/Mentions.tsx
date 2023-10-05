@@ -100,7 +100,7 @@ const Mentions: React.FunctionComponent<Props> = ({ navigation, sort }) => {
         </Text>
       </View>
     );
-  if (notifications.length)
+  if (notifications.length === 0)
     return (
       <View
         style={{

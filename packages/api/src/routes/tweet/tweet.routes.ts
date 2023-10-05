@@ -6,6 +6,7 @@ import {
   onDeleteTweetSchema,
   onNewTweetNotificationSchema,
   onNewTweetSchema,
+  onTweetMentionSchema,
   onTweetUpdateSchema,
   onViewSchema,
   tweetSchema,
@@ -34,6 +35,21 @@ export const tweetRouter = router({
         ee.on(Events.ON_NEW_NOTIFICATION, handler);
         return () => {
           ee.off(Events.ON_NEW_NOTIFICATION, handler);
+        };
+      });
+    }),
+  onTweetMention: publicProcedure
+    .input(onTweetMentionSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<Notification & { user: User }>((emit) => {
+        const handler = (notification: Notification & { user: User }) => {
+          if (uid === notification.user.id) {
+            emit.next(notification);
+          }
+        };
+        ee.on(Events.ON_TWEET_MENTION, handler);
+        return () => {
+          ee.off(Events.ON_TWEET_MENTION, handler);
         };
       });
     }),
@@ -127,6 +143,7 @@ export const tweetRouter = router({
               mentions: {
                 create: mentioned.map(({ id }) => ({
                   userId: id,
+                  type: "tweet",
                 })),
               },
             },
@@ -164,6 +181,7 @@ export const tweetRouter = router({
               },
               include: { user: true },
             });
+            ee.emit(Events.ON_TWEET_MENTION, notification);
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           });
           return { tweet };
@@ -236,6 +254,7 @@ export const tweetRouter = router({
               mentions: {
                 create: mentioned.map(({ id }) => ({
                   userId: id,
+                  type: "tweet",
                 })),
               },
             },
@@ -292,7 +311,7 @@ export const tweetRouter = router({
         return { tweets, nextCursor };
       } catch (error) {
         console.log(error);
-        return { tweets: [] };
+        return { tweets: [], nextCursor: undefined };
       }
     }),
   tweet: publicProcedure

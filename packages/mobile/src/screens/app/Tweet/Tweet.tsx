@@ -425,6 +425,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
                 return (
                   <TouchableOpacity
                     activeOpacity={0.7}
+                    key={index}
                     onPress={() => {
                       const id = tweet.mentions.find(
                         (m) => m.user.nickname === word.replace("@", "")

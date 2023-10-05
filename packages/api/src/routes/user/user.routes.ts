@@ -116,6 +116,7 @@ export const userRouter = router({
               contains: `%${nickname.trim().toLowerCase()}%`,
               mode: "insensitive",
             },
+            AND: { confirmed: true },
           },
         });
         return mentions.filter((mention) => mention.id !== me.id);
@@ -332,19 +333,34 @@ export const userRouter = router({
   tweets: publicProcedure
     .input(tweetsSchema)
     .use(isAuth)
-    .query(async ({ ctx: { me, prisma }, input: { id } }) => {
-      try {
-        if (!!!me) return [];
-        const user = await prisma.user.findFirst({
-          where: { id },
-          select: { tweets: { select: { id: true } } },
-        });
-        return user?.tweets ?? [];
-      } catch (error) {
-        console.log(error);
-        return [];
+    .query(
+      async ({
+        ctx: { me, prisma },
+        input: { id, cursor, limit, orderBy },
+      }) => {
+        try {
+          if (!!!me) return { tweets: [], nextCursor: undefined };
+          const tweets = await prisma.tweet.findMany({
+            where: { userId: id },
+            take: limit + 1,
+            orderBy: { createdAt: orderBy },
+            select: {
+              id: true,
+            },
+            cursor: cursor ? { id: cursor } : undefined,
+          });
+          let nextCursor: typeof cursor | undefined = undefined;
+          if (tweets.length > limit) {
+            const nextItem = tweets.pop() as (typeof tweets)[number];
+            nextCursor = nextItem.id;
+          }
+          return { tweets, nextCursor };
+        } catch (error) {
+          console.log(error);
+          return { tweets: [], nextCursor: undefined };
+        }
       }
-    }),
+    ),
   viewProfile: publicProcedure
     .input(viewProfile)
     .use(isAuth)

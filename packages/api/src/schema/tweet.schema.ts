@@ -44,3 +44,6 @@ export const onViewSchema = z.object({
 export const onNewTweetNotificationSchema = z.object({
   uid: z.string(),
 });
+export const onTweetMentionSchema = z.object({
+  uid: z.string(),
+});

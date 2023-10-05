@@ -90,6 +90,7 @@ export const pollRouter = router({
               title: `new vote in`,
               message: `your tweet polls received a new check the results.`,
               user: { connect: { id: tweet.creator.id } },
+              tweetId: tweet.id,
             },
             include: { user: true },
           });
