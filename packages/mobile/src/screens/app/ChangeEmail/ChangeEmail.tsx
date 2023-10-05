@@ -15,6 +15,7 @@ import { trpc } from "../../../utils/trpc";
 
 const ChangeEmail: React.FunctionComponent<AppNavProps<"ChangeEmail">> = ({
   navigation,
+  route,
 }) => {
   const { me, setMe } = useMeStore();
   const { os } = usePlatform();
@@ -113,7 +114,7 @@ const ChangeEmail: React.FunctionComponent<AppNavProps<"ChangeEmail">> = ({
       },
       headerLeft: () => (
         <AppStackBackButton
-          label={os === "ios" ? "Settings" : ""}
+          label={os === "ios" ? route.params.from : ""}
           onPress={() => {
             if (settings.haptics) {
               onImpact();
@@ -123,7 +124,7 @@ const ChangeEmail: React.FunctionComponent<AppNavProps<"ChangeEmail">> = ({
         />
       ),
     });
-  }, [navigation, settings]);
+  }, [navigation, settings, route]);
   return (
     <KeyboardAwareScrollView
       showsVerticalScrollIndicator={false}

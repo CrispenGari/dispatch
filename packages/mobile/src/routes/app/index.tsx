@@ -15,6 +15,7 @@ import {
   Tweet,
   ChangeEmail,
   User,
+  Blocked,
 } from "../../screens/app";
 const Stack = createStackNavigator<AppParamList>();
 
@@ -41,6 +42,7 @@ export const AppTabs = () => {
       <Stack.Screen name="Edit" component={Edit} />
       <Stack.Screen name="Tweet" component={Tweet} />
       <Stack.Screen name="User" component={User} />
+      <Stack.Screen name="Blocked" component={Blocked} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen name="ChangeEmail" component={ChangeEmail} />
     </Stack.Navigator>

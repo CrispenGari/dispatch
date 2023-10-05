@@ -15,7 +15,7 @@ import type { AppNavProps } from "../../../params";
 
 const ChangePassword: React.FunctionComponent<
   AppNavProps<"ChangePassword">
-> = ({ navigation }) => {
+> = ({ navigation, route }) => {
   const { setMe } = useMeStore();
   const { settings } = useSettingsStore();
   const { os } = usePlatform();
@@ -116,7 +116,7 @@ const ChangePassword: React.FunctionComponent<
       },
       headerLeft: () => (
         <AppStackBackButton
-          label={os === "ios" ? "Settings" : ""}
+          label={os === "ios" ? route.params.from : ""}
           onPress={() => {
             if (settings.haptics) {
               onImpact();
@@ -126,7 +126,7 @@ const ChangePassword: React.FunctionComponent<
         />
       ),
     });
-  }, [navigation, settings]);
+  }, [navigation, settings, route]);
   return (
     <KeyboardAwareScrollView
       showsVerticalScrollIndicator={false}

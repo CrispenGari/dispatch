@@ -9,3 +9,4 @@ export { default as Tweet } from "./Tweet/Tweet";
 export { default as ChangePassword } from "./ChangePassword/ChangePassword";
 export { default as User } from "./User/User";
 export { default as ChangeEmail } from "./ChangeEmail/ChangeEmail";
+export { default as Blocked } from "./Blocked/Blocked";

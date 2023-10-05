@@ -15,6 +15,17 @@ export const genders: {
   { id: 2, name: "Prefer not to say", value: "UNDEFINED" },
 ];
 
+export const pageLimits: {
+  id: number;
+  value: number;
+  name: number;
+}[] = [
+  { id: 0, name: 10, value: 10 },
+  { id: 1, name: 30, value: 30 },
+  { id: 2, name: 50, value: 50 },
+  { id: 3, name: 100, value: 100 },
+];
+
 export const tweetsSorts: {
   id: number;
   value: "asc" | "desc";

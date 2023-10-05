@@ -28,6 +28,8 @@ import ChangeGender from "../../../components/SettingsComponents/ChangeGender";
 import ChangeBio from "../../../components/SettingsComponents/ChangeBio";
 import Message from "../../../components/Message/Message";
 import { trpc } from "../../../utils/trpc";
+import PageLimit from "../../../components/SettingsComponents/PageLimit";
+import DistanceSettings from "../../../components/SettingsComponents/DistanceSettings";
 
 const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
   navigation,
@@ -256,7 +258,9 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
           navigation.navigate("AppPrivacyPolicy", { from: "Settings" });
         }}
       />
-
+      <Divider color={COLORS.black} title="FEED PREFERENCE" />
+      <PageLimit />
+      <DistanceSettings />
       <Divider color={COLORS.black} title="MANAGE PROFILE" />
       <ChangeNickname />
       <ChangeBio />
@@ -270,6 +274,18 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
         ) : null}
       </View>
 
+      <SettingItem
+        title={"Blocked Users"}
+        Icon={
+          <MaterialIcons name="app-blocking" size={18} color={COLORS.black} />
+        }
+        onPress={() => {
+          if (settings.haptics) {
+            onImpact();
+          }
+          navigation.navigate("Blocked", { from: "Settings" });
+        }}
+      />
       <SettingItem
         title={"Forgot Password"}
         Icon={
@@ -294,7 +310,7 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
           if (settings.haptics) {
             onImpact();
           }
-          navigation.navigate("ChangePassword");
+          navigation.navigate("ChangePassword", { from: "Settings" });
         }}
       />
       <SettingItem
@@ -311,7 +327,9 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
           if (settings.haptics) {
             onImpact();
           }
-          navigation.navigate("ChangeEmail");
+          navigation.navigate("ChangeEmail", {
+            from: "Settings",
+          });
         }}
       />
       <SettingItem

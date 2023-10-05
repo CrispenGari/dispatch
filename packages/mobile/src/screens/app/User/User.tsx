@@ -1,7 +1,13 @@
-import { View, Text, Image, useWindowDimensions } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  useWindowDimensions,
+  TouchableOpacity,
+} from "react-native";
 import React from "react";
 import type { AppNavProps } from "../../../params";
-import { COLORS, FONTS, profile } from "../../../constants";
+import { COLORS, FONTS, profile, tweetsSorts } from "../../../constants";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { useMeStore, useSettingsStore } from "../../../store";
 import { usePlatform } from "../../../hooks";
@@ -12,6 +18,7 @@ import TweetsTab from "../../../components/Tabs/TweetsTab";
 import MentionsTab from "../../../components/Tabs/MentionsTab";
 import { onImpact } from "../../../utils";
 import { SceneMap, TabBar, TabView } from "react-native-tab-view";
+import TweetSort from "../../../components/BottomSheets/TweetSort";
 
 const User: React.FunctionComponent<AppNavProps<"User">> = ({
   navigation,
@@ -19,6 +26,9 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
 }) => {
   const { os } = usePlatform();
   const { me } = useMeStore();
+  const [sort, setSort] = React.useState(tweetsSorts[0]);
+  const [open, setOpen] = React.useState(false);
+  const toggle = () => setOpen((state) => !state);
   const { settings } = useSettingsStore();
   const layout = useWindowDimensions();
   const [index, setIndex] = React.useState(0);
@@ -120,6 +130,8 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
             padding: 10,
             justifyContent: "center",
             paddingVertical: 20,
+            borderBottomColor: COLORS.tertiary,
+            borderBottomWidth: 0.5,
           }}
         >
           <View
@@ -160,6 +172,44 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
           </View>
         </View>
       </View>
+      <TweetSort sort={sort} setSort={setSort} open={open} toggle={toggle} />
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          backgroundColor: COLORS.main,
+          padding: 10,
+        }}
+      >
+        <Text style={{ fontFamily: FONTS.regularBold, fontSize: 18, flex: 1 }}>
+          {sort.name}
+        </Text>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={{
+            width: 30,
+            height: 30,
+            justifyContent: "center",
+            alignItems: "center",
+            marginLeft: 2,
+            borderRadius: 30,
+          }}
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggle();
+          }}
+        >
+          <MaterialCommunityIcons
+            name="filter-variant"
+            size={18}
+            color="black"
+          />
+        </TouchableOpacity>
+      </View>
 
       <TabView
         style={{
@@ -186,7 +236,7 @@ const User: React.FunctionComponent<AppNavProps<"User">> = ({
             {...props}
             indicatorStyle={{ backgroundColor: COLORS.primary, height: 5 }}
             style={{ backgroundColor: COLORS.main }}
-            tabStyle={{ paddingVertical: 15 }}
+            tabStyle={{ paddingVertical: 0 }}
             labelStyle={[
               styles.h1,
               { color: COLORS.black, fontSize: 16, textTransform: "lowercase" },

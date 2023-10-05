@@ -33,6 +33,8 @@ const TweetActions: React.FunctionComponent<Props> = ({
   const { me } = useMeStore();
   const { mutateAsync: mutateDeleteTweet, isLoading: deleting } =
     trpc.tweet.del.useMutation();
+  const { mutateAsync: mutateBlockUser, isLoading: blocking } =
+    trpc.blocked.block.useMutation();
 
   const deleteTweet = () => {
     if (settings.haptics) {
@@ -65,6 +67,21 @@ const TweetActions: React.FunctionComponent<Props> = ({
       navigation.navigate("Edit", { id: tweet.id, from });
       toggle();
     }
+  };
+
+  const block = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
+    mutateBlockUser({ uid: tweet.userId }).then(() => {
+      toggle();
+    });
+  };
+  const report = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
+    toggle();
   };
 
   return (
@@ -122,7 +139,7 @@ const TweetActions: React.FunctionComponent<Props> = ({
           }}
           onPress={editTweet}
           activeOpacity={0.7}
-          disabled={deleting}
+          disabled={deleting || blocking}
         >
           <Text
             style={[
@@ -153,7 +170,8 @@ const TweetActions: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          disabled={deleting || blocking}
+          onPress={report}
         >
           <Text
             style={[
@@ -182,7 +200,7 @@ const TweetActions: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          disabled={deleting || blocking}
           onPress={deleteTweet}
         >
           <Text
@@ -212,7 +230,8 @@ const TweetActions: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          disabled={deleting || blocking}
+          onPress={block}
         >
           <Text
             style={[

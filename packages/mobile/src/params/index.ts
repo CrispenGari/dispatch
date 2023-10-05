@@ -40,8 +40,9 @@ export type AppParamList = {
     id: string;
     from: keyof AppParamList;
   };
-  ChangePassword: undefined;
-  ChangeEmail: undefined;
+  ChangePassword: { from: keyof AppParamList };
+  ChangeEmail: { from: keyof AppParamList };
+  Blocked: { from: keyof AppParamList };
 };
 
 export type AppNavProps<T extends keyof AppParamList> = {
