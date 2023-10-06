@@ -4,12 +4,12 @@ import { BottomSheet } from "react-native-btr";
 import { APP_NAME, COLORS } from "../../constants";
 import { styles } from "../../styles";
 import { onImpact } from "../../utils";
-import type { Reply } from "@dispatch/api";
+import type { Reply, User } from "@dispatch/api";
 import { useMeStore, useSettingsStore } from "../../store";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { trpc } from "../../utils/trpc";
 interface Props {
-  reply: Reply;
+  reply: Reply & { creator: User };
   open: boolean;
   toggle: () => void;
 }
@@ -20,6 +20,8 @@ const ReplyActions: React.FunctionComponent<Props> = ({
 }) => {
   const { isLoading: deleting, mutateAsync: mutateDeleteReply } =
     trpc.comment.deleteCommentReply.useMutation();
+  const { mutateAsync: mutateBlockUser, isLoading: blocking } =
+    trpc.blocked.block.useMutation();
   const { settings } = useSettingsStore();
   const { me } = useMeStore();
 
@@ -45,6 +47,48 @@ const ReplyActions: React.FunctionComponent<Props> = ({
       toggle();
     });
   };
+
+  const block = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
+    Alert.alert(
+      APP_NAME,
+      `Are you sure you want to block ${reply.creator.nickname}.`,
+      [
+        {
+          style: "default",
+          text: "OK",
+          onPress: () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            mutateBlockUser({ uid: reply.userId }).then(() => {
+              toggle();
+            });
+          },
+        },
+        {
+          style: "cancel",
+          text: "CANCEL",
+          onPress: () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggle();
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+  const report = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
+    toggle();
+  };
+
   return (
     <BottomSheet
       visible={!!open}
@@ -100,7 +144,8 @@ const ReplyActions: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          onPress={report}
+          disabled={deleting || blocking}
         >
           <Text
             style={[
@@ -129,7 +174,7 @@ const ReplyActions: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          disabled={deleting || blocking}
           onPress={deleteReply}
         >
           <Text
@@ -159,7 +204,8 @@ const ReplyActions: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          onPress={block}
+          disabled={deleting || blocking}
         >
           <Text
             style={[

@@ -15,6 +15,7 @@ import { styles } from "../../styles";
 import { trpc } from "../../utils/trpc";
 import Ripple from "../ProgressIndicators/Ripple";
 import TweetMention from "../Tweet/TweetMention";
+import TweetSkeleton from "../skeletons/TweetSkeleton";
 
 interface Props {
   uid: string;
@@ -45,26 +46,26 @@ const MentionsTab: React.FunctionComponent<Props> = ({ navigation, uid }) => {
       id: string;
     }[]
   >([]);
-  // trpc.tweet.onNewTweet.useSubscription(
-  //   { uid },
-  //   {
-  //     onData: async (data) => {
-  //       if (!!data) {
-  //         await refetch();
-  //       }
-  //     },
-  //   }
-  // );
-  // trpc.tweet.onDeleteTweet.useSubscription(
-  //   { uid },
-  //   {
-  //     onData: async (data) => {
-  //       if (!!data) {
-  //         await refetch();
-  //       }
-  //     },
-  //   }
-  // );
+  trpc.tweet.onNewTweet.useSubscription(
+    { uid },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.tweet.onDeleteTweet.useSubscription(
+    { uid },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
   const [end, setEnd] = React.useState(false);
   const onScroll = async (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     e.persist();
@@ -84,7 +85,26 @@ const MentionsTab: React.FunctionComponent<Props> = ({ navigation, uid }) => {
     }
   }, [data]);
 
-  if (!!!mentions) return null;
+  if (fetching && mentions.length === 0)
+    return (
+      <ScrollView>
+        {Array(10).map((_, i) => (
+          <TweetSkeleton key={i} />
+        ))}
+      </ScrollView>
+    );
+  if (mentions.length === 0)
+    return (
+      <View
+        style={{
+          justifyContent: "center",
+          padding: 20,
+          alignItems: "center",
+        }}
+      >
+        <Text style={[styles.p, { fontSize: 14 }]}>No tweets.</Text>
+      </View>
+    );
   return (
     <ScrollView
       style={{ marginTop: 10, flex: 1, backgroundColor: COLORS.main }}
@@ -130,7 +150,7 @@ const MentionsTab: React.FunctionComponent<Props> = ({ navigation, uid }) => {
             paddingVertical: 30,
           }}
         >
-          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
             End of tweets.
           </Text>
         </View>

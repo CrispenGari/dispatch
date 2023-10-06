@@ -11,12 +11,13 @@ import type { AppNavProps } from "../../../params";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { COLORS, FONTS } from "../../../constants";
 import { onImpact } from "../../../utils";
-import { useSettingsStore } from "../../../store";
+import { useMeStore, useSettingsStore } from "../../../store";
 import { usePlatform } from "../../../hooks";
 import { trpc } from "../../../utils/trpc";
-import type { User } from "@dispatch/api";
+import type { Blocked as B } from "@dispatch/api";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
 import { styles } from "../../../styles";
+import BlockedUser from "../../../components/User/Blocked";
 
 const Blocked: React.FunctionComponent<AppNavProps<"Blocked">> = ({
   navigation,
@@ -25,7 +26,8 @@ const Blocked: React.FunctionComponent<AppNavProps<"Blocked">> = ({
   const { settings } = useSettingsStore();
   const { os } = usePlatform();
   const [end, setEnd] = React.useState(false);
-  const [blocked, setBlocked] = React.useState<User[]>([]);
+  const [blocked, setBlocked] = React.useState<B[]>([]);
+  const { me } = useMeStore();
   const {
     data,
     refetch,
@@ -43,9 +45,31 @@ const Blocked: React.FunctionComponent<AppNavProps<"Blocked">> = ({
       getNextPageParam: ({ nextCursor }) => nextCursor,
     }
   );
+
+  trpc.blocked.onUserUnBlock.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+
+  trpc.blocked.onUserBlock.useSubscription(
+    { uid: me?.id || "" },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
   React.useEffect(() => {
     if (!!data?.pages) {
-      setBlocked(data.pages.flatMap((page) => page.blocked.map((b) => b.user)));
+      setBlocked(data.pages.flatMap((page) => page.blocked));
     }
   }, [data]);
   React.useLayoutEffect(() => {
@@ -72,6 +96,7 @@ const Blocked: React.FunctionComponent<AppNavProps<"Blocked">> = ({
       ),
     });
   }, [navigation, settings, route]);
+
   const onScroll = async (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     e.persist();
     const paddingToBottom = 10;
@@ -84,6 +109,33 @@ const Blocked: React.FunctionComponent<AppNavProps<"Blocked">> = ({
       await fetchNextPage();
     }
   };
+
+  if (fetching)
+    return (
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          paddingVertical: 30,
+        }}
+      >
+        <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
+          Loading ...
+        </Text>
+      </View>
+    );
+  if (blocked.length === 0)
+    return (
+      <View
+        style={{
+          justifyContent: "center",
+          padding: 20,
+          alignItems: "center",
+        }}
+      >
+        <Text style={[styles.h1, { fontSize: 14 }]}>No blocked users.</Text>
+      </View>
+    );
   return (
     <ScrollView
       onScroll={onScroll}
@@ -102,7 +154,9 @@ const Blocked: React.FunctionComponent<AppNavProps<"Blocked">> = ({
         />
       }
     >
-      <Text>{JSON.stringify(blocked, null, 2)}</Text>
+      {blocked.map((blocked) => (
+        <BlockedUser key={blocked.id} blocked={blocked} />
+      ))}
       {isFetchingNextPage && end ? (
         <View
           style={{
@@ -123,7 +177,7 @@ const Blocked: React.FunctionComponent<AppNavProps<"Blocked">> = ({
             paddingVertical: 30,
           }}
         >
-          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
             End of blocked users.
           </Text>
         </View>

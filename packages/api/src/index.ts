@@ -19,6 +19,7 @@ export type {
   Mention,
   Reply,
   Vote,
+  Blocked,
 } from "@prisma/client";
 import process from "process";
 

@@ -86,19 +86,13 @@ const All: React.FunctionComponent<Props> = ({ navigation, sort }) => {
       await fetchNextPage();
     }
   };
-  if (fetching)
+  if ((fetching || loading) && notifications.length === 0)
     return (
-      <View
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          paddingVertical: 30,
-        }}
-      >
-        <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
-          Loading notifications...
-        </Text>
-      </View>
+      <ScrollView>
+        {Array(10).map((_, i) => (
+          <NotificationSkeleton key={i} />
+        ))}
+      </ScrollView>
     );
   if (notifications.length === 0)
     return (
@@ -109,17 +103,10 @@ const All: React.FunctionComponent<Props> = ({ navigation, sort }) => {
           alignItems: "center",
         }}
       >
-        <Text style={[styles.h1, { fontSize: 18 }]}>No notifications.</Text>
+        <Text style={[styles.p, { fontSize: 14 }]}>No notifications.</Text>
       </View>
     );
-  if (loading)
-    return (
-      <ScrollView>
-        {Array(10).map((_, i) => (
-          <NotificationSkeleton key={i} />
-        ))}
-      </ScrollView>
-    );
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: COLORS.main }}
@@ -166,7 +153,7 @@ const All: React.FunctionComponent<Props> = ({ navigation, sort }) => {
             paddingVertical: 30,
           }}
         >
-          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
             End of notifications.
           </Text>
         </View>

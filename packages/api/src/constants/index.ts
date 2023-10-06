@@ -5,6 +5,9 @@ export const __code__exp__ = 60 * 60; // 1hr
 export const __token__exp__ = 60 * 60; // 1hr
 
 export enum Events {
+  // BLOCKED
+  ON_USER_UN_BLOCK = "ON_USER_UN_BLOCK",
+  ON_USER_BLOCK = "ON_USER_BLOCK",
   // MENTIONS
   ON_TWEET_MENTION = "ON_TWEET_MENTION",
   // AUTH

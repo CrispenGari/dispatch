@@ -3,12 +3,19 @@ import * as Linking from "expo-linking";
 import React from "react";
 import { AuthStack } from "./auth";
 import NetInfo from "@react-native-community/netinfo";
-import { useLocationStore, useMeStore, useNetworkStore } from "../store";
+import {
+  useLocationStore,
+  useMeStore,
+  useNetworkStore,
+  useSettingsStore,
+} from "../store";
 import { AppTabs } from "./app";
 import * as Location from "expo-location";
 import { useLocationPermission, useNotificationsToken } from "../hooks";
 import { trpc } from "../utils/trpc";
-import { sendPushNotification } from "../utils";
+import { retrieve, sendPushNotification } from "../utils";
+import { KEYS } from "../constants";
+import type { SettingsType } from "../types";
 
 const Routes = () => {
   const prefix = Linking.createURL("/");
@@ -17,6 +24,7 @@ const Routes = () => {
   const { token } = useNotificationsToken();
   const { granted } = useLocationPermission();
   const { me, setMe } = useMeStore();
+  const { setSettings } = useSettingsStore();
 
   trpc.user.onUpdate.useSubscription(
     { uid: me?.id || "" },
@@ -57,6 +65,16 @@ const Routes = () => {
       });
     }
   }, [granted, setLocation]);
+
+  React.useEffect(() => {
+    (async () => {
+      const v = await retrieve(KEYS.APP_SETTINGS);
+      if (!!v) {
+        const settings = JSON.parse(v) as SettingsType;
+        setSettings(settings);
+      }
+    })();
+  }, []);
 
   return (
     <NavigationContainer

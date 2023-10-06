@@ -15,6 +15,7 @@ import { useSettingsStore } from "../../store";
 import { COLORS } from "../../constants";
 import Ripple from "../ProgressIndicators/Ripple";
 import { styles } from "../../styles";
+import TweetSkeleton from "../skeletons/TweetSkeleton";
 
 interface Props {
   uid: string;
@@ -84,7 +85,26 @@ const TweetsTab: React.FunctionComponent<Props> = ({ uid, navigation }) => {
     }
   }, [data]);
 
-  if (!!!tweets) return null;
+  if (fetching && tweets.length === 0)
+    return (
+      <ScrollView>
+        {Array(10).map((_, i) => (
+          <TweetSkeleton key={i} />
+        ))}
+      </ScrollView>
+    );
+  if (tweets.length === 0)
+    return (
+      <View
+        style={{
+          justifyContent: "center",
+          padding: 20,
+          alignItems: "center",
+        }}
+      >
+        <Text style={[styles.p, { fontSize: 14 }]}>No tweets.</Text>
+      </View>
+    );
   return (
     <ScrollView
       style={{ marginTop: 10, flex: 1, backgroundColor: COLORS.main }}
@@ -130,7 +150,7 @@ const TweetsTab: React.FunctionComponent<Props> = ({ uid, navigation }) => {
             paddingVertical: 30,
           }}
         >
-          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
             End of tweets.
           </Text>
         </View>

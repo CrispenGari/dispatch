@@ -1,12 +1,50 @@
+import EventEmitter from "events";
+import { Events } from "../../constants";
 import { isAuth } from "../../middleware/isAuth.middleware";
 import {
   blockSchema,
   blockedSchema,
+  onUserBlockSchema,
+  onUserUnBlockSchema,
   unblockSchema,
 } from "../../schema/blocked.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
+import { Blocked } from "@prisma/client";
+import { observable } from "@trpc/server/observable";
 
+const ee = new EventEmitter();
+ee.setMaxListeners(100);
 export const blockedRouter = router({
+  onUserBlock: publicProcedure
+    .input(onUserBlockSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<Blocked>((emit) => {
+        const handler = (blocked: Blocked) => {
+          if (blocked.userId === uid) {
+            emit.next(blocked);
+          }
+        };
+        ee.on(Events.ON_USER_BLOCK, handler);
+        return () => {
+          ee.off(Events.ON_USER_BLOCK, handler);
+        };
+      });
+    }),
+  onUserUnBlock: publicProcedure
+    .input(onUserUnBlockSchema)
+    .subscription(async ({ ctx: {}, input: { uid } }) => {
+      return observable<Blocked>((emit) => {
+        const handler = (blocked: Blocked) => {
+          if (blocked.userId === uid) {
+            emit.next(blocked);
+          }
+        };
+        ee.on(Events.ON_USER_UN_BLOCK, handler);
+        return () => {
+          ee.off(Events.ON_USER_UN_BLOCK, handler);
+        };
+      });
+    }),
   blocked: publicProcedure
     .input(blockedSchema)
     .use(isAuth)
@@ -19,10 +57,8 @@ export const blockedRouter = router({
           };
         const blocked = await prisma.blocked.findMany({
           take: limit + 1,
+          where: { userId: me.id },
           orderBy: { createdAt: "asc" },
-          include: {
-            user: true,
-          },
           cursor: cursor ? { id: cursor } : undefined,
         });
         let nextCursor: typeof cursor | undefined = undefined;
@@ -48,7 +84,6 @@ export const blockedRouter = router({
           };
         const me = await prisma.user.findFirst({
           where: { id: usr.id },
-          include: { blocked: true },
         });
         if (!!!me)
           return {
@@ -61,19 +96,22 @@ export const blockedRouter = router({
             error:
               "Failed to block the user, that user account is no longer on dispatch.",
           };
-
-        const blocked = !!me.blocked.find((usr) => usr.uid === user.id);
+        const blocks = await prisma.blocked.findMany({
+          where: { userId: me.id },
+        });
+        const blocked = blocks.find((usr) => usr.uid === user.id);
         if (blocked)
           return {
             error:
               "Failed to block the user, you have already blocked this user.",
           };
-        await prisma.blocked.create({
+        const u = await prisma.blocked.create({
           data: {
             uid: user.id,
             user: { connect: { id: me.id } },
           },
         });
+        ee.emit(Events.ON_USER_BLOCK, u);
         return true;
       } catch (error) {
         return { error: "Failed to block the user for whatever reason." };
@@ -91,8 +129,8 @@ export const blockedRouter = router({
           };
         const me = await prisma.user.findFirst({
           where: { id: usr.id },
-          include: { blocked: true },
         });
+
         if (!!!me)
           return {
             error:
@@ -104,8 +142,10 @@ export const blockedRouter = router({
             error:
               "Failed to unblock the user, that user account is no longer on dispatch.",
           };
-
-        const blocked = !!me.blocked.find((usr) => usr.uid === user.id);
+        const blocks = await prisma.blocked.findMany({
+          where: { userId: me.id },
+        });
+        const blocked = blocks.find((usr) => usr.uid === user.id);
         if (!blocked)
           return {
             error:
@@ -115,6 +155,7 @@ export const blockedRouter = router({
         await prisma.blocked.delete({
           where: { id: u?.id },
         });
+        ee.emit(Events.ON_USER_UN_BLOCK, u);
         return true;
       } catch (error) {
         return { error: "Failed to block the user for whatever reason." };

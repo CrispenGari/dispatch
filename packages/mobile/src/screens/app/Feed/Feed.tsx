@@ -287,7 +287,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
               paddingVertical: 30,
             }}
           >
-            <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+            <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
               End of tweets.
             </Text>
           </View>

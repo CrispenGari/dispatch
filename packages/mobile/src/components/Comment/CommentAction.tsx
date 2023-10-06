@@ -4,12 +4,12 @@ import { BottomSheet } from "react-native-btr";
 import { APP_NAME, COLORS } from "../../constants";
 import { styles } from "../../styles";
 import { onImpact } from "../../utils";
-import type { Comment } from "@dispatch/api";
+import type { Comment, User } from "@dispatch/api";
 import { useMeStore, useSettingsStore } from "../../store";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { trpc } from "../../utils/trpc";
 interface Props {
-  comment: Comment;
+  comment: Comment & { creator: User };
   open: boolean;
   toggle: () => void;
 }
@@ -22,6 +22,8 @@ const CommentAction: React.FunctionComponent<Props> = ({
   const { me } = useMeStore();
   const { isLoading: deleting, mutateAsync: mutateDeleteComment } =
     trpc.comment.deleteComment.useMutation();
+  const { mutateAsync: mutateBlockUser, isLoading: blocking } =
+    trpc.blocked.block.useMutation();
   const deleteComment = () => {
     if (settings.haptics) {
       onImpact();
@@ -44,6 +46,47 @@ const CommentAction: React.FunctionComponent<Props> = ({
       toggle();
     });
   };
+  const block = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
+    Alert.alert(
+      APP_NAME,
+      `Are you sure you want to block ${comment.creator.nickname}.`,
+      [
+        {
+          style: "default",
+          text: "OK",
+          onPress: () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            mutateBlockUser({ uid: comment.userId }).then(() => {
+              toggle();
+            });
+          },
+        },
+        {
+          style: "cancel",
+          text: "CANCEL",
+          onPress: () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggle();
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+  const report = () => {
+    if (settings.haptics) {
+      onImpact();
+    }
+    toggle();
+  };
+
   return (
     <BottomSheet
       visible={!!open}
@@ -99,7 +142,8 @@ const CommentAction: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          disabled={deleting || blocking}
+          onPress={report}
         >
           <Text
             style={[
@@ -128,7 +172,7 @@ const CommentAction: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          disabled={deleting || blocking}
           onPress={deleteComment}
         >
           <Text
@@ -158,7 +202,8 @@ const CommentAction: React.FunctionComponent<Props> = ({
             marginBottom: 1,
           }}
           activeOpacity={0.7}
-          disabled={deleting}
+          onPress={block}
+          disabled={deleting || blocking}
         >
           <Text
             style={[

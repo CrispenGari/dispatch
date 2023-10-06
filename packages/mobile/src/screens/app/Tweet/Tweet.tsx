@@ -678,7 +678,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
             paddingVertical: 30,
           }}
         >
-          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
             End of comments.
           </Text>
         </View>
@@ -691,7 +691,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
             paddingVertical: 30,
           }}
         >
-          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
             Loading comments...
           </Text>
         </View>
@@ -705,7 +705,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
             paddingVertical: 30,
           }}
         >
-          <Text style={[styles.h1, { textAlign: "center", fontSize: 18 }]}>
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
             No comments.
           </Text>
         </View>

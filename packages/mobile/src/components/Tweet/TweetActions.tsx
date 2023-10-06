@@ -11,12 +11,12 @@ import {
 } from "@expo/vector-icons";
 import { useMeStore, useSettingsStore } from "../../store";
 import { trpc } from "../../utils/trpc";
-import type { Tweet } from "@dispatch/api";
+import type { Tweet, User } from "@dispatch/api";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import type { AppParamList } from "../../params";
 
 interface Props {
-  tweet: Tweet;
+  tweet: Tweet & { creator: User };
   open: boolean;
   toggle: () => void;
   from: keyof AppParamList;
@@ -73,9 +73,35 @@ const TweetActions: React.FunctionComponent<Props> = ({
     if (settings.haptics) {
       onImpact();
     }
-    mutateBlockUser({ uid: tweet.userId }).then(() => {
-      toggle();
-    });
+    Alert.alert(
+      APP_NAME,
+      `Are you sure you want to block ${tweet.creator.nickname}.`,
+      [
+        {
+          style: "default",
+          text: "OK",
+          onPress: () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            mutateBlockUser({ uid: tweet.userId }).then(() => {
+              toggle();
+            });
+          },
+        },
+        {
+          style: "cancel",
+          text: "CANCEL",
+          onPress: () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            toggle();
+          },
+        },
+      ],
+      { cancelable: false }
+    );
   };
   const report = () => {
     if (settings.haptics) {
