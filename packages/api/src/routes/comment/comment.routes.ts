@@ -70,7 +70,6 @@ export const commentRoute = router({
         };
       });
     }),
-
   onCommentDelete: publicProcedure
     .input(onCommentDeleteSchema)
     .subscription(async ({ ctx: {}, input: { tweetId } }) => {
@@ -117,7 +116,6 @@ export const commentRoute = router({
             where: { nickname: { in: mentions } },
             select: { id: true },
           });
-
           const cmt = await prisma.comment.create({
             data: {
               text: comment.trim(),
@@ -275,14 +273,27 @@ export const commentRoute = router({
     ),
   get: publicProcedure
     .input(getSchema)
-    .query(async ({ ctx: { prisma }, input: { id } }) => {
+    .use(isAuth)
+    .query(async ({ ctx: { prisma, me }, input: { id } }) => {
       try {
+        if (!!!me) return null;
+        const blocked = await prisma.blocked.findMany({
+          where: {
+            userId: me.id,
+          },
+          select: { uid: true },
+        });
         const comment = await prisma.comment.findFirst({
           where: { id },
           include: {
             creator: true,
             replies: {
               include: { creator: true },
+              where: {
+                userId: {
+                  notIn: blocked.map((b) => b.uid),
+                },
+              },
             },
             reactions: { include: { creator: true } },
             mentions: {
@@ -290,7 +301,6 @@ export const commentRoute = router({
             },
           },
         });
-
         return comment;
       } catch (error) {
         return null;

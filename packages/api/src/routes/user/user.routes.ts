@@ -110,13 +110,29 @@ export const userRouter = router({
     .query(async ({ ctx: { me, prisma }, input: { nickname } }) => {
       try {
         if (!!!me) return [];
+
+        const blocked = await prisma.blocked.findMany({
+          where: {
+            userId: me.id,
+          },
+          select: { uid: true },
+        });
         const mentions = await prisma.user.findMany({
           where: {
-            nickname: {
-              contains: `%${nickname.trim().toLowerCase()}%`,
-              mode: "insensitive",
-            },
-            AND: { confirmed: true },
+            AND: [
+              {
+                nickname: {
+                  contains: `%${nickname.trim().toLowerCase()}%`,
+                  mode: "insensitive",
+                },
+              },
+              { confirmed: true },
+              {
+                id: {
+                  notIn: blocked.map((b) => b.uid),
+                },
+              },
+            ],
           },
         });
         return mentions.filter((mention) => mention.id !== me.id);

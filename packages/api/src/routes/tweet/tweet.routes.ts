@@ -289,35 +289,58 @@ export const tweetRouter = router({
 
   tweets: publicProcedure
     .input(tweetsSchema)
-    .query(async ({ ctx: { prisma }, input: { cursor, limit, orderBy } }) => {
-      /*
+    .use(isAuth)
+    .query(
+      async ({ ctx: { prisma, me }, input: { cursor, limit, orderBy } }) => {
+        /*
       fetch only the ids of recent tweets.
     */
 
-      try {
-        const tweets = await prisma.tweet.findMany({
-          take: limit + 1,
-          orderBy: { createdAt: orderBy },
-          select: {
-            id: true,
-          },
-          cursor: cursor ? { id: cursor } : undefined,
-        });
-        let nextCursor: typeof cursor | undefined = undefined;
-        if (tweets.length > limit) {
-          const nextItem = tweets.pop() as (typeof tweets)[number];
-          nextCursor = nextItem.id;
+        try {
+          if (!!!me) return { tweets: [], nextCursor: undefined };
+          const blocked = await prisma.blocked.findMany({
+            where: {
+              userId: me.id,
+            },
+            select: { uid: true },
+          });
+          const tweets = await prisma.tweet.findMany({
+            take: limit + 1,
+            orderBy: { createdAt: orderBy },
+            select: {
+              id: true,
+            },
+            cursor: cursor ? { id: cursor } : undefined,
+            where: {
+              userId: {
+                notIn: blocked.map((u) => u.uid),
+              },
+            },
+          });
+          let nextCursor: typeof cursor | undefined = undefined;
+          if (tweets.length > limit) {
+            const nextItem = tweets.pop() as (typeof tweets)[number];
+            nextCursor = nextItem.id;
+          }
+          return { tweets, nextCursor };
+        } catch (error) {
+          console.log(error);
+          return { tweets: [], nextCursor: undefined };
         }
-        return { tweets, nextCursor };
-      } catch (error) {
-        console.log(error);
-        return { tweets: [], nextCursor: undefined };
       }
-    }),
+    ),
   tweet: publicProcedure
     .input(tweetSchema)
-    .query(async ({ ctx: { prisma }, input: { id } }) => {
+    .use(isAuth)
+    .query(async ({ ctx: { prisma, me }, input: { id } }) => {
       try {
+        if (!!!me) return undefined;
+        const blocked = await prisma.blocked.findMany({
+          where: {
+            userId: me.id,
+          },
+          select: { uid: true },
+        });
         const tweet = await prisma.tweet.findFirst({
           where: { id },
           include: {
@@ -336,6 +359,9 @@ export const tweetRouter = router({
               select: { id: true },
               orderBy: {
                 createdAt: "desc",
+              },
+              where: {
+                userId: { notIn: blocked.map((u) => u.uid) },
               },
             },
           },

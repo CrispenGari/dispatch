@@ -36,8 +36,10 @@ const Mentions: React.FunctionComponent<Props> = ({ nickname, setForm }) => {
 
   React.useEffect(() => {
     if (!!mentions) {
-      Keyboard.dismiss();
-      setOpen(!!nickname && !!mentions.length);
+      if (!!nickname && mentions.length !== 0) {
+        setOpen(true);
+        Keyboard.dismiss();
+      }
     }
   }, [nickname, mentions]);
 
