@@ -8,7 +8,7 @@ import { notificationRouter } from "./notification/notification.routes";
 import { pollRouter } from "./poll/poll.routes";
 import { profileRouter } from "./profile/profile.routes";
 import { reactionRoute } from "./reaction/reaction.routes";
-import { tweetRouter } from "./tweet/tweet.routes";
+import { tweetRouter } from "./tweet/tweetRouter";
 import { userRouter } from "./user/user.routes";
 
 export const appRouter = router({

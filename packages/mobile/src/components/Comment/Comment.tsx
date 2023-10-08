@@ -102,7 +102,11 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
       setReplies(data.pages.flatMap((page) => page.replies));
     }
   }, [data]);
-  const { data: comment, refetch } = trpc.comment.get.useQuery({ id });
+  const {
+    data: comment,
+    refetch,
+    isFetching: fetching,
+  } = trpc.comment.get.useQuery({ id });
   const { mutateAsync: mutateReactToComment, isLoading: reacting } =
     trpc.reaction.reactToComment.useMutation();
 
@@ -205,7 +209,8 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     }
   }, [comment, me]);
 
-  if (!!!comment) return <CommentSkeleton />;
+  if (fetching) return <CommentSkeleton />;
+  if (!!!comment) return null;
 
   return (
     <View

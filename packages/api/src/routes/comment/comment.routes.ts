@@ -284,7 +284,19 @@ export const commentRoute = router({
           select: { uid: true },
         });
         const comment = await prisma.comment.findFirst({
-          where: { id },
+          where: {
+            id,
+            AND: [
+              {
+                id,
+              },
+              {
+                userId: {
+                  notIn: blocked.map((b) => b.uid),
+                },
+              },
+            ],
+          },
           include: {
             creator: true,
             replies: {
@@ -295,7 +307,14 @@ export const commentRoute = router({
                 },
               },
             },
-            reactions: { include: { creator: true } },
+            reactions: {
+              include: { creator: true },
+              where: {
+                creatorId: {
+                  notIn: blocked.map((b) => b.uid),
+                },
+              },
+            },
             mentions: {
               include: { user: { select: { nickname: true, id: true } } },
             },
@@ -309,13 +328,37 @@ export const commentRoute = router({
 
   getReply: publicProcedure
     .input(getReplySchema)
-    .query(async ({ ctx: { prisma }, input: { id } }) => {
+    .use(isAuth)
+    .query(async ({ ctx: { prisma, me }, input: { id } }) => {
       try {
+        if (!!!me) return null;
+        const blocked = await prisma.blocked.findMany({
+          where: {
+            userId: me.id,
+          },
+          select: { uid: true },
+        });
         const reply = await prisma.reply.findFirst({
-          where: { id },
+          where: {
+            AND: [
+              { id },
+              {
+                userId: {
+                  notIn: blocked.map((b) => b.uid),
+                },
+              },
+            ],
+          },
           include: {
             creator: true,
-            reactions: { include: { creator: true } },
+            reactions: {
+              include: { creator: true },
+              where: {
+                creatorId: {
+                  notIn: blocked.map((b) => b.uid),
+                },
+              },
+            },
             mentions: {
               include: { user: { select: { nickname: true, id: true } } },
             },

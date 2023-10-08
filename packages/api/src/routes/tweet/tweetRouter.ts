@@ -15,13 +15,11 @@ import {
 } from "../../schema/tweet.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
 import { observable } from "@trpc/server/observable";
-import EventEmitter from "events";
 import { Events } from "../../constants";
 import { isAuth } from "../../middleware/isAuth.middleware";
 import { expiryDate } from "../../utils";
+import { ee } from "./tweet.routes";
 
-const ee = new EventEmitter();
-ee.setMaxListeners(100);
 export const tweetRouter = router({
   onNewTweetNotification: publicProcedure
     .input(onNewTweetNotificationSchema)
@@ -152,38 +150,12 @@ export const tweetRouter = router({
             },
           });
 
-          const blocked = await prisma.blocked.findMany({
-            where: {
-              userId: me.id,
-            },
-            select: { uid: true },
-          });
-
-          const toBeNotified = await prisma.user.findMany({
-            where: {
-              AND: [
-                {
-                  id: {
-                    not: me.id,
-                  },
-                },
-                {
-                  id: {
-                    notIn: blocked.map((b) => b.uid),
-                  },
-                },
-              ],
-            },
-            select: { id: true },
-          });
-
-          ee.emit(Events.ON_NEW_TWEET, tweet);
-          toBeNotified.forEach(async (usr) => {
+          if (tweet.creator.id !== me.id) {
             const notification = await prisma.notification.create({
               data: {
                 title: `new tweet`,
                 message: `@${me.nickname} - ${tweet.text}`,
-                user: { connect: { id: usr.id } },
+                user: { connect: { id: "" } },
                 category: "general",
                 type: "new_tweet",
                 tweetId: tweet.id,
@@ -191,7 +163,8 @@ export const tweetRouter = router({
               include: { user: true },
             });
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
-          });
+          }
+          ee.emit(Events.ON_NEW_TWEET, tweet);
           mentioned.forEach(async (mention) => {
             const notification = await prisma.notification.create({
               data: {
@@ -320,7 +293,6 @@ export const tweetRouter = router({
         /*
       fetch only the ids of recent tweets.
     */
-
         try {
           if (!!!me) return { tweets: [], nextCursor: undefined };
           const blocked = await prisma.blocked.findMany({
@@ -337,9 +309,9 @@ export const tweetRouter = router({
             },
             cursor: cursor ? { id: cursor } : undefined,
             where: {
-              userId: {
-                notIn: blocked.map((u) => u.uid),
-              },
+              // userId: {
+              //   notIn: blocked.map((u) => u.uid),
+              // },
             },
           });
           let nextCursor: typeof cursor | undefined = undefined;
@@ -367,9 +339,7 @@ export const tweetRouter = router({
           select: { uid: true },
         });
         const tweet = await prisma.tweet.findFirst({
-          where: {
-            AND: [{ id }, { userId: { notIn: blocked.map((u) => u.uid) } }],
-          },
+          where: { id },
           include: {
             polls: { include: { votes: true } },
             creator: true,
@@ -380,11 +350,6 @@ export const tweetRouter = router({
               include: { creator: true },
               orderBy: {
                 createdAt: "desc",
-              },
-              where: {
-                creatorId: {
-                  notIn: blocked.map((u) => u.uid),
-                },
               },
             },
             comments: {

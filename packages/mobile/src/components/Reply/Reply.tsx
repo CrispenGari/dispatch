@@ -69,7 +69,7 @@ const Reply: React.FunctionComponent<Props> = ({
   const {
     refetch,
     data: reply,
-    isLoading,
+    isFetching: fetching,
   } = trpc.comment.getReply.useQuery({ id });
 
   trpc.reaction.onTweetCommentReplyReaction.useSubscription(
@@ -129,7 +129,8 @@ const Reply: React.FunctionComponent<Props> = ({
     }
   }, [reply, me]);
 
-  if (!!!reply || isLoading) return <ReplySkeleton />;
+  if (fetching) return <ReplySkeleton />;
+  if (!!!reply) return null;
   return (
     <View
       style={{
