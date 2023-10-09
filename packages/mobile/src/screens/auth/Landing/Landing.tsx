@@ -2,7 +2,7 @@ import { View, Text, Image, TouchableOpacity } from "react-native";
 import React from "react";
 import { APP_NAME, COLORS, FONTS, KEYS, logo } from "../../../constants";
 import { styles } from "../../../styles";
-import { AuthNavProps } from "../../../params";
+
 import { useMediaQuery } from "../../../hooks";
 import { BottomSheet } from "react-native-btr";
 import TypeWriter from "react-native-typewriter";
@@ -10,8 +10,10 @@ import Footer from "../../../components/Footer/Footer";
 import { trpc } from "../../../utils/trpc";
 import Loading from "../../../components/Loading/Loading";
 import { useMeStore, useSettingsStore } from "../../../store";
-import { SettingsType } from "../../../types";
+
 import { onImpact, retrieve, store } from "../../../utils";
+import type { AuthNavProps } from "../../../params";
+import type { SettingsType } from "../../../types";
 
 const messages: Array<string> = [
   "Hello 👋, amazing having you on dispatch.",
@@ -105,6 +107,7 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
             }
             const s = await retrieve(KEYS.APP_SETTINGS);
             if (!!!s) {
+              setSettings(settings);
               await store(KEYS.APP_SETTINGS, JSON.stringify(settings));
             } else {
               setSettings(JSON.parse(s) as SettingsType);

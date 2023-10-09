@@ -73,7 +73,7 @@ const DistanceSettings = () => {
           }
         />
         <Text style={[styles.h1, { fontSize: 20, marginLeft: 10 }]}>
-          {form.distance.toFixed(1)} km.
+          {form.distance?.toFixed(1)} km.
         </Text>
       </View>
       <Text style={[styles.p, { fontSize: 16 }]}>

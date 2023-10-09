@@ -20,6 +20,7 @@ export type {
   Reply,
   Vote,
   Blocked,
+  Notification,
 } from "@prisma/client";
 import process from "process";
 

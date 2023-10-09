@@ -62,6 +62,12 @@ export const pollRouter = router({
           },
         });
         if (!!!tweet) return false;
+        const mentions = await prisma.mention.findMany({
+          where: { tweetId: tweet.id },
+          select: {
+            userId: true,
+          },
+        });
         if (me.id === tweet.creator.id) return false;
         const voted = tweet.polls
           .flatMap((p) => p.votes)
@@ -86,9 +92,9 @@ export const pollRouter = router({
           const notification = await prisma.notification.create({
             data: {
               category: "general",
-              type: "reaction",
+              type: "poll_vote_in",
               title: `new vote in`,
-              message: `your tweet polls received a new check the results.`,
+              message: `your tweet polls received a new vote check the results.`,
               user: { connect: { id: tweet.creator.id } },
               tweetId: tweet.id,
             },
@@ -102,8 +108,21 @@ export const pollRouter = router({
             creator: true,
           },
         });
-
         ee.emit(Events.ON_POLL_VOTE, tt);
+        mentions.forEach(async (usr) => {
+          const notification = await prisma.notification.create({
+            data: {
+              category: "mention",
+              type: "poll_vote_in",
+              title: `new vote in`,
+              message: `a tweet that you are mentioned in's polls received a new vote check the results.`,
+              user: { connect: { id: usr.userId } },
+              tweetId: tweet.id,
+            },
+            include: { user: true },
+          });
+          ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+        });
         return true;
       } catch (err) {
         console.log(err);

@@ -10,7 +10,6 @@ import {
   MaterialIcons,
   Ionicons,
 } from "@expo/vector-icons";
-
 import Reply from "../Reply/Reply";
 import { trpc } from "../../utils/trpc";
 import CommentSkeleton from "../skeletons/CommentSkeleton";

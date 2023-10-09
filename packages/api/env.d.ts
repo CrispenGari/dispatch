@@ -8,6 +8,7 @@
 			NODEMAILER_PASSWORD : string;
 			IP_ADDRESS : string;
 			REDIS_HOST : string;
+			REDIS_URL : string;
 			NODE_TLS_REJECT_UNAUTHORIZED : string;
 
     }

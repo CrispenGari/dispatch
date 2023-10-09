@@ -14,7 +14,6 @@ import {
   replySchema,
 } from "../../schema/comment.schema";
 import { publicProcedure, router } from "../../trpc/trpc";
-
 import { Events } from "../../constants";
 import EventEmitter from "events";
 import { Tweet, User, Notification, Comment, Reply } from "@prisma/client";
@@ -100,7 +99,6 @@ export const commentRoute = router({
         };
       });
     }),
-
   comment: publicProcedure
     .input(commentSchema)
     .use(isAuth)
@@ -138,6 +136,7 @@ export const commentRoute = router({
             },
             include: { creator: true },
           });
+
           if (tweet.creator.id !== me.id) {
             const notification = await prisma.notification.create({
               data: {
@@ -162,13 +161,7 @@ export const commentRoute = router({
                 title: `new mention`,
                 message: `@${cmt.creator.nickname} - mentioned you in ${
                   me.gender === "FEMALE" ? "her" : "his"
-                } comment on ${
-                  tweet.userId === me.id
-                    ? me.gender === "FEMALE"
-                      ? "her"
-                      : "his"
-                    : tweet.creator.nickname + "'s"
-                } tweet.`,
+                } comment`,
                 user: { connect: { id: mention.id } },
               },
               include: { user: true },
@@ -227,10 +220,7 @@ export const commentRoute = router({
                 type: "reply",
                 tweetId: comment.tweetId as any,
                 title: `comment reply`,
-                message:
-                  me.id === comment.tweet?.creator.id
-                    ? `@${commentReply.creator.nickname} - reply to your comment on your tweet.`
-                    : `@${commentReply.creator.nickname} - reply to your comment on ${comment.tweet?.creator.nickname}'s tweet.`,
+                message: `@${commentReply.creator.nickname} - reply to your comment on your a tweet.`,
                 user: { connect: { id: comment.creator.id } },
               },
               include: { user: true },
@@ -250,13 +240,7 @@ export const commentRoute = router({
                   commentReply.creator.nickname
                 } - mentioned you in ${
                   me.gender === "FEMALE" ? "her" : "his"
-                } reply on ${
-                  comment.tweet?.userId === me.id
-                    ? me.gender === "FEMALE"
-                      ? "her"
-                      : "his"
-                    : comment?.tweet?.creator.nickname + "'s"
-                } tweet.`,
+                } reply on a tweet.`,
                 user: { connect: { id: mention.id } },
               },
               include: { user: true },

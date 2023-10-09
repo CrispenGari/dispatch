@@ -34,15 +34,83 @@ const Routes = () => {
       },
     }
   );
-  trpc.tweet.onNewTweet.useSubscription(
-    { uid: me?.id || "" },
+  trpc.reaction.onNewReactionNotification.useSubscription(
+    {
+      uid: me?.id || "",
+    },
     {
       onData: async (data) => {
         if (!!token) {
           await sendPushNotification(
             token,
-            `dispatch - ${data.creator.nickname}`,
-            data.text
+            `dispatch - ${data.user.nickname}`,
+            data.message
+          );
+        }
+      },
+    }
+  );
+
+  trpc.comment.onNewCommentNotification.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data) => {
+        if (!!token) {
+          await sendPushNotification(
+            token,
+            `dispatch - ${data.user.nickname}`,
+            data.message
+          );
+        }
+      },
+    }
+  );
+
+  trpc.tweet.onNewTweetNotification.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data: any) => {
+        if (!!token) {
+          await sendPushNotification(
+            token,
+            `dispatch - ${data.user.nickname}`,
+            data.message
+          );
+        }
+      },
+    }
+  );
+  trpc.tweet.onTweetMention.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data: any) => {
+        if (!!token) {
+          await sendPushNotification(
+            token,
+            `dispatch - ${data.user.nickname}`,
+            data.message
+          );
+        }
+      },
+    }
+  );
+  trpc.poll.onVoteNotification.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data: any) => {
+        if (!!token) {
+          await sendPushNotification(
+            token,
+            `dispatch - ${data.user.nickname}`,
+            data.message
           );
         }
       },

@@ -18,7 +18,10 @@ import { observable } from "@trpc/server/observable";
 import { Events } from "../../constants";
 import { isAuth } from "../../middleware/isAuth.middleware";
 import { expiryDate } from "../../utils";
-import { ee } from "./tweet.routes";
+import EventEmitter from "events";
+
+const ee = new EventEmitter();
+ee.setMaxListeners(100);
 
 export const tweetRouter = router({
   onNewTweetNotification: publicProcedure
@@ -309,9 +312,9 @@ export const tweetRouter = router({
             },
             cursor: cursor ? { id: cursor } : undefined,
             where: {
-              // userId: {
-              //   notIn: blocked.map((u) => u.uid),
-              // },
+              userId: {
+                notIn: blocked.map((u) => u.uid),
+              },
             },
           });
           let nextCursor: typeof cursor | undefined = undefined;

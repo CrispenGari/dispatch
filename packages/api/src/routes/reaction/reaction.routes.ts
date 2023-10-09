@@ -108,6 +108,11 @@ export const reactionRoute = router({
             },
             include: { creator: true },
           });
+
+          const mentions = await prisma.mention.findMany({
+            where: { tweetId: _tweet.id },
+            select: { userId: true },
+          });
           if (_tweet.creator.id === me.id) {
             const notification = await prisma.notification.create({
               data: {
@@ -123,6 +128,20 @@ export const reactionRoute = router({
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           }
           ee.emit(Events.ON_TWEET_REACTION, _tweet);
+          mentions.forEach(async (usr) => {
+            const notification = await prisma.notification.create({
+              data: {
+                title: `new reaction`,
+                message: `@${reaction.creator.nickname} - reacted on a tweet that you are mentioned in.`,
+                user: { connect: { id: usr.userId } },
+                category: "mention",
+                type: "reaction",
+                tweetId: _tweet.id,
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          });
         } else {
           // dislike
           await prisma.reaction.delete({ where: { id: reacted.id } });
@@ -151,7 +170,10 @@ export const reactionRoute = router({
           },
         });
         if (!!!comment) return false;
-
+        const mentions = await prisma.mention.findMany({
+          where: { commentId: comment.id },
+          select: { userId: true },
+        });
         const reacted = comment.reactions.find((r) => r.creatorId === me.id);
         if (!!!reacted) {
           // you should like
@@ -173,10 +195,7 @@ export const reactionRoute = router({
                 type: "comment",
                 title: `new comment reaction`,
                 tweetId: _comment.tweetId as any,
-                message:
-                  me.id === _comment.tweet?.creator.id
-                    ? `@${reaction.creator.nickname} - reacted to your comment on your tweet.`
-                    : `@${reaction.creator.nickname} - reacted to your comment on ${_comment.tweet?.creator.nickname}'s tweet.`,
+                message: `@${reaction.creator.nickname} - reacted to your comment on a tweet.`,
                 user: { connect: { id: _comment.creator.id } },
               },
               include: { user: true },
@@ -184,6 +203,20 @@ export const reactionRoute = router({
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           }
           ee.emit(Events.ON_COMMENT_REACTION, _comment);
+          mentions.forEach(async (usr) => {
+            const notification = await prisma.notification.create({
+              data: {
+                category: "mention",
+                type: "comment",
+                title: `new comment reaction`,
+                tweetId: _comment.tweetId as any,
+                message: `@${reaction.creator.nickname} - reacted to a comment that you are mentioned in.`,
+                user: { connect: { id: usr.userId } },
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          });
         } else {
           // dislike
           await prisma.reaction.delete({ where: { id: reacted.id } });
@@ -193,6 +226,7 @@ export const reactionRoute = router({
           });
           ee.emit(Events.ON_COMMENT_REACTION, _comment);
         }
+
         return true;
       } catch (error) {
         console.log({ error });
@@ -213,6 +247,10 @@ export const reactionRoute = router({
         });
         if (!!!reply) return false;
 
+        const mentions = await prisma.mention.findMany({
+          where: { replyId: reply.id },
+          select: { userId: true },
+        });
         const reacted = reply.reactions.find((r) => r.creatorId === me.id);
         if (!!!reacted) {
           // you should like
@@ -239,10 +277,7 @@ export const reactionRoute = router({
                 category: "general",
                 type: "reply",
                 tweetId: _reply.comment?.tweetId ?? "",
-                message:
-                  me.id === _reply.comment?.tweet?.creator.id
-                    ? `@${reaction.creator.nickname} - reacted to your reply on your tweet.`
-                    : `@${reaction.creator.nickname} - reacted to your reply on ${_reply.comment?.tweet?.creator.nickname}'s tweet.`,
+                message: `@${reaction.creator.nickname} - reacted to your reply on a tweet.`,
                 user: { connect: { id: _reply.creator.id } },
               },
               include: { user: true },
@@ -250,6 +285,20 @@ export const reactionRoute = router({
             ee.emit(Events.ON_NEW_NOTIFICATION, notification);
           }
           ee.emit(Events.ON_COMMENT_REPLY_REACTION, _reply);
+          mentions.forEach(async (usr) => {
+            const notification = await prisma.notification.create({
+              data: {
+                title: `new reply reaction`,
+                category: "mention",
+                type: "reply",
+                tweetId: _reply.comment?.tweetId ?? "",
+                message: `@${reaction.creator.nickname} - reacted to a reply on a tweet.`,
+                user: { connect: { id: usr.userId } },
+              },
+              include: { user: true },
+            });
+            ee.emit(Events.ON_NEW_NOTIFICATION, notification);
+          });
         } else {
           // dislike
           await prisma.reaction.delete({ where: { id: reacted.id } });

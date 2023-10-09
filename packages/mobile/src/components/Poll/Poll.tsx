@@ -103,7 +103,7 @@ const Poll: React.FunctionComponent<Props> = ({
       </Text>
       {showResults ? (
         <Text style={[styles.p, { fontSize: 14, marginLeft: 10 }]}>
-          {percentage.toFixed(0)} %
+          {percentage?.toFixed(0)} %
         </Text>
       ) : null}
     </TouchableOpacity>
