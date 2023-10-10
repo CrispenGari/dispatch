@@ -113,7 +113,7 @@ export const reactionRoute = router({
             where: { tweetId: _tweet.id },
             select: { userId: true },
           });
-          if (_tweet.creator.id === me.id) {
+          if (_tweet.creator.id !== me.id) {
             const notification = await prisma.notification.create({
               data: {
                 title: `new reaction`,
@@ -292,7 +292,7 @@ export const reactionRoute = router({
                 category: "mention",
                 type: "reply",
                 tweetId: _reply.comment?.tweetId ?? "",
-                message: `@${reaction.creator.nickname} - reacted to a reply on a tweet.`,
+                message: `@${reaction.creator.nickname} - reacted to a reply on a comment that you are mentioned in.`,
                 user: { connect: { id: usr.userId } },
               },
               include: { user: true },

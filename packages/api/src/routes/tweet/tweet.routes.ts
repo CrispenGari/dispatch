@@ -125,10 +125,15 @@ export const tweetRouter = router({
               error:
                 "Failed to create a tweet because you are not authenticated.",
             };
+
           const mentioned = await prisma.user.findMany({
             where: { nickname: { in: mentions } },
             select: { id: true },
           });
+          const _polls = polls
+            .map((p) => p.text.trim())
+            .filter(Boolean)
+            .map((text) => ({ text }));
           const tweet = await prisma.tweet.create({
             data: {
               text: text.trim(),
@@ -136,7 +141,7 @@ export const tweetRouter = router({
               ...cords,
               polls: {
                 createMany: {
-                  data: [...polls.map((p) => ({ text: p.text.trim() }))],
+                  data: _polls,
                 },
               },
               pollExpiresIn: expiryDate(pollExpiresIn),
@@ -172,9 +177,12 @@ export const tweetRouter = router({
                     notIn: blocked.map((b) => b.uid),
                   },
                 },
+                {
+                  confirmed: true,
+                },
               ],
             },
-            select: { id: true },
+            select: { id: true, nickname: true },
           });
 
           ee.emit(Events.ON_NEW_TWEET, tweet);
@@ -265,6 +273,11 @@ export const tweetRouter = router({
           });
           const pollsIds = tt?.polls ? tt.polls.map((p) => p.id) : [];
           await prisma.poll.deleteMany({ where: { id: { in: pollsIds } } });
+
+          const _polls = polls
+            .map((p) => p.text.trim())
+            .filter(Boolean)
+            .map((text) => ({ text }));
           const tweet = await prisma.tweet.update({
             where: { id },
             data: {
@@ -272,7 +285,7 @@ export const tweetRouter = router({
               ...cords,
               polls: {
                 createMany: {
-                  data: [...polls.map((p) => ({ text: p.text.trim() }))],
+                  data: _polls,
                 },
               },
               pollExpiresIn: expiryDate(pollExpiresIn),
@@ -360,6 +373,7 @@ export const tweetRouter = router({
     .query(async ({ ctx: { prisma, me }, input: { id } }) => {
       try {
         if (!!!me) return undefined;
+
         const blocked = await prisma.blocked.findMany({
           where: {
             userId: me.id,

@@ -138,8 +138,8 @@ const Routes = () => {
     (async () => {
       const v = await retrieve(KEYS.APP_SETTINGS);
       if (!!v) {
-        const settings = JSON.parse(v) as SettingsType;
-        setSettings(settings);
+        const s = JSON.parse(v) as SettingsType;
+        setSettings(s);
       }
     })();
   }, []);

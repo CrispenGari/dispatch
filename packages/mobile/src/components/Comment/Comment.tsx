@@ -132,7 +132,7 @@ const Comment: React.FunctionComponent<Props> = ({ id, navigation }) => {
     {
       onData: async (data) => {
         if (!!data) {
-          await Promise.all([refetch(), refetchReplies()]);
+          await Promise.all([refetchReplies()]);
         }
       },
     }

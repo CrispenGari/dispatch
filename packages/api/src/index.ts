@@ -70,8 +70,8 @@ const TRPC_PLAYGROUND_ENDPOINT = "/api/trpc-playground";
       process.exit(1);
     }
     console.log();
-    console.log(`\t Local: http:127.0.0.1:${PORT}/`);
-    console.log(`\t Network: http:${ip.address()}:${PORT}/`);
+    console.log(`\t Local: http//:127.0.0.1:${PORT}/`);
+    console.log(`\t Network: http//:${ip.address()}:${PORT}/`);
     console.log();
   });
 })();

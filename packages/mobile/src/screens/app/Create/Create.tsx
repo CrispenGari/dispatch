@@ -154,12 +154,10 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
         <AppStackBackButton
           label={os === "ios" ? "Feed" : ""}
           onPress={() => {
-            () => {
-              if (settings.haptics) {
-                onImpact();
-              }
-              navigation.goBack();
-            };
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.goBack();
           }}
         />
       ),

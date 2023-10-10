@@ -88,7 +88,7 @@ export const pollRouter = router({
             },
           },
         });
-        if (tweet.creator.id === me.id) {
+        if (tweet.creator.id !== me.id) {
           const notification = await prisma.notification.create({
             data: {
               category: "general",

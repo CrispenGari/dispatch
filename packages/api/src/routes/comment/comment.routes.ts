@@ -144,7 +144,7 @@ export const commentRoute = router({
                 category: "general",
                 type: "comment",
                 title: `new comment`,
-                message: `@${cmt.creator.nickname} - commented on your tweet.`,
+                message: `@${cmt.creator.nickname} - commented a tweet.`,
                 user: { connect: { id: tweet.creator.id } },
               },
               include: { user: true },

@@ -107,13 +107,11 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
             }
             const s = await retrieve(KEYS.APP_SETTINGS);
             if (!!!s) {
-              setSettings(settings);
               await store(KEYS.APP_SETTINGS, JSON.stringify(settings));
             } else {
               setSettings(JSON.parse(s) as SettingsType);
               await store(KEYS.APP_SETTINGS, JSON.stringify(s));
             }
-
             toggle();
           }}
           activeOpacity={0.7}

@@ -57,7 +57,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
       setForm((state) => ({
         ...state,
         enablePolls: !!tweet.polls.length,
-        tweet: tweet.text ?? "",
+        text: tweet.text,
         polls: tweet.polls.length
           ? tweet.polls.map((p, i) => ({
               id: i,
@@ -65,19 +65,6 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
             }))
           : form.polls,
       }));
-    }
-    if (!!!tweet) {
-      Alert.alert(
-        APP_NAME,
-        "Failed to fetch the tweet.",
-        [
-          {
-            style: "default",
-            text: "OK",
-          },
-        ],
-        { cancelable: false }
-      );
     }
   }, [tweet]);
 
