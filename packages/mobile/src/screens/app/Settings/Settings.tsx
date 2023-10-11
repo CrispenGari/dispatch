@@ -137,235 +137,250 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
     });
   }, [navigation, settings]);
   return (
-    <KeyboardAwareScrollView
-      showsVerticalScrollIndicator={false}
-      showsHorizontalScrollIndicator={false}
-      scrollEventThrottle={16}
-      contentContainerStyle={{
-        paddingBottom: 100,
+    <View
+      style={{
+        flex: 1,
+        alignSelf: "center",
+        width: "100%",
+        maxWidth: 500,
       }}
-      style={{ backgroundColor: COLORS.main, flex: 1 }}
     >
-      <Profile />
-      <Divider color={COLORS.black} title="MISC" />
-      <SettingItem
-        title={settings.haptics ? "Disable Haptics" : "Enable Haptics"}
-        Icon={
-          settings.haptics ? (
-            <MaterialCommunityIcons
-              name="vibrate"
-              size={18}
-              color={COLORS.black}
-            />
-          ) : (
-            <MaterialCommunityIcons
-              name="vibrate-off"
-              size={18}
-              color={COLORS.black}
-            />
-          )
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          const s: SettingsType = {
-            ...settings,
-            haptics: !settings.haptics,
-          };
-
-          await store(KEYS.APP_SETTINGS, JSON.stringify(s));
-          setSettings(s);
+      <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingBottom: 100,
         }}
-      />
-      <SettingItem
-        title={settings.sound ? "Disable Sound" : "Enable Sound"}
-        Icon={
-          settings.sound ? (
+        style={{ backgroundColor: COLORS.main, flex: 1 }}
+      >
+        <Profile />
+        <Divider color={COLORS.black} title="MISC" />
+        <SettingItem
+          title={settings.haptics ? "Disable Haptics" : "Enable Haptics"}
+          Icon={
+            settings.haptics ? (
+              <MaterialCommunityIcons
+                name="vibrate"
+                size={18}
+                color={COLORS.black}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="vibrate-off"
+                size={18}
+                color={COLORS.black}
+              />
+            )
+          }
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            const s: SettingsType = {
+              ...settings,
+              haptics: !settings.haptics,
+            };
+
+            await store(KEYS.APP_SETTINGS, JSON.stringify(s));
+            setSettings(s);
+          }}
+        />
+        <SettingItem
+          title={settings.sound ? "Disable Sound" : "Enable Sound"}
+          Icon={
+            settings.sound ? (
+              <Ionicons
+                name="ios-notifications-circle"
+                size={18}
+                color={COLORS.black}
+              />
+            ) : (
+              <Ionicons
+                name="ios-notifications-off-circle"
+                size={18}
+                color={COLORS.black}
+              />
+            )
+          }
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            const s: SettingsType = {
+              ...settings,
+              sound: !settings.sound,
+            };
+
+            await store(KEYS.APP_SETTINGS, JSON.stringify(s));
+            setSettings(s);
+          }}
+        />
+        <SettingItem
+          title={"Rate invitee"}
+          Icon={
+            <MaterialIcons name="star-rate" size={18} color={COLORS.black} />
+          }
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            await rateApp();
+          }}
+        />
+        <SettingItem
+          title={"Check for Updates"}
+          Icon={
+            <MaterialIcons
+              name="system-update"
+              size={18}
+              color={COLORS.black}
+            />
+          }
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            await onFetchUpdateAsync();
+          }}
+        />
+        <SettingItem
+          title={"Terms of Use"}
+          Icon={
             <Ionicons
-              name="ios-notifications-circle"
+              name="document-text-outline"
               size={18}
               color={COLORS.black}
             />
-          ) : (
-            <Ionicons
-              name="ios-notifications-off-circle"
+          }
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.navigate("AppTermsOfUse", { from: "Settings" });
+          }}
+        />
+        <SettingItem
+          title={"Privacy Policy"}
+          Icon={
+            <MaterialIcons name="privacy-tip" size={18} color={COLORS.black} />
+          }
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.navigate("AppPrivacyPolicy", { from: "Settings" });
+          }}
+        />
+        <Divider color={COLORS.black} title="FEED PREFERENCE" />
+        <PageLimit />
+        <DistanceSettings />
+        <Divider color={COLORS.black} title="MANAGE PROFILE" />
+        <ChangeNickname />
+        <ChangeBio />
+        <ChangeGender />
+        <Divider color={COLORS.black} title="MANAGE ACCOUNT" />
+
+        <View style={{ maxWidth: 500, paddingHorizontal: 10 }}>
+          {!!form.error ? <Message error={true} message={form.error} /> : null}
+          {!!form.message ? (
+            <Message error={false} message={form.message} type="primary" />
+          ) : null}
+        </View>
+
+        <SettingItem
+          title={"Blocked Users"}
+          Icon={
+            <MaterialIcons name="app-blocking" size={18} color={COLORS.black} />
+          }
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.navigate("Blocked", { from: "Settings" });
+          }}
+        />
+        <SettingItem
+          title={"Forgot Password"}
+          Icon={
+            <MaterialCommunityIcons
+              name="lock-reset"
               size={18}
               color={COLORS.black}
             />
-          )
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
           }
-          const s: SettingsType = {
-            ...settings,
-            sound: !settings.sound,
-          };
-
-          await store(KEYS.APP_SETTINGS, JSON.stringify(s));
-          setSettings(s);
-        }}
-      />
-      <SettingItem
-        title={"Rate invitee"}
-        Icon={<MaterialIcons name="star-rate" size={18} color={COLORS.black} />}
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
+          onPress={() => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            sendResetPasswordLink();
+          }}
+        />
+        <SettingItem
+          title={"Change Password"}
+          titleColor={COLORS.red}
+          Icon={<Ionicons name="key-outline" size={18} color={COLORS.red} />}
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.navigate("ChangePassword", { from: "Settings" });
+          }}
+        />
+        <SettingItem
+          title={"Change Email"}
+          titleColor={COLORS.red}
+          Icon={
+            <MaterialCommunityIcons
+              name="email-alert-outline"
+              size={18}
+              color={COLORS.red}
+            />
           }
-          await rateApp();
-        }}
-      />
-      <SettingItem
-        title={"Check for Updates"}
-        Icon={
-          <MaterialIcons name="system-update" size={18} color={COLORS.black} />
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            navigation.navigate("ChangeEmail", {
+              from: "Settings",
+            });
+          }}
+        />
+        <SettingItem
+          title={"Delete Account"}
+          titleColor={COLORS.red}
+          Icon={
+            <MaterialCommunityIcons
+              name="delete-empty-outline"
+              size={18}
+              color={COLORS.red}
+            />
           }
-          await onFetchUpdateAsync();
-        }}
-      />
-      <SettingItem
-        title={"Terms of Use"}
-        Icon={
-          <Ionicons
-            name="document-text-outline"
-            size={18}
-            color={COLORS.black}
-          />
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            deleteAccount();
+          }}
+        />
+        <Divider color={COLORS.black} title="ISSUES & BUGS" />
+        <SettingItem
+          title="Report an Issue"
+          titleColor={COLORS.red}
+          Icon={
+            <MaterialIcons name="sync-problem" size={18} color={COLORS.red} />
           }
-          navigation.navigate("AppTermsOfUse", { from: "Settings" });
-        }}
-      />
-      <SettingItem
-        title={"Privacy Policy"}
-        Icon={
-          <MaterialIcons name="privacy-tip" size={18} color={COLORS.black} />
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          navigation.navigate("AppPrivacyPolicy", { from: "Settings" });
-        }}
-      />
-      <Divider color={COLORS.black} title="FEED PREFERENCE" />
-      <PageLimit />
-      <DistanceSettings />
-      <Divider color={COLORS.black} title="MANAGE PROFILE" />
-      <ChangeNickname />
-      <ChangeBio />
-      <ChangeGender />
-      <Divider color={COLORS.black} title="MANAGE ACCOUNT" />
-
-      <View style={{ maxWidth: 500, paddingHorizontal: 10 }}>
-        {!!form.error ? <Message error={true} message={form.error} /> : null}
-        {!!form.message ? (
-          <Message error={false} message={form.message} type="primary" />
-        ) : null}
-      </View>
-
-      <SettingItem
-        title={"Blocked Users"}
-        Icon={
-          <MaterialIcons name="app-blocking" size={18} color={COLORS.black} />
-        }
-        onPress={() => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          navigation.navigate("Blocked", { from: "Settings" });
-        }}
-      />
-      <SettingItem
-        title={"Forgot Password"}
-        Icon={
-          <MaterialCommunityIcons
-            name="lock-reset"
-            size={18}
-            color={COLORS.black}
-          />
-        }
-        onPress={() => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          sendResetPasswordLink();
-        }}
-      />
-      <SettingItem
-        title={"Change Password"}
-        titleColor={COLORS.red}
-        Icon={<Ionicons name="key-outline" size={18} color={COLORS.red} />}
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          navigation.navigate("ChangePassword", { from: "Settings" });
-        }}
-      />
-      <SettingItem
-        title={"Change Email"}
-        titleColor={COLORS.red}
-        Icon={
-          <MaterialCommunityIcons
-            name="email-alert-outline"
-            size={18}
-            color={COLORS.red}
-          />
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          navigation.navigate("ChangeEmail", {
-            from: "Settings",
-          });
-        }}
-      />
-      <SettingItem
-        title={"Delete Account"}
-        titleColor={COLORS.red}
-        Icon={
-          <MaterialCommunityIcons
-            name="delete-empty-outline"
-            size={18}
-            color={COLORS.red}
-          />
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          deleteAccount();
-        }}
-      />
-      <Divider color={COLORS.black} title="ISSUES & BUGS" />
-      <SettingItem
-        title="Report an Issue"
-        titleColor={COLORS.red}
-        Icon={
-          <MaterialIcons name="sync-problem" size={18} color={COLORS.red} />
-        }
-        onPress={async () => {
-          if (settings.haptics) {
-            onImpact();
-          }
-          await Linking.openURL(
-            "https://github.com/CrispenGari/dispatch/issues"
-          );
-        }}
-      />
-    </KeyboardAwareScrollView>
+          onPress={async () => {
+            if (settings.haptics) {
+              onImpact();
+            }
+            await Linking.openURL(
+              "https://github.com/CrispenGari/dispatch/issues"
+            );
+          }}
+        />
+      </KeyboardAwareScrollView>
+    </View>
   );
 };
 

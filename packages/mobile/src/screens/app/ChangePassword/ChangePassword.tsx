@@ -128,112 +128,116 @@ const ChangePassword: React.FunctionComponent<
     });
   }, [navigation, settings, route]);
   return (
-    <KeyboardAwareScrollView
-      showsVerticalScrollIndicator={false}
-      showsHorizontalScrollIndicator={false}
-      scrollEventThrottle={16}
-      contentContainerStyle={{
-        paddingBottom: 100,
-      }}
-      style={{ backgroundColor: COLORS.main, flex: 1 }}
+    <View
+      style={{ flex: 1, alignSelf: "center", width: "100%", maxWidth: 500 }}
     >
-      <View style={{ maxWidth: 500, padding: 10, marginTop: 10 }}>
-        <CustomTextInput
-          keyboardType={"default"}
-          placeholder={"Current account password"}
-          secureTextEntry
-          containerStyles={{
-            paddingHorizontal: 0,
-            marginTop: 4,
-            flex: 1,
-            borderRadius: 0,
-          }}
-          inputStyle={{
-            width: "100%",
-            padding: 5,
-            fontSize: 16,
-          }}
-          text={form.currentPassword}
-          onChangeText={(text) =>
-            setForm((state) => ({ ...state, currentPassword: text }))
-          }
-        />
-        <CustomTextInput
-          keyboardType={"default"}
-          placeholder={"New account password"}
-          secureTextEntry
-          containerStyles={{
-            paddingHorizontal: 0,
-            marginTop: 4,
-            flex: 1,
-            borderRadius: 0,
-          }}
-          inputStyle={{
-            width: "100%",
-            padding: 5,
-            fontSize: 16,
-          }}
-          text={form.newPassword}
-          onChangeText={(text) =>
-            setForm((state) => ({ ...state, newPassword: text }))
-          }
-        />
-        <CustomTextInput
-          keyboardType={"default"}
-          placeholder={"Confirm new account password"}
-          secureTextEntry
-          containerStyles={{
-            paddingHorizontal: 0,
-            marginTop: 4,
-            flex: 1,
-            borderRadius: 0,
-          }}
-          inputStyle={{
-            width: "100%",
-            padding: 5,
-            fontSize: 16,
-          }}
-          text={form.confirmNewPassword}
-          onChangeText={(text) =>
-            setForm((state) => ({ ...state, confirmNewPassword: text }))
-          }
-          onSubmitEditing={updatePassword}
-        />
-        {!!form.error ? <Message error={true} message={form.error} /> : null}
-        {!!form.message ? (
-          <Message error={false} message={form.message} type="primary" />
-        ) : null}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={updatePassword}
-          disabled={isLoading || logging}
-          style={[
-            styles.button,
-            {
-              backgroundColor: COLORS.primary,
-              padding: 5,
+      <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingBottom: 100,
+        }}
+        style={{ backgroundColor: COLORS.main, flex: 1 }}
+      >
+        <View style={{ maxWidth: 500, padding: 10, marginTop: 10 }}>
+          <CustomTextInput
+            keyboardType={"default"}
+            placeholder={"Current account password"}
+            secureTextEntry
+            containerStyles={{
+              paddingHorizontal: 0,
+              marginTop: 4,
+              flex: 1,
               borderRadius: 0,
-              maxWidth: 100,
-            },
-          ]}
-        >
-          <Text
+            }}
+            inputStyle={{
+              width: "100%",
+              padding: 5,
+              fontSize: 16,
+            }}
+            text={form.currentPassword}
+            onChangeText={(text) =>
+              setForm((state) => ({ ...state, currentPassword: text }))
+            }
+          />
+          <CustomTextInput
+            keyboardType={"default"}
+            placeholder={"New account password"}
+            secureTextEntry
+            containerStyles={{
+              paddingHorizontal: 0,
+              marginTop: 4,
+              flex: 1,
+              borderRadius: 0,
+            }}
+            inputStyle={{
+              width: "100%",
+              padding: 5,
+              fontSize: 16,
+            }}
+            text={form.newPassword}
+            onChangeText={(text) =>
+              setForm((state) => ({ ...state, newPassword: text }))
+            }
+          />
+          <CustomTextInput
+            keyboardType={"default"}
+            placeholder={"Confirm new account password"}
+            secureTextEntry
+            containerStyles={{
+              paddingHorizontal: 0,
+              marginTop: 4,
+              flex: 1,
+              borderRadius: 0,
+            }}
+            inputStyle={{
+              width: "100%",
+              padding: 5,
+              fontSize: 16,
+            }}
+            text={form.confirmNewPassword}
+            onChangeText={(text) =>
+              setForm((state) => ({ ...state, confirmNewPassword: text }))
+            }
+            onSubmitEditing={updatePassword}
+          />
+          {!!form.error ? <Message error={true} message={form.error} /> : null}
+          {!!form.message ? (
+            <Message error={false} message={form.message} type="primary" />
+          ) : null}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={updatePassword}
+            disabled={isLoading || logging}
             style={[
-              styles.button__text,
+              styles.button,
               {
-                marginRight: isLoading || logging ? 10 : 0,
-                fontSize: 16,
+                backgroundColor: COLORS.primary,
+                padding: 5,
+                borderRadius: 0,
+                maxWidth: 100,
               },
             ]}
           >
-            UPDATE
-          </Text>
-          {isLoading || logging ? (
-            <Ripple color={COLORS.tertiary} size={5} />
-          ) : null}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAwareScrollView>
+            <Text
+              style={[
+                styles.button__text,
+                {
+                  marginRight: isLoading || logging ? 10 : 0,
+                  fontSize: 16,
+                },
+              ]}
+            >
+              UPDATE
+            </Text>
+            {isLoading || logging ? (
+              <Ripple color={COLORS.tertiary} size={5} />
+            ) : null}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAwareScrollView>
+    </View>
   );
 };
 

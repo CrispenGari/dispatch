@@ -126,73 +126,77 @@ const ChangeEmail: React.FunctionComponent<AppNavProps<"ChangeEmail">> = ({
     });
   }, [navigation, settings, route]);
   return (
-    <KeyboardAwareScrollView
-      showsVerticalScrollIndicator={false}
-      showsHorizontalScrollIndicator={false}
-      scrollEventThrottle={16}
-      contentContainerStyle={{
-        paddingBottom: 100,
-      }}
-      style={{ backgroundColor: COLORS.main, flex: 1 }}
+    <View
+      style={{ flex: 1, alignSelf: "center", width: "100%", maxWidth: 500 }}
     >
-      <View style={{ maxWidth: 500, padding: 10, marginTop: 10 }}>
-        <CustomTextInput
-          keyboardType={"email-address"}
-          placeholder={"Email address"}
-          containerStyles={{
-            paddingHorizontal: 0,
-            marginTop: 4,
-            flex: 1,
-            borderRadius: 0,
-          }}
-          inputStyle={{
-            width: "100%",
-            padding: 5,
-            fontSize: 18,
-          }}
-          text={form.email}
-          onChangeText={(text) =>
-            setForm((state) => ({ ...state, email: text }))
-          }
-          onSubmitEditing={update}
-        />
-
-        {!!form.error ? <Message error={true} message={form.error} /> : null}
-        {!!form.message ? (
-          <Message error={false} message={form.message} type="primary" />
-        ) : null}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={update}
-          disabled={isLoading || logging}
-          style={[
-            styles.button,
-            {
-              backgroundColor: COLORS.primary,
-              padding: 5,
+      <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingBottom: 100,
+        }}
+        style={{ backgroundColor: COLORS.main, flex: 1 }}
+      >
+        <View style={{ maxWidth: 500, padding: 10, marginTop: 10 }}>
+          <CustomTextInput
+            keyboardType={"email-address"}
+            placeholder={"Email address"}
+            containerStyles={{
+              paddingHorizontal: 0,
+              marginTop: 4,
+              flex: 1,
               borderRadius: 0,
-              maxWidth: 100,
-              marginTop: 5,
-            },
-          ]}
-        >
-          <Text
+            }}
+            inputStyle={{
+              width: "100%",
+              padding: 5,
+              fontSize: 18,
+            }}
+            text={form.email}
+            onChangeText={(text) =>
+              setForm((state) => ({ ...state, email: text }))
+            }
+            onSubmitEditing={update}
+          />
+
+          {!!form.error ? <Message error={true} message={form.error} /> : null}
+          {!!form.message ? (
+            <Message error={false} message={form.message} type="primary" />
+          ) : null}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={update}
+            disabled={isLoading || logging}
             style={[
-              styles.button__text,
+              styles.button,
               {
-                marginRight: isLoading || logging ? 10 : 0,
-                fontSize: 16,
+                backgroundColor: COLORS.primary,
+                padding: 5,
+                borderRadius: 0,
+                maxWidth: 100,
+                marginTop: 5,
               },
             ]}
           >
-            UPDATE
-          </Text>
-          {isLoading || logging ? (
-            <Ripple color={COLORS.tertiary} size={5} />
-          ) : null}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAwareScrollView>
+            <Text
+              style={[
+                styles.button__text,
+                {
+                  marginRight: isLoading || logging ? 10 : 0,
+                  fontSize: 16,
+                },
+              ]}
+            >
+              UPDATE
+            </Text>
+            {isLoading || logging ? (
+              <Ripple color={COLORS.tertiary} size={5} />
+            ) : null}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAwareScrollView>
+    </View>
   );
 };
 

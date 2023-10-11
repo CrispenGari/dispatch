@@ -69,121 +69,131 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
     });
   }, [navigation, settings]);
   return (
-    <View style={{ flex: 1 }}>
-      <NotificationSort
-        sort={sort}
-        setSort={setSort}
-        open={open}
-        toggle={toggle}
-      />
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-          paddingHorizontal: 10,
-          justifyContent: "space-between",
-          backgroundColor: COLORS.main,
-          paddingTop: 20,
-        }}
-      >
+    <View
+      style={{ flex: 1, alignSelf: "center", width: "100%", maxWidth: 500 }}
+    >
+      <View style={{ flex: 1 }}>
+        <NotificationSort
+          sort={sort}
+          setSort={setSort}
+          open={open}
+          toggle={toggle}
+        />
         <View
           style={{
-            width: "100%",
-            position: "absolute",
-            top: 10,
-            alignItems: "center",
+            flexDirection: "row",
+            alignItems: "flex-start",
+            paddingHorizontal: 10,
+            justifyContent: "space-between",
+            backgroundColor: COLORS.main,
+            paddingTop: 20,
           }}
         >
           <View
             style={{
-              paddingVertical: 5,
-              paddingHorizontal: 20,
-              shadowRadius: 2,
-              shadowOffset: { width: 2, height: 2 },
-              shadowColor: COLORS.white,
-              borderWidth: 0.5,
-              borderRadius: 999,
-              shadowOpacity: 1,
-              elevation: 1,
-              backgroundColor: COLORS.main,
-              borderColor: COLORS.primary,
+              width: "100%",
+              position: "absolute",
+              top: 10,
+              alignItems: "center",
             }}
           >
-            <Text
-              style={[
+            <View
+              style={{
+                paddingVertical: 5,
+                paddingHorizontal: 20,
+                shadowRadius: 2,
+                shadowOffset: { width: 2, height: 2 },
+                shadowColor: COLORS.white,
+                borderWidth: 0.5,
+                borderRadius: 999,
+                shadowOpacity: 1,
+                elevation: 1,
+                backgroundColor: COLORS.main,
+                borderColor: COLORS.primary,
+              }}
+            >
+              <Text
+                style={[
+                  styles.h1,
+                  {
+                    color:
+                      state.status === "online"
+                        ? COLORS.primary
+                        : state.status === "offline"
+                        ? COLORS.red
+                        : COLORS.black,
+                  },
+                ]}
+              >
+                {state.status}
+              </Text>
+            </View>
+          </View>
+          <Text
+            style={{ fontFamily: FONTS.regularBold, fontSize: 25, flex: 1 }}
+          >
+            {sort.name}
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{
+              width: 50,
+              height: 50,
+              justifyContent: "center",
+              alignItems: "center",
+              marginLeft: 2,
+              borderRadius: 50,
+            }}
+            onPress={() => {
+              if (settings.haptics) {
+                onImpact();
+              }
+              toggle();
+            }}
+          >
+            <MaterialCommunityIcons
+              name="filter-variant"
+              size={24}
+              color="black"
+            />
+          </TouchableOpacity>
+        </View>
+        <TabView
+          style={{
+            backgroundColor: COLORS.main,
+            borderBottomWidth: 0,
+            shadowOffset: { width: 0, height: 0 },
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBlockColor: "transparent",
+          }}
+          navigationState={{ index, routes }}
+          renderScene={SceneMap({
+            all: () => <All sort={sort} navigation={navigation} />,
+            mentions: () => <Mentions sort={sort} navigation={navigation} />,
+          })}
+          onIndexChange={setIndex}
+          initialLayout={{ width: layout.width }}
+          renderTabBar={(props) => (
+            <TabBar
+              {...props}
+              indicatorStyle={{ backgroundColor: COLORS.primary, height: 5 }}
+              style={{ backgroundColor: COLORS.main }}
+              tabStyle={{ paddingVertical: 0 }}
+              labelStyle={[
                 styles.h1,
                 {
-                  color:
-                    state.status === "online"
-                      ? COLORS.primary
-                      : state.status === "offline"
-                      ? COLORS.red
-                      : COLORS.black,
+                  color: COLORS.black,
+                  fontSize: 16,
+                  textTransform: "lowercase",
                 },
               ]}
-            >
-              {state.status}
-            </Text>
-          </View>
-        </View>
-        <Text style={{ fontFamily: FONTS.regularBold, fontSize: 25, flex: 1 }}>
-          {sort.name}
-        </Text>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          style={{
-            width: 50,
-            height: 50,
-            justifyContent: "center",
-            alignItems: "center",
-            marginLeft: 2,
-            borderRadius: 50,
-          }}
-          onPress={() => {
-            if (settings.haptics) {
-              onImpact();
-            }
-            toggle();
-          }}
-        >
-          <MaterialCommunityIcons
-            name="filter-variant"
-            size={24}
-            color="black"
-          />
-        </TouchableOpacity>
+              renderBadge={({ route }) => <NotificationBadge route={route} />}
+            />
+          )}
+          tabBarPosition="top"
+        />
       </View>
-      <TabView
-        style={{
-          backgroundColor: COLORS.main,
-          borderBottomWidth: 0,
-          shadowOffset: { width: 0, height: 0 },
-          elevation: 0,
-          shadowOpacity: 0,
-          borderBlockColor: "transparent",
-        }}
-        navigationState={{ index, routes }}
-        renderScene={SceneMap({
-          all: () => <All sort={sort} navigation={navigation} />,
-          mentions: () => <Mentions sort={sort} navigation={navigation} />,
-        })}
-        onIndexChange={setIndex}
-        initialLayout={{ width: layout.width }}
-        renderTabBar={(props) => (
-          <TabBar
-            {...props}
-            indicatorStyle={{ backgroundColor: COLORS.primary, height: 5 }}
-            style={{ backgroundColor: COLORS.main }}
-            tabStyle={{ paddingVertical: 0 }}
-            labelStyle={[
-              styles.h1,
-              { color: COLORS.black, fontSize: 16, textTransform: "lowercase" },
-            ]}
-            renderBadge={({ route }) => <NotificationBadge route={route} />}
-          />
-        )}
-        tabBarPosition="top"
-      />
     </View>
   );
 };

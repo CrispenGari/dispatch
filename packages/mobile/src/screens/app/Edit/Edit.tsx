@@ -232,275 +232,279 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
     );
 
   return (
-    <KeyboardAwareScrollView
-      showsVerticalScrollIndicator={false}
-      showsHorizontalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          shouldRasterizeIOS={true}
-          refreshing={fetching}
-          onRefresh={async () => {
-            await refetch();
-          }}
-        />
-      }
+    <View
+      style={{ flex: 1, alignSelf: "center", width: "100%", maxWidth: 500 }}
     >
-      {!!nickname && !!nickname.replace("@", "") ? (
-        <Mentions
-          nickname={nickname.replace("@", "")}
-          setForm={setForm as any}
-        />
-      ) : null}
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: COLORS.main,
-        }}
+      <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            shouldRasterizeIOS={true}
+            refreshing={fetching}
+            onRefresh={async () => {
+              await refetch();
+            }}
+          />
+        }
       >
+        {!!nickname && !!nickname.replace("@", "") ? (
+          <Mentions
+            nickname={nickname.replace("@", "")}
+            setForm={setForm as any}
+          />
+        ) : null}
         <View
           style={{
-            padding: 5,
-            maxWidth: 500,
-            marginTop: 10,
-            paddingTop: 0,
+            flex: 1,
+            backgroundColor: COLORS.main,
           }}
         >
-          {editing ? (
-            <Indeterminate
-              color={COLORS.tertiary}
-              width={500}
-              style={{ width: "100%" }}
-            />
-          ) : null}
-          <View style={{ flexDirection: "row" }}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                if (settings.haptics) {
-                  onImpact();
-                }
-                navigation.navigate("User", {
-                  id: me?.id || "",
-                  from: "Edit",
-                });
-              }}
-            >
-              <Image
-                source={{
-                  uri: Image.resolveAssetSource(profile).uri,
-                }}
-                style={{
-                  width: 50,
-                  height: 50,
-                  resizeMode: "contain",
-                  marginRight: 5,
-                  borderRadius: 50,
-                }}
-              />
-            </TouchableOpacity>
-
-            <CustomTextInput
-              containerStyles={{
-                borderColor: COLORS.secondary,
-                flex: 1,
-              }}
-              placeholder={`Tweet news ${me?.nickname}...`}
-              inputStyle={{ height, maxHeight: 300, fontSize: 16 }}
-              multiline
-              text={form.text}
-              onContentSizeChange={(e) => {
-                e.persist();
-                setForm((state) => ({
-                  ...state,
-                  height: e.nativeEvent?.contentSize?.height + 20 ?? height,
-                }));
-              }}
-              onChangeText={(tweet) =>
-                setForm((state) => ({ ...state, text: tweet }))
-              }
-            />
-          </View>
           <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-              marginVertical: 10,
+              padding: 5,
+              maxWidth: 500,
+              marginTop: 10,
+              paddingTop: 0,
             }}
           >
-            <CheckBox
-              checked={form.enablePolls}
-              color={COLORS.primary}
-              disabled={false}
-              onPress={() => {
-                if (settings.haptics) {
-                  onImpact();
-                }
-                setForm((state) => ({
-                  ...state,
-                  enablePolls: !form.enablePolls,
-                }));
-              }}
-            />
-            <Text style={[styles.p, { fontSize: 16, marginLeft: 10 }]}>
-              {form.enablePolls ? "Disable Polls" : "Enable Polls"}
-            </Text>
-          </View>
-
-          {form.enablePolls ? (
-            <View style={{ marginVertical: 10 }}>
-              {form.polls.map((poll) => (
-                <CustomTextInput
-                  key={poll.id}
-                  text={poll.text}
-                  placeholder={`Poll Text ${poll.id + 1}...`}
-                  containerStyles={{ borderWidth: 0, borderBottomWidth: 1 }}
-                  onChangeText={(text) =>
-                    setForm((state) => ({
-                      ...state,
-                      polls: form.polls.map((p) =>
-                        p.id === poll.id ? { ...p, text } : p
-                      ),
-                    }))
+            {editing ? (
+              <Indeterminate
+                color={COLORS.tertiary}
+                width={500}
+                style={{ width: "100%" }}
+              />
+            ) : null}
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (settings.haptics) {
+                    onImpact();
                   }
+                  navigation.navigate("User", {
+                    id: me?.id || "",
+                    from: "Edit",
+                  });
+                }}
+              >
+                <Image
+                  source={{
+                    uri: Image.resolveAssetSource(profile).uri,
+                  }}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    resizeMode: "contain",
+                    marginRight: 5,
+                    borderRadius: 50,
+                  }}
                 />
-              ))}
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={addNewPollField}
-                  disabled={editing}
-                  style={[
-                    styles.button,
-                    {
-                      backgroundColor: COLORS.primary,
-                      padding: 5,
-                      borderRadius: 5,
-                      alignSelf: "flex-start",
-                      marginTop: 10,
-                      maxWidth: 100,
-                      marginRight: 10,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.button__text, { fontSize: 15 }]}>
-                    ADD
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={removePollField}
-                  disabled={editing}
-                  style={[
-                    styles.button,
-                    {
-                      backgroundColor: COLORS.tertiary,
-                      padding: 5,
-                      borderRadius: 5,
-                      alignSelf: "flex-start",
-                      marginTop: 10,
-                      maxWidth: 100,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.button__text, { fontSize: 15 }]}>
-                    REMOVE
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
 
-              <DropdownSelect
-                placeholder="Change Poll Expiry"
-                options={expires}
-                optionLabel={"name"}
-                optionValue={"value"}
-                selectedValue={form.pollExpiresIn}
-                isMultiple={false}
-                helperText="Set the expiry time for your polls."
-                dropdownContainerStyle={{
-                  maxWidth: 500,
-                  marginTop: 10,
+              <CustomTextInput
+                containerStyles={{
+                  borderColor: COLORS.secondary,
                   flex: 1,
-                  padding: 0,
-                  backgroundColor: COLORS.main,
-                  marginBottom: 0,
                 }}
-                dropdownIconStyle={{ top: 5, right: 15 }}
-                dropdownStyle={{
-                  borderWidth: 0,
-                  borderBottomWidth: 1,
-                  paddingVertical: 0,
-                  paddingHorizontal: 20,
-                  minHeight: 30,
-                  flex: 1,
-                  maxWidth: 500,
-                  borderColor: COLORS.primary,
-                  borderRadius: 0,
-                  backgroundColor: COLORS.main,
+                placeholder={`Tweet news ${me?.nickname}...`}
+                inputStyle={{ height, maxHeight: 300, fontSize: 16 }}
+                multiline
+                text={form.text}
+                onContentSizeChange={(e) => {
+                  e.persist();
+                  setForm((state) => ({
+                    ...state,
+                    height: e.nativeEvent?.contentSize?.height + 20 ?? height,
+                  }));
                 }}
-                selectedItemStyle={{
-                  color: COLORS.black,
-                  fontFamily: FONTS.regular,
-                  fontSize: 16,
-                }}
-                placeholderStyle={{
-                  fontFamily: FONTS.regular,
-                  fontSize: 16,
-                }}
-                onValueChange={onValueChange}
-                labelStyle={{
-                  fontFamily: FONTS.regularBold,
-                  fontSize: 16,
-                }}
-                primaryColor={COLORS.primary}
-                dropdownHelperTextStyle={{
-                  color: COLORS.black,
-                  fontFamily: FONTS.regular,
-                  fontSize: 15,
-                }}
-                modalOptionsContainerStyle={{
-                  padding: 10,
-                  backgroundColor: COLORS.main,
-                }}
-                checkboxComponentStyles={{
-                  checkboxSize: 10,
-                  checkboxStyle: {
-                    backgroundColor: COLORS.primary,
-                    borderRadius: 10,
-                    padding: 5,
-                    borderColor: COLORS.tertiary,
-                  },
-                  checkboxLabelStyle: {
-                    color: COLORS.black,
-                    fontSize: 16,
-                    fontFamily: FONTS.regular,
-                  },
-                }}
+                onChangeText={(tweet) =>
+                  setForm((state) => ({ ...state, text: tweet }))
+                }
               />
             </View>
-          ) : null}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                width: "100%",
+                marginVertical: 10,
+              }}
+            >
+              <CheckBox
+                checked={form.enablePolls}
+                color={COLORS.primary}
+                disabled={false}
+                onPress={() => {
+                  if (settings.haptics) {
+                    onImpact();
+                  }
+                  setForm((state) => ({
+                    ...state,
+                    enablePolls: !form.enablePolls,
+                  }));
+                }}
+              />
+              <Text style={[styles.p, { fontSize: 16, marginLeft: 10 }]}>
+                {form.enablePolls ? "Disable Polls" : "Enable Polls"}
+              </Text>
+            </View>
 
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={save}
-            disabled={editing}
-            style={[
-              styles.button,
-              {
-                backgroundColor: COLORS.primary,
-                padding: 10,
-                borderRadius: 5,
-                alignSelf: "flex-end",
-                marginTop: 10,
-                maxWidth: 100,
-              },
-            ]}
-          >
-            <Text style={[styles.button__text, { fontSize: 15 }]}>SAVE</Text>
-          </TouchableOpacity>
+            {form.enablePolls ? (
+              <View style={{ marginVertical: 10 }}>
+                {form.polls.map((poll) => (
+                  <CustomTextInput
+                    key={poll.id}
+                    text={poll.text}
+                    placeholder={`Poll Text ${poll.id + 1}...`}
+                    containerStyles={{ borderWidth: 0, borderBottomWidth: 1 }}
+                    onChangeText={(text) =>
+                      setForm((state) => ({
+                        ...state,
+                        polls: form.polls.map((p) =>
+                          p.id === poll.id ? { ...p, text } : p
+                        ),
+                      }))
+                    }
+                  />
+                ))}
+                <View style={{ flexDirection: "row" }}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={addNewPollField}
+                    disabled={editing}
+                    style={[
+                      styles.button,
+                      {
+                        backgroundColor: COLORS.primary,
+                        padding: 5,
+                        borderRadius: 5,
+                        alignSelf: "flex-start",
+                        marginTop: 10,
+                        maxWidth: 100,
+                        marginRight: 10,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.button__text, { fontSize: 15 }]}>
+                      ADD
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={removePollField}
+                    disabled={editing}
+                    style={[
+                      styles.button,
+                      {
+                        backgroundColor: COLORS.tertiary,
+                        padding: 5,
+                        borderRadius: 5,
+                        alignSelf: "flex-start",
+                        marginTop: 10,
+                        maxWidth: 100,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.button__text, { fontSize: 15 }]}>
+                      REMOVE
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <DropdownSelect
+                  placeholder="Change Poll Expiry"
+                  options={expires}
+                  optionLabel={"name"}
+                  optionValue={"value"}
+                  selectedValue={form.pollExpiresIn}
+                  isMultiple={false}
+                  helperText="Set the expiry time for your polls."
+                  dropdownContainerStyle={{
+                    maxWidth: 500,
+                    marginTop: 10,
+                    flex: 1,
+                    padding: 0,
+                    backgroundColor: COLORS.main,
+                    marginBottom: 0,
+                  }}
+                  dropdownIconStyle={{ top: 5, right: 15 }}
+                  dropdownStyle={{
+                    borderWidth: 0,
+                    borderBottomWidth: 1,
+                    paddingVertical: 0,
+                    paddingHorizontal: 20,
+                    minHeight: 30,
+                    flex: 1,
+                    maxWidth: 500,
+                    borderColor: COLORS.primary,
+                    borderRadius: 0,
+                    backgroundColor: COLORS.main,
+                  }}
+                  selectedItemStyle={{
+                    color: COLORS.black,
+                    fontFamily: FONTS.regular,
+                    fontSize: 16,
+                  }}
+                  placeholderStyle={{
+                    fontFamily: FONTS.regular,
+                    fontSize: 16,
+                  }}
+                  onValueChange={onValueChange}
+                  labelStyle={{
+                    fontFamily: FONTS.regularBold,
+                    fontSize: 16,
+                  }}
+                  primaryColor={COLORS.primary}
+                  dropdownHelperTextStyle={{
+                    color: COLORS.black,
+                    fontFamily: FONTS.regular,
+                    fontSize: 15,
+                  }}
+                  modalOptionsContainerStyle={{
+                    padding: 10,
+                    backgroundColor: COLORS.main,
+                  }}
+                  checkboxComponentStyles={{
+                    checkboxSize: 10,
+                    checkboxStyle: {
+                      backgroundColor: COLORS.primary,
+                      borderRadius: 10,
+                      padding: 5,
+                      borderColor: COLORS.tertiary,
+                    },
+                    checkboxLabelStyle: {
+                      color: COLORS.black,
+                      fontSize: 16,
+                      fontFamily: FONTS.regular,
+                    },
+                  }}
+                />
+              </View>
+            ) : null}
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={save}
+              disabled={editing}
+              style={[
+                styles.button,
+                {
+                  backgroundColor: COLORS.primary,
+                  padding: 10,
+                  borderRadius: 5,
+                  alignSelf: "flex-end",
+                  marginTop: 10,
+                  maxWidth: 100,
+                },
+              ]}
+            >
+              <Text style={[styles.button__text, { fontSize: 15 }]}>SAVE</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 };
 

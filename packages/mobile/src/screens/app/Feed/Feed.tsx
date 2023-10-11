@@ -220,6 +220,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
             alignItems: "flex-start",
             padding: 10,
             justifyContent: "space-between",
+            maxWidth: 500,
           }}
         >
           <Text style={{ fontFamily: FONTS.extraBold, fontSize: 25, flex: 1 }}>
