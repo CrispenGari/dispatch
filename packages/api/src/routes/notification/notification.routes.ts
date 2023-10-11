@@ -13,7 +13,10 @@ import { publicProcedure, router } from "../../trpc/trpc";
 import { Events } from "../../constants";
 import { Notification } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
-const ee = new EventEmitter();
+
+const ee = new EventEmitter({
+  captureRejections: true,
+});
 ee.setMaxListeners(100);
 export const notificationRouter = router({
   onDelete: publicProcedure

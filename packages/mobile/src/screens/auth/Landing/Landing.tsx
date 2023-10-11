@@ -27,12 +27,31 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
 }) => {
   const { isFetching: fetching, data: me } = trpc.user.me.useQuery();
   const { setMe } = useMeStore();
-  const { setSettings, settings } = useSettingsStore();
+  const { settings, setSettings } = useSettingsStore();
   const [open, setOpen] = React.useState(false);
   const [messageIndex, setMessageIndex] = React.useState(0);
   const {
     dimension: { height },
   } = useMediaQuery();
+
+  React.useEffect(() => {
+    (async () => {
+      const res = await retrieve(KEYS.APP_SETTINGS);
+      if (!!res) {
+        const s = JSON.parse(res) as SettingsType;
+        setSettings(s);
+      } else {
+        const s: SettingsType = {
+          haptics: true,
+          sound: true,
+          pageLimit: 10,
+          radius: 10,
+        };
+        await store(KEYS.APP_SETTINGS, JSON.stringify(s));
+        setSettings(s);
+      }
+    })();
+  }, []);
   React.useEffect(() => {
     const intervalId = setInterval(() => {
       if (messageIndex >= messages.length - 1) {
@@ -105,13 +124,13 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
             if (settings.haptics) {
               onImpact();
             }
-            const s = await retrieve(KEYS.APP_SETTINGS);
-            if (!!!s) {
-              await store(KEYS.APP_SETTINGS, JSON.stringify(settings));
-            } else {
-              setSettings(JSON.parse(s) as SettingsType);
-              await store(KEYS.APP_SETTINGS, JSON.stringify(s));
-            }
+            const s: SettingsType = {
+              haptics: true,
+              sound: true,
+              pageLimit: 10,
+              radius: 10,
+            };
+            await store(KEYS.APP_SETTINGS, JSON.stringify(s));
             toggle();
           }}
           activeOpacity={0.7}

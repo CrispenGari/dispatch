@@ -52,7 +52,8 @@ const Notification: React.FunctionComponent<Props> = ({ id, navigation }) => {
       onImpact();
     }
     if (!!!notification || reading || deleting || unreading) return;
-    mutateReadNotification({ id: notification.id }).then(() => {
+    mutateReadNotification({ id: notification.id }).then((res) => {
+      console.log({ res });
       navigation.navigate("Tweet", {
         id: notification.tweetId,
         from: "Notifications",
@@ -64,7 +65,9 @@ const Notification: React.FunctionComponent<Props> = ({ id, navigation }) => {
       onImpact();
     }
     if (!!!notification || reading || deleting || unreading) return;
-    mutateReadNotification({ id: notification.id });
+    mutateReadNotification({ id: notification.id }).then((res) =>
+      console.log({ res })
+    );
   };
   const unReadNotification = () => {
     if (settings.haptics) {

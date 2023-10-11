@@ -187,6 +187,7 @@ const Create: React.FunctionComponent<AppNavProps<"Create">> = ({
             maxWidth: 500,
             marginTop: 10,
             paddingTop: 0,
+            width: "100%",
           }}
         >
           {tweeting ? (

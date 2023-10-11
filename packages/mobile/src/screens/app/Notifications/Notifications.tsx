@@ -7,7 +7,7 @@ import { styles } from "../../../styles";
 import { onImpact } from "../../../utils";
 import AppStackBackButton from "../../../components/AppStackBackButton/AppStackBackButton";
 import { usePlatform } from "../../../hooks";
-import { useSettingsStore } from "../../../store";
+import { useNetworkStore, useSettingsStore } from "../../../store";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Mentions from "../../../components/NotificationsTabs/Mentions";
@@ -25,10 +25,24 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
   const { os } = usePlatform();
   const { settings } = useSettingsStore();
   const [index, setIndex] = React.useState(0);
+
+  const { network } = useNetworkStore();
   const [routes] = React.useState([
     { key: "all", title: "ALL" },
     { key: "mentions", title: "Mentions" },
   ]);
+  const [state, setState] = React.useState({
+    status: "offline" as "online" | "connected" | "offline",
+  });
+  React.useEffect(() => {
+    if (network.isConnected && network.isInternetReachable) {
+      setState((state) => ({ ...state, status: "online" }));
+    } else if (network.isConnected && !network.isInternetReachable) {
+      setState((state) => ({ ...state, status: "connected" }));
+    } else {
+      setState((state) => ({ ...state, status: "offline" }));
+    }
+  }, [network]);
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -62,7 +76,6 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
         open={open}
         toggle={toggle}
       />
-
       <View
         style={{
           flexDirection: "row",
@@ -73,6 +86,46 @@ const Notifications: React.FunctionComponent<AppNavProps<"Notifications">> = ({
           paddingTop: 20,
         }}
       >
+        <View
+          style={{
+            width: "100%",
+            position: "absolute",
+            top: 10,
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              paddingVertical: 5,
+              paddingHorizontal: 20,
+              shadowRadius: 2,
+              shadowOffset: { width: 2, height: 2 },
+              shadowColor: COLORS.white,
+              borderWidth: 0.5,
+              borderRadius: 999,
+              shadowOpacity: 1,
+              elevation: 1,
+              backgroundColor: COLORS.main,
+              borderColor: COLORS.primary,
+            }}
+          >
+            <Text
+              style={[
+                styles.h1,
+                {
+                  color:
+                    state.status === "online"
+                      ? COLORS.primary
+                      : state.status === "offline"
+                      ? COLORS.red
+                      : COLORS.black,
+                },
+              ]}
+            >
+              {state.status}
+            </Text>
+          </View>
+        </View>
         <Text style={{ fontFamily: FONTS.regularBold, fontSize: 25, flex: 1 }}>
           {sort.name}
         </Text>

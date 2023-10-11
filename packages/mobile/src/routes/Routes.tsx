@@ -50,7 +50,6 @@ const Routes = () => {
       },
     }
   );
-
   trpc.comment.onNewCommentNotification.useSubscription(
     {
       uid: me?.id || "",

@@ -1,31 +1,29 @@
 import {
   View,
   TouchableOpacity,
-  TextInput,
-  Keyboard,
+  Text,
   SafeAreaView,
   Image,
 } from "react-native";
 import React from "react";
-import { COLORS, FONTS, profile } from "../../constants";
+import { COLORS, profile } from "../../constants";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import type { AppParamList } from "../../params";
-import * as Animatable from "react-native-animatable";
-import { useMediaQuery } from "../../hooks";
-import { useMeStore, useSettingsStore } from "../../store";
+
+import { useMeStore, useNetworkStore, useSettingsStore } from "../../store";
 import { onImpact } from "../../utils";
 import { trpc } from "../../utils/trpc";
+import { styles } from "../../styles";
 
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed">;
 }
 const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
-  const {
-    dimension: { width },
-  } = useMediaQuery();
   const { me } = useMeStore();
   const { settings } = useSettingsStore();
+
+  const { network } = useNetworkStore();
   const { data: notifications, refetch } = trpc.notification.all.useQuery();
   trpc.notification.onDelete.useSubscription(
     { uid: me?.id || "" },
@@ -43,12 +41,83 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
       },
     }
   );
+  trpc.reaction.onNewReactionNotification.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.comment.onNewCommentNotification.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
 
+  trpc.tweet.onNewTweetNotification.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data: any) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.tweet.onTweetMention.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data: any) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
+  trpc.poll.onVoteNotification.useSubscription(
+    {
+      uid: me?.id || "",
+    },
+    {
+      onData: async (data: any) => {
+        if (!!data) {
+          await refetch();
+        }
+      },
+    }
+  );
   const [headerState, setHeaderState] = React.useState({
     searchTerm: "",
     focused: false,
     notification: false,
+    status: "offline" as "online" | "connected" | "offline",
   });
+
+  React.useEffect(() => {
+    if (network.isConnected && network.isInternetReachable) {
+      setHeaderState((state) => ({ ...state, status: "online" }));
+    } else if (network.isConnected && !network.isInternetReachable) {
+      setHeaderState((state) => ({ ...state, status: "connected" }));
+    } else {
+      setHeaderState((state) => ({ ...state, status: "offline" }));
+    }
+  }, [network]);
 
   React.useEffect(() => {
     if (!!notifications) {
@@ -88,7 +157,6 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
               width: 40,
               height: 40,
               resizeMode: "contain",
-
               borderRadius: 40,
             }}
             source={{ uri: Image.resolveAssetSource(profile).uri }}
@@ -152,77 +220,41 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
               />
             </TouchableOpacity>
           </View>
-
-          <Animatable.View
-            animation="slideInRight"
-            duration={500}
-            style={{
-              backgroundColor: COLORS.main,
-              flexDirection: "row",
-              padding: 5,
-              alignItems: "center",
-              marginHorizontal: 10,
-              borderRadius: 5,
-              paddingHorizontal: 10,
-              maxWidth: 500,
-              marginTop: 10,
-              borderWidth: 0.5,
-              borderColor: COLORS.primary,
-            }}
-          >
-            <Animatable.View
-              animation={headerState.focused ? "fadeInLeft" : "fadeInRight"}
-              duration={400}
-            >
-              <TouchableOpacity
-                onPress={() => {
-                  if (settings.haptics) {
-                    onImpact();
-                  }
-                  if (headerState.focused) {
-                    setHeaderState((state) => ({ ...state, searchTerm: "" }));
-                    Keyboard.dismiss();
-                  }
-                }}
-                activeOpacity={0.7}
-              >
-                {headerState.focused ? (
-                  <Ionicons
-                    name="arrow-back-outline"
-                    size={20}
-                    color={COLORS.tertiary}
-                  />
-                ) : (
-                  <Ionicons
-                    name="search-sharp"
-                    size={20}
-                    color={COLORS.tertiary}
-                  />
-                )}
-              </TouchableOpacity>
-            </Animatable.View>
-            <TextInput
-              placeholder="Search Feed..."
-              value={headerState.searchTerm}
-              onChangeText={(text) =>
-                setHeaderState((state) => ({ ...state, searchTerm: text }))
-              }
-              style={{
-                fontSize: width > 600 ? 18 : 16,
-                marginLeft: 15,
-                flex: 1,
-                fontFamily: FONTS.regular,
-              }}
-              onBlur={() => {
-                setHeaderState((state) => ({ ...state, focused: false }));
-              }}
-              onFocus={() => {
-                setHeaderState((state) => ({ ...state, focused: false }));
-              }}
-            />
-          </Animatable.View>
         </View>
       </SafeAreaView>
+      <View style={{ alignItems: "center" }}>
+        <View
+          style={{
+            paddingVertical: 5,
+            paddingHorizontal: 20,
+            shadowRadius: 2,
+            shadowOffset: { width: 2, height: 2 },
+            shadowColor: COLORS.white,
+            borderWidth: 0.5,
+            borderRadius: 999,
+            shadowOpacity: 1,
+            elevation: 1,
+            backgroundColor: COLORS.main,
+            borderColor: COLORS.primary,
+          }}
+        >
+          <Text
+            style={[
+              styles.h1,
+              {
+                color:
+                  headerState.status === "online"
+                    ? COLORS.primary
+                    : headerState.status === "offline"
+                    ? COLORS.red
+                    : COLORS.black,
+              },
+            ]}
+          >
+            {headerState.status}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };

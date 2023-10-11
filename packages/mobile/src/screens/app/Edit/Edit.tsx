@@ -193,6 +193,7 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
     <KeyboardAwareScrollView
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ alignItems: "center" }}
     >
       {!!nickname && !!nickname.replace("@", "") ? (
         <Mentions

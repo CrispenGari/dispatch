@@ -27,7 +27,9 @@ import { User } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
 import { isAuth } from "../../middleware/isAuth.middleware";
-const ee = new EventEmitter();
+const ee = new EventEmitter({
+  captureRejections: true,
+});
 ee.setMaxListeners(100);
 export const userRouter = router({
   onUpdate: publicProcedure

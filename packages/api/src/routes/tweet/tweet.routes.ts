@@ -20,7 +20,9 @@ import { Events } from "../../constants";
 import { isAuth } from "../../middleware/isAuth.middleware";
 import { expiryDate } from "../../utils";
 
-const ee = new EventEmitter();
+const ee = new EventEmitter({
+  captureRejections: true,
+});
 ee.setMaxListeners(100);
 export const tweetRouter = router({
   onNewTweetNotification: publicProcedure
