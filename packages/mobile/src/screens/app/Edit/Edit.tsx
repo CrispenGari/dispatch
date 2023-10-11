@@ -1,4 +1,11 @@
-import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert,
+  RefreshControl,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import React from "react";
 import type { AppNavProps } from "../../../params";
@@ -19,7 +26,11 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
   navigation,
   route,
 }) => {
-  const { data: tweet, isLoading: fetching } = trpc.tweet.tweet.useQuery({
+  const {
+    data: tweet,
+    isFetching: fetching,
+    refetch,
+  } = trpc.tweet.tweet.useQuery({
     id: route.params.id,
   });
 
@@ -187,13 +198,52 @@ const Edit: React.FunctionComponent<AppNavProps<"Edit">> = ({
     });
   }, [navigation, route, settings]);
 
-  if (fetching) return <Text>Fetching...</Text>;
+  if (!!!tweet)
+    return (
+      <View
+        style={{
+          justifyContent: "center",
+          alignItems: "center",
+          paddingVertical: 30,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text style={[styles.h1, { textAlign: "center", fontSize: 14 }]}>
+            Could't fetching the tweet.{" "}
+          </Text>
+          <TouchableOpacity
+            onPress={async () => {
+              await refetch();
+            }}
+            activeOpacity={0.7}
+            style={{ marginLeft: 3 }}
+          >
+            <Text
+              style={[
+                styles.h1,
+                { textAlign: "center", fontSize: 14, color: COLORS.primary },
+              ]}
+            >
+              Retry.
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
 
   return (
     <KeyboardAwareScrollView
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ alignItems: "center" }}
+      refreshControl={
+        <RefreshControl
+          shouldRasterizeIOS={true}
+          refreshing={fetching}
+          onRefresh={async () => {
+            await refetch();
+          }}
+        />
+      }
     >
       {!!nickname && !!nickname.replace("@", "") ? (
         <Mentions
