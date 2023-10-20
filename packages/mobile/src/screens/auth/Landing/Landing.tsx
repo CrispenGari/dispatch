@@ -41,17 +41,12 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
         const s = JSON.parse(res) as SettingsType;
         setSettings(s);
       } else {
-        const s: SettingsType = {
-          haptics: true,
-          sound: true,
-          pageLimit: 10,
-          radius: 10,
-        };
-        await store(KEYS.APP_SETTINGS, JSON.stringify(s));
-        setSettings(s);
+        await store(KEYS.APP_SETTINGS, JSON.stringify(settings));
+        setSettings(settings);
       }
     })();
-  }, []);
+  }, [settings]);
+
   React.useEffect(() => {
     const intervalId = setInterval(() => {
       if (messageIndex >= messages.length - 1) {
@@ -124,13 +119,7 @@ const Landing: React.FunctionComponent<AuthNavProps<"Landing">> = ({
             if (settings.haptics) {
               onImpact();
             }
-            const s: SettingsType = {
-              haptics: true,
-              sound: true,
-              pageLimit: 10,
-              radius: 10,
-            };
-            await store(KEYS.APP_SETTINGS, JSON.stringify(s));
+            await store(KEYS.APP_SETTINGS, JSON.stringify(settings));
             toggle();
           }}
           activeOpacity={0.7}

@@ -30,6 +30,7 @@ import Message from "../../../components/Message/Message";
 import { trpc } from "../../../utils/trpc";
 import PageLimit from "../../../components/SettingsComponents/PageLimit";
 import DistanceSettings from "../../../components/SettingsComponents/DistanceSettings";
+import NotificationSettings from "../../../components/SettingsComponents/NotificationSettings";
 
 const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
   navigation,
@@ -275,6 +276,10 @@ const Settings: React.FunctionComponent<AppNavProps<"Settings">> = ({
         <Divider color={COLORS.black} title="FEED PREFERENCE" />
         <PageLimit />
         <DistanceSettings />
+
+        <Divider color={COLORS.black} title="NOTIFICATIONS SETTINGS" />
+        <NotificationSettings />
+
         <Divider color={COLORS.black} title="MANAGE PROFILE" />
         <ChangeNickname />
         <ChangeBio />

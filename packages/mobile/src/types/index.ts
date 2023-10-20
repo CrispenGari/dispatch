@@ -50,6 +50,14 @@ export type SettingsType = {
   sound: boolean;
   pageLimit: number;
   radius: number;
+  notifications: {
+    reaction: boolean;
+    comment: boolean;
+    reply: boolean;
+    tweet: boolean;
+    mention: boolean;
+    vote: boolean;
+  };
 };
 
 export type GenderType = "MALE" | "FEMALE" | "UNDEFINED";

@@ -24,7 +24,7 @@ const Routes = () => {
   const { token } = useNotificationsToken();
   const { granted } = useLocationPermission();
   const { me, setMe } = useMeStore();
-  const { setSettings } = useSettingsStore();
+  const { setSettings, settings } = useSettingsStore();
 
   trpc.user.onUpdate.useSubscription(
     { uid: me?.id || "" },
@@ -40,7 +40,7 @@ const Routes = () => {
     },
     {
       onData: async (data) => {
-        if (!!token) {
+        if (!!token && settings.notifications.reaction) {
           await sendPushNotification(
             token,
             `dispatch - ${data.user.nickname}`,
@@ -56,7 +56,7 @@ const Routes = () => {
     },
     {
       onData: async (data) => {
-        if (!!token) {
+        if (!!token && settings.notifications.comment) {
           await sendPushNotification(
             token,
             `dispatch - ${data.user.nickname}`,
@@ -73,7 +73,7 @@ const Routes = () => {
     },
     {
       onData: async (data: any) => {
-        if (!!token) {
+        if (!!token && settings.notifications.tweet) {
           await sendPushNotification(
             token,
             `dispatch - ${data.user.nickname}`,
@@ -89,7 +89,7 @@ const Routes = () => {
     },
     {
       onData: async (data: any) => {
-        if (!!token) {
+        if (!!token && settings.notifications.mention) {
           await sendPushNotification(
             token,
             `dispatch - ${data.user.nickname}`,
@@ -105,7 +105,7 @@ const Routes = () => {
     },
     {
       onData: async (data: any) => {
-        if (!!token) {
+        if (!!token && settings.notifications.vote) {
           await sendPushNotification(
             token,
             `dispatch - ${data.user.nickname}`,
@@ -115,7 +115,6 @@ const Routes = () => {
       },
     }
   );
-
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(
       ({ type, isInternetReachable, isConnected }) => {
