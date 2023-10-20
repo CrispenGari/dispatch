@@ -13,8 +13,6 @@ const getMe = async (jwt: string | undefined): Promise<User | null> => {
     return me;
   } catch (error) {
     return null;
-
-
   }
 };
 export const createContext = async ({

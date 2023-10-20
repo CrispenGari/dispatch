@@ -28,6 +28,7 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const { settings } = useSettingsStore();
   const [sort, setSort] = React.useState(tweetsSorts[0]);
   const { data: me, isFetching: getting } = trpc.user.me.useQuery();
+  const { location } = useLocationStore();
   const [open, setOpen] = React.useState(false);
   const toggle = () => setOpen((state) => !state);
   const { os } = usePlatform();
@@ -43,6 +44,11 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
     {
       limit: settings.pageLimit,
       orderBy: sort.value,
+      radius: settings.radius,
+      coord: {
+        lat: location?.coords.latitude ?? 0,
+        lon: location?.coords.longitude ?? 0,
+      },
     },
     {
       keepPreviousData: true,
@@ -56,7 +62,6 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const zIndex = React.useRef(new Animated.Value(1)).current;
   const opacity = React.useRef(new Animated.Value(1)).current;
   const { setMe } = useMeStore();
-  const { location } = useLocationStore();
   const [address, setAddress] = React.useState<
     Location.LocationGeocodedAddress | undefined
   >();

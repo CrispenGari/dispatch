@@ -63,7 +63,7 @@ export const expires: {
 ];
 
 export const APP_NAME = "dispatch";
-export const domain: string = "0695-213-172-134-32.ngrok-free.app";
+export const domain: string = "c6e3-213-172-134-10.ngrok-free.app";
 export const serverBaseHttpURL: string = `https://${domain}`;
 export const serverBaseWsURL: string = `wss://${domain}`;
 export const clientHttpURL: string = `${serverBaseHttpURL}/api/trpc`;

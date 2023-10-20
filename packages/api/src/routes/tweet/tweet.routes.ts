@@ -19,6 +19,7 @@ import EventEmitter from "events";
 import { Events } from "../../constants";
 import { isAuth } from "../../middleware/isAuth.middleware";
 import { expiryDate } from "../../utils";
+import { calculateDistance } from "@dispatch/shared";
 
 const ee = new EventEmitter({
   captureRejections: true,
@@ -331,11 +332,13 @@ export const tweetRouter = router({
     .input(tweetsSchema)
     .use(isAuth)
     .query(
-      async ({ ctx: { prisma, me }, input: { cursor, limit, orderBy } }) => {
+      async ({
+        ctx: { prisma, me },
+        input: { cursor, limit, orderBy, radius, coord },
+      }) => {
         /*
       fetch only the ids of recent tweets.
     */
-
         try {
           if (!!!me) return { tweets: [], nextCursor: undefined };
           const blocked = await prisma.blocked.findMany({
@@ -349,6 +352,8 @@ export const tweetRouter = router({
             orderBy: { createdAt: orderBy },
             select: {
               id: true,
+              lat: true,
+              lon: true,
             },
             cursor: cursor ? { id: cursor } : undefined,
             where: {
@@ -362,7 +367,12 @@ export const tweetRouter = router({
             const nextItem = tweets.pop() as (typeof tweets)[number];
             nextCursor = nextItem.id;
           }
-          return { tweets, nextCursor };
+          const _tweets = tweets.filter(
+            (tweet) =>
+              calculateDistance(coord, { lat: tweet.lat, lon: tweet.lon }) <=
+              radius * 1000 // should be in metres.
+          );
+          return { tweets: _tweets, nextCursor };
         } catch (error) {
           console.log(error);
           return { tweets: [], nextCursor: undefined };

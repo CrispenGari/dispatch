@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@dispatch/api": "1.0.0",
+    "@dispatch/shared": "1.0.0",
     "@react-native-async-storage/async-storage": "1.18.2",
     "@react-native-community/checkbox": "^0.5.16",
     "@react-native-community/netinfo": "9.3.10",

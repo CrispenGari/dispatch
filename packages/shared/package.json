@@ -1,0 +1,11 @@
+{
+  "name": "@dispatch/shared",
+  "version": "1.0.0",
+  "description": "This is the packages contains shared utility functions between the mobile and the api of the dispatch startup.",
+  "main": "src/index.ts",
+  "author": "crispengari",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.6.1"
+  }
+}

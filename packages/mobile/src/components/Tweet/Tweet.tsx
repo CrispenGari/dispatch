@@ -5,12 +5,13 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
 import { styles } from "../../styles";
+import * as Location from "expo-location";
 import {
   MaterialCommunityIcons,
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useMeStore, useSettingsStore } from "../../store";
+import { useLocationStore, useMeStore, useSettingsStore } from "../../store";
 import { trpc } from "../../utils/trpc";
 
 import Poll from "../Poll/Poll";
@@ -20,6 +21,7 @@ import type { StackNavigationProp } from "@react-navigation/stack";
 import type { AppParamList } from "../../params";
 import TweetActions from "./TweetActions";
 import TweetReactions from "./TweetReactions";
+import { calculateDistance, distanceToReadable } from "@dispatch/shared";
 
 dayjs.extend(relativeTime);
 dayjs.extend(updateLocal);
@@ -39,6 +41,10 @@ const Tweet: React.FunctionComponent<Props> = ({
   from,
 }) => {
   const { settings } = useSettingsStore();
+  const { location } = useLocationStore();
+  const [address, setAddress] = React.useState<
+    Location.LocationGeocodedAddress | undefined
+  >();
   const [openSheets, setOpenSheets] = React.useState({
     actions: false,
     reactions: false,
@@ -184,6 +190,17 @@ const Tweet: React.FunctionComponent<Props> = ({
     }
   }, [tweet, me]);
 
+  React.useEffect(() => {
+    if (location) {
+      Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      }).then((data) => {
+        setAddress(data[0]);
+      });
+    }
+  }, [location]);
+
   if (!!!tweet || fetching) return <TweetSkeleton />;
 
   return (
@@ -244,6 +261,12 @@ const Tweet: React.FunctionComponent<Props> = ({
             {tweet.creator.verified ? (
               <MaterialIcons name="verified" size={14} color={COLORS.primary} />
             ) : null}
+            <Text style={{ fontFamily: FONTS.extraBold, fontSize: 20 }}>
+              {" • "}
+            </Text>
+            <Text style={[styles.p, { fontSize: 16 }]}>
+              {address?.city || "Unknown"}
+            </Text>
             <Text style={{ fontFamily: FONTS.extraBold, fontSize: 20 }}>
               {" "}
               •
@@ -350,7 +373,17 @@ const Tweet: React.FunctionComponent<Props> = ({
             {tweet.polls.flatMap((p) => p.votes).length} votes •{" "}
             {form.expired
               ? "expired"
-              : `expires ${dayjs(tweet.pollExpiresIn).fromNow()}`}
+              : `expires ${dayjs(tweet.pollExpiresIn).fromNow()}`}{" "}
+            •{" "}
+            {distanceToReadable(
+              calculateDistance(
+                {
+                  lat: location?.coords.latitude ?? 0,
+                  lon: location?.coords.longitude ?? 0,
+                },
+                { lat: tweet.lat, lon: tweet.lon }
+              )
+            )}
           </Text>
         ) : null}
       </View>

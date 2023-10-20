@@ -11,6 +11,11 @@ export const tweetsSchema = z.object({
   cursor: z.string().nullish(),
   limit: z.number().min(1).max(100).default(3),
   orderBy: z.enum(["asc", "desc"]),
+  radius: z.number(),
+  coord: z.object({
+    lat: z.number(),
+    lon: z.number(),
+  }),
 });
 
 export const editSchema = z.object({
