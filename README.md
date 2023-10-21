@@ -17,6 +17,14 @@ Other users that are not the creator of the tweets can interact with tweets by d
 
 For all the comments users are able to respond or reply to comments on each `tweet` also mention users on the `comments` and `replies`. Users can also react to comments and `replies` to improve user interactivity.
 
+### Implementation
+
+Building a news dispatching app using `tRPC` using the mono-repo approach with `yarn-workspaces`. The following packages build app the whole system.
+
+1. `api` - this package is the brain, and storage of the `dispatch` startup.
+2. `mobile` - this package is a mobile app that consumes the `trpc` api.
+3. `shared` - this package contains shared utility functions between other packages.
+
 ### How is dispatch different from twitter (X)?
 
 > Problem statement: `Twitter is a great platform for news feed globally. As a well known platform although there are algorithms that caters for feeding users with "tweets of interest" it lacks filtering based on location.`
@@ -89,6 +97,7 @@ In the app there are a lot of actions that can be done which are:
 <p align="center">
     <img width="200" src="images/app/0.jpeg" alt="demo"/>
     <img width="200" src="images/app/4.jpeg" alt="demo"/>
+    <img width="200" src="images/app/16.jpeg" alt="demo"/>
 </p>
 
 1. Tweet
@@ -99,6 +108,9 @@ In the app there are a lot of actions that can be done which are:
       <img width="200" src="images/app/1.jpeg" alt="demo"/>
       <img width="200" src="images/app/2.jpeg" alt="demo"/>
        <img width="200" src="images/app/7.jpeg" alt="demo"/>
+       <img width="200" src="images/app/19.jpeg" alt="demo"/>
+       <img width="200" src="images/app/20.jpeg" alt="demo"/>
+       <img width="200" src="images/app/21.jpeg" alt="demo"/>
    </p>
 
    - Create
@@ -137,12 +149,92 @@ In the app there are a lot of actions that can be done which are:
      <p align="center">
       <img width="200" src="images/app/8.jpeg" alt="demo"/>
       <img width="200" src="images/app/9.jpeg" alt="demo"/>
+      <img width="200" src="images/app/15.jpeg" alt="demo"/>
       <img width="200" src="images/app/10.jpeg" alt="demo"/>
       <img width="200" src="images/app/11.jpeg" alt="demo"/>
       <img width="200" src="images/app/12.jpeg" alt="demo"/>
       <img width="200" src="images/app/13.jpeg" alt="demo"/>
       <img width="200" src="images/app/14.jpeg" alt="demo"/>
    </p>
+
+5. Terms of use
+
+   > Terms of Use of the app can be accessed with both authenticated or unauthenticated user in the Settings and Landing Screens respectively.
+
+<p align="center">
+    <img width="200" src="images/app/17.jpeg" alt="demo"/>
+  
+</p>
+
+6. Privacy Policy.
+   > Privacy policy of the app can be accessed with both authenticated or unauthenticated user in the Settings and Landing Screens respectively.
+   <p align="center">
+       <img width="200" src="images/app/18.jpeg" alt="demo"/>
+
+</p>
+
+You can see the whole app in action by testing it locally but first you are required to have the following installed in your computer:
+
+1. PostgreSQL - database
+2. Ngrok - for forwarding request
+3. Redis - for caching
+
+Open the project in the first terminal and navigate to the `packages/shared` by running the following command:
+
+```shell
+cd packages/shared
+```
+
+Then run:
+
+```shell
+yarn
+```
+
+Open the project in the 2nd terminal and navigate to the `packages/api` by running the following command:
+
+```shell
+cd packages/api
+```
+
+Then run:
+
+```shell
+yarn
+```
+
+To start the server make sure your redis and postgres server are running and then run:
+
+```shell
+yarn start
+```
+
+> Now it's time for you to start the application and run it on an emulator or a physical device. Open engrok and forward all request on port `3001` and copy the domain of the forwaded url and locate the file `packages/mobile/src/constants/index.ts` and change the domain to the value that you copied:
+
+```ts
+// example
+export const domain: string = "c6e3-213-172-134-10.ngrok-free.app";
+```
+
+Open the project in the 3rd terminal and navigate to the `packages/mobile` by running the following command:
+
+```shell
+cd packages/mobile
+```
+
+Then run:
+
+```shell
+yarn
+```
+
+To test the mobile application on an emulator run the command:
+
+```shell
+yarn start
+```
+
+> Scan the `QR` code with your phone or you can run on emulator if the emulator is installed in your computer.
 
 ### LICENSE
 

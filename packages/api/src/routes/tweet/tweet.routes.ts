@@ -21,9 +21,7 @@ import { isAuth } from "../../middleware/isAuth.middleware";
 import { expiryDate } from "../../utils";
 import { calculateDistance } from "@dispatch/shared";
 
-const ee = new EventEmitter({
-  captureRejections: true,
-});
+const ee = new EventEmitter();
 ee.setMaxListeners(100);
 export const tweetRouter = router({
   onNewTweetNotification: publicProcedure

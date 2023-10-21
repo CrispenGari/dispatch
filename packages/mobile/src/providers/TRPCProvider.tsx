@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { httpBatchLink, loggerLink, splitLink } from "@trpc/client";
+import { httpBatchLink, splitLink } from "@trpc/client";
 import { trpc } from "../utils/trpc";
 import superjson from "superjson";
 import { createWSClient, wsLink } from "@trpc/client";
-import { AppRouter } from "@dispatch/api";
+import type { AppRouter } from "@dispatch/api";
 import { retrieve } from "../utils";
 import { KEYS, clientHttpURL, clientWsURL } from "../constants";
 
@@ -16,7 +16,6 @@ const client = createWSClient({
 });
 const TRPCProvider: React.FC<Props> = ({ children }) => {
   const links = [
-    // loggerLink(),
     splitLink({
       condition: (op) => op.type === "subscription",
       true: wsLink<AppRouter>({ client }),

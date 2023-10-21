@@ -1,4 +1,10 @@
 import type { GenderType } from "../types";
+export const APP_NAME = "dispatch";
+export const domain: string = "c6e3-213-172-134-10.ngrok-free.app";
+export const serverBaseHttpURL: string = `https://${domain}`;
+export const serverBaseWsURL: string = `wss://${domain}`;
+export const clientHttpURL: string = `${serverBaseHttpURL}/api/trpc`;
+export const clientWsURL: string = `${serverBaseWsURL}/api/trpc`;
 
 export const KEYS = {
   TOKEN_KEY: "qid:",
@@ -61,13 +67,6 @@ export const expires: {
   { id: 7, name: "1 month", value: "30 d" },
   { id: 8, name: "1 year", value: "365 d" },
 ];
-
-export const APP_NAME = "dispatch";
-export const domain: string = "c6e3-213-172-134-10.ngrok-free.app";
-export const serverBaseHttpURL: string = `https://${domain}`;
-export const serverBaseWsURL: string = `wss://${domain}`;
-export const clientHttpURL: string = `${serverBaseHttpURL}/api/trpc`;
-export const clientWsURL: string = `${serverBaseWsURL}/api/trpc`;
 
 export const relativeTimeObject = {
   future: "in %s",

@@ -11,9 +11,7 @@ import {
 import { publicProcedure, router } from "../../trpc/trpc";
 import { Blocked } from "@prisma/client";
 import { observable } from "@trpc/server/observable";
-const ee = new EventEmitter({
-  captureRejections: true,
-});
+const ee = new EventEmitter();
 ee.setMaxListeners(100);
 export const blockedRouter = router({
   onUserBlock: publicProcedure

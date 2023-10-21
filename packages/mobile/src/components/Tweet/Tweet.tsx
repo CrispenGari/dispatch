@@ -191,15 +191,15 @@ const Tweet: React.FunctionComponent<Props> = ({
   }, [tweet, me]);
 
   React.useEffect(() => {
-    if (location) {
+    if (!!tweet) {
       Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+        latitude: tweet.lat,
+        longitude: tweet.lon,
       }).then((data) => {
         setAddress(data[0]);
       });
     }
-  }, [location]);
+  }, [tweet]);
 
   if (!!!tweet || fetching) return <TweetSkeleton />;
 

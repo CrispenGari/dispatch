@@ -4,9 +4,7 @@ import EventEmitter from "events";
 import { Events } from "../../constants";
 import { observable } from "@trpc/server/observable";
 
-const ee = new EventEmitter({
-  captureRejections: true,
-});
+const ee = new EventEmitter();
 
 export const helloRouter = router({
   greeting: publicProcedure
