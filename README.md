@@ -6,7 +6,47 @@ This is a simple mobile app for local news dispatch based on user's location rad
 
 ### Idea
 
-The idea behind dispatch app is very simple. Users of the app will be able to recieve notifications or feed post known as `tweets`. These tweets can be created by any user and the user that are in that location radius can read these tweets. During tweet creation users are also able to set tweet `polls` which allows other users to interact with their tweets by voting.
+The idea behind dispatch app is very simple. Users of the app will be able to recieve notifications or feed post known as `tweets`. These tweets can be created by any user and the user that are in that location radius can read these tweets. During tweet creation users are also able to set tweet `polls` which allows other users to interact with their tweets by voting. Sample code:
+
+```ts
+// extracted: packages/api/src/context/context.ts
+
+import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
+import { inferAsyncReturnType } from "@trpc/server";
+import { prisma } from "../prisma";
+import Redis from "ioredis";
+import { verifyJwt } from "../utils/jwt";
+import { User } from "@prisma/client";
+
+const getMe = async (jwt: string | undefined): Promise<User | null> => {
+  if (!!!jwt) return null;
+  try {
+    const { id } = await verifyJwt(jwt);
+    const me = await prisma.user.findFirst({ where: { id } });
+    return me;
+  } catch (error) {
+    return null;
+  }
+};
+export const createContext = async ({
+  req,
+  res,
+}: CreateFastifyContextOptions) => {
+  const redis = new Redis({
+    host: process.env.REDIS_HOST,
+  });
+  const jwt = req.headers.authorization?.split(/\s/)[1];
+  const me = await getMe(jwt);
+  return {
+    req,
+    res,
+    prisma,
+    redis,
+    me,
+  };
+};
+export type CtxType = inferAsyncReturnType<typeof createContext>;
+```
 
 Other users that are not the creator of the tweets can interact with tweets by doing the following:
 
