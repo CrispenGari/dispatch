@@ -17,7 +17,7 @@ import updateLocal from "dayjs/plugin/updateLocale";
 import TweetComponent from "../../../components/Tweet/Tweet";
 import CustomTextInput from "../../../components/CustomTextInput/CustomTextInput";
 import { styles } from "../../../styles";
-import { useMeStore, useSettingsStore } from "../../../store";
+import { useMeStore, useSettingsStore, useTriggersStore } from "../../../store";
 
 import Comment from "../../../components/Comment/Comment";
 import TweetSkeleton from "../../../components/skeletons/TweetSkeleton";
@@ -44,6 +44,8 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
   const { os } = usePlatform();
   const { settings } = useSettingsStore();
   const { me } = useMeStore();
+  const { trigger } = useTriggersStore();
+
   const {
     isLoading: fetching,
     refetch,
@@ -87,11 +89,7 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     }
   );
 
-  React.useEffect(() => {
-    if (!!data?.pages) {
-      setComments(data.pages.flatMap((page) => page.comments));
-    }
-  }, [data]);
+ 
   const [form, setForm] = React.useState({
     height: 60,
     text: "",
@@ -137,46 +135,6 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
     });
   };
 
-  trpc.tweet.onTweetUpdate.useSubscription(
-    { uid: me?.id || "", tweetId: tweet?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
-  trpc.reaction.onTweetReaction.useSubscription(
-    { uid: me?.id || "", tweetId: tweet?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
-  trpc.tweet.onView.useSubscription(
-    { uid: me?.id || "", tweetId: tweet?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
-  trpc.poll.onVote.useSubscription(
-    { uid: me?.id || "", tweetId: tweet?.id || "" },
-    {
-      onData: async (data) => {
-        if (!!data) {
-          await refetch();
-        }
-      },
-    }
-  );
   trpc.comment.onTweetComment.useSubscription(
     { uid: me?.id || "", tweetId: tweet?.id || "" },
     {
@@ -210,6 +168,19 @@ const Tweet: React.FunctionComponent<AppNavProps<"Tweet">> = ({
       await fetchNextPage();
     }
   };
+   React.useEffect(() => {
+     if (!!data?.pages) {
+       setComments(data.pages.flatMap((page) => page.comments));
+     }
+   }, [data]);
+   React.useEffect(() => {
+     if (
+       trigger.tweet?.comment.id === route.params.id ||
+       trigger.tweet?.delete.id === route.params.id
+     ) {
+       refetchComments();
+     }
+   }, [trigger, route]);
   React.useEffect(() => {
     if (!!tweet && form.viewCount <= 0) {
       mutateViewTweet({ id: tweet.id }).then((_res) => {

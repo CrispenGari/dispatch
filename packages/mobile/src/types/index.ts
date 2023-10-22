@@ -60,4 +60,18 @@ export type SettingsType = {
   };
 };
 
+export interface TriggerType {
+  notification:
+    | {
+        delete: boolean;
+        read: boolean;
+      }
+    | undefined;
+  tweet:
+    | {
+        comment: { id?: string };
+        delete: { id?: string };
+      }
+    | undefined;
+}
 export type GenderType = "MALE" | "FEMALE" | "UNDEFINED";

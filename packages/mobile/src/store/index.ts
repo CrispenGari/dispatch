@@ -1,7 +1,18 @@
 import { create } from "zustand";
-import type { NetworkType, SettingsType } from "../types";
+import type { NetworkType, SettingsType, TriggerType } from "../types";
 import type { User } from "@dispatch/api";
 import * as Location from "expo-location";
+
+export const useTriggersStore = create<{
+  trigger: TriggerType;
+  setTrigger: (trigger: TriggerType) => void;
+}>((set) => ({
+  trigger: {
+    tweet: undefined,
+    notification: undefined,
+  },
+  setTrigger: (trigger: TriggerType) => set({ trigger }),
+}));
 
 export const useNetworkStore = create<{
   network: Required<NetworkType>;

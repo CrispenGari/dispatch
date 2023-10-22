@@ -8,7 +8,7 @@ import { COLORS, profile, relativeTimeObject } from "../../constants";
 import { MaterialIcons } from "@expo/vector-icons";
 import { onImpact } from "../../utils";
 import { styles } from "../../styles";
-import { useMeStore, useSettingsStore } from "../../store";
+import { useSettingsStore, useTriggersStore } from "../../store";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import updateLocal from "dayjs/plugin/updateLocale";
@@ -38,22 +38,20 @@ const Notification: React.FunctionComponent<Props> = ({ id, navigation }) => {
     trpc.notification.unread.useMutation();
   const swipeableRef = React.useRef<Swipeable | undefined>();
   const { settings } = useSettingsStore();
-  const { me } = useMeStore();
-  trpc.notification.onRead.useSubscription(
-    { id: notification?.id || "", uid: me?.id || "" },
-    {
-      onData: async (_data) => {
-        await refetch();
-      },
+
+  const { trigger } = useTriggersStore();
+  React.useEffect(() => {
+    if (trigger.notification?.read) {
+      refetch();
     }
-  );
+  }, [trigger]);
+
   const open = () => {
     if (settings.haptics) {
       onImpact();
     }
     if (!!!notification || reading || deleting || unreading) return;
     mutateReadNotification({ id: notification.id }).then(async (_res) => {
-      await refetch();
       navigation.navigate("Tweet", {
         id: notification.tweetId,
         from: "Notifications",
@@ -66,7 +64,9 @@ const Notification: React.FunctionComponent<Props> = ({ id, navigation }) => {
     }
     if (!!!notification || reading || deleting || unreading) return;
     mutateReadNotification({ id: notification.id }).then(async (_res) => {
-      await refetch();
+      if (swipeableRef.current) {
+        swipeableRef.current?.close();
+      }
     });
   };
   const unReadNotification = () => {
@@ -75,7 +75,9 @@ const Notification: React.FunctionComponent<Props> = ({ id, navigation }) => {
     }
     if (!!!notification || reading || deleting || unreading) return;
     mutateUnReadNotification({ id: notification.id }).then(async () => {
-      await refetch();
+      if (swipeableRef.current) {
+        swipeableRef.current?.close();
+      }
     });
   };
   const deleteNotification = () => {
@@ -83,7 +85,11 @@ const Notification: React.FunctionComponent<Props> = ({ id, navigation }) => {
       onImpact();
     }
     if (!!!notification || reading || deleting || unreading) return;
-    mutateDeleteNotification({ id: notification.id });
+    mutateDeleteNotification({ id: notification.id }).then(() => {
+      if (swipeableRef.current) {
+        swipeableRef.current?.close();
+      }
+    });
   };
 
   if (!!!notification || loading) return null;

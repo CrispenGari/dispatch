@@ -11,7 +11,12 @@ import {
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useLocationStore, useMeStore, useSettingsStore } from "../../store";
+import {
+  useLocationStore,
+  useMeStore,
+  useSettingsStore,
+  useTriggersStore,
+} from "../../store";
 import { trpc } from "../../utils/trpc";
 
 import Poll from "../Poll/Poll";
@@ -42,6 +47,7 @@ const Tweet: React.FunctionComponent<Props> = ({
 }) => {
   const { settings } = useSettingsStore();
   const { location } = useLocationStore();
+  const { trigger, setTrigger } = useTriggersStore();
   const [address, setAddress] = React.useState<
     Location.LocationGeocodedAddress | undefined
   >();
@@ -124,6 +130,17 @@ const Tweet: React.FunctionComponent<Props> = ({
     {
       onData: async (data) => {
         if (!!data) {
+          setTrigger({
+            ...trigger,
+            tweet: {
+              comment: {
+                id: data.id,
+              },
+              delete: {
+                id: undefined,
+              },
+            },
+          });
           await refetch();
         }
       },
@@ -134,6 +151,17 @@ const Tweet: React.FunctionComponent<Props> = ({
     {
       onData: async (data) => {
         if (!!data) {
+          setTrigger({
+            ...trigger,
+            tweet: {
+              comment: {
+                id: undefined,
+              },
+              delete: {
+                id: data.tweetId as any,
+              },
+            },
+          });
           await refetch();
         }
       },

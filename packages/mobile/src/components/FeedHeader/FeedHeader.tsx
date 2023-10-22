@@ -10,12 +10,15 @@ import { COLORS, profile } from "../../constants";
 import type { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import type { AppParamList } from "../../params";
-
-import { useMeStore, useNetworkStore, useSettingsStore } from "../../store";
+import {
+  useMeStore,
+  useNetworkStore,
+  useSettingsStore,
+  useTriggersStore,
+} from "../../store";
 import { onImpact } from "../../utils";
 import { trpc } from "../../utils/trpc";
 import { styles } from "../../styles";
-
 interface Props {
   navigation: StackNavigationProp<AppParamList, "Feed">;
 }
@@ -24,11 +27,19 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
   const { settings } = useSettingsStore();
 
   const { network } = useNetworkStore();
+  const { trigger, setTrigger } = useTriggersStore();
   const { data: notifications, refetch } = trpc.notification.all.useQuery();
   trpc.notification.onDelete.useSubscription(
     { uid: me?.id || "" },
     {
       onData: async (_data) => {
+        setTrigger({
+          ...trigger,
+          notification: {
+            delete: true,
+            read: false,
+          },
+        });
         await refetch();
       },
     }
@@ -37,10 +48,18 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
     { uid: me?.id || "" },
     {
       onData: async (_data) => {
+        setTrigger({
+          ...trigger,
+          notification: {
+            delete: false,
+            read: true,
+          },
+        });
         await refetch();
       },
     }
   );
+
   trpc.reaction.onNewReactionNotification.useSubscription(
     {
       uid: me?.id || "",

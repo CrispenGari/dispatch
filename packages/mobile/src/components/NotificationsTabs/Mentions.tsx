@@ -12,7 +12,7 @@ import { COLORS } from "../../constants";
 import type { AppParamList } from "../../params";
 import { trpc } from "../../utils/trpc";
 import Notification from "../Notification/Notification";
-import { useMeStore, useSettingsStore } from "../../store";
+import { useSettingsStore, useTriggersStore } from "../../store";
 import { styles } from "../../styles";
 import Ripple from "../ProgressIndicators/Ripple";
 import NotificationSkeleton from "../skeletons/NotificationSkeleton";
@@ -28,7 +28,7 @@ interface Props {
 const Mentions: React.FunctionComponent<Props> = ({ navigation, sort }) => {
   const { settings } = useSettingsStore();
   const [end, setEnd] = React.useState(false);
-  const { me } = useMeStore();
+  const { trigger } = useTriggersStore();
   const [notifications, setNotifications] = React.useState<
     {
       id: string;
@@ -57,22 +57,11 @@ const Mentions: React.FunctionComponent<Props> = ({ navigation, sort }) => {
     }
   }, [data]);
 
-  trpc.notification.onDelete.useSubscription(
-    { uid: me?.id || "" },
-    {
-      onData: async (_data) => {
-        await refetch();
-      },
+  React.useEffect(() => {
+    if (trigger.notification?.delete) {
+      refetch();
     }
-  );
-  trpc.notification.onNotificationRead.useSubscription(
-    { uid: me?.id || "" },
-    {
-      onData: async (_data) => {
-        await refetch();
-      },
-    }
-  );
+  }, [trigger]);
 
   const onScroll = async (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     e.persist();
