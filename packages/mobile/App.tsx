@@ -8,11 +8,12 @@ import { Fonts } from "./src/constants";
 import * as Notifications from "expo-notifications";
 import Loading from "./src/components/Loading/Loading";
 import { usePlatform } from "./src/hooks";
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
-    shouldSetBadge: false,
+    shouldSetBadge: true,
   }),
 });
 

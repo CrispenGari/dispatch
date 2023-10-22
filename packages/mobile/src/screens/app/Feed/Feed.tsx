@@ -23,6 +23,7 @@ import { onImpact } from "../../../utils";
 import Ripple from "../../../components/ProgressIndicators/Ripple";
 import { styles } from "../../../styles";
 import TweetSort from "../../../components/BottomSheets/TweetSort";
+import * as Notifications from "expo-notifications";
 
 const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
   const { settings } = useSettingsStore();
@@ -165,6 +166,22 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
       setMe(null);
     }
   }, [me]);
+
+  React.useEffect(() => {
+    const notificationListener = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log({ notification });
+      }
+    );
+    const responseListener =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log(JSON.stringify({ response }, null, 2));
+      });
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
+    };
+  }, []);
 
   return (
     <View

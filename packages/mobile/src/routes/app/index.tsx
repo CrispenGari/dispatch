@@ -1,7 +1,6 @@
 import { COLORS } from "../../constants";
 import type { AppParamList } from "../../params";
 import { createStackNavigator } from "@react-navigation/stack";
-
 import React from "react";
 import {
   ChangePassword,

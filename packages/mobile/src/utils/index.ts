@@ -4,6 +4,7 @@ import * as Haptics from "expo-haptics";
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 import { APP_NAME } from "../constants";
+import * as Notifications from "expo-notifications";
 import { Audio } from "expo-av";
 
 let tweetedSound: Audio.Sound | undefined;
@@ -70,6 +71,18 @@ export const onFetchUpdateAsync = async () => {
       { cancelable: false }
     );
   }
+};
+
+export const schedulePushNotification = async () => {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "You've got mail! 📬",
+      body: "Here is the notification body",
+      data: { data: "goes here" },
+      sound: "",
+    },
+    trigger: { seconds: 2 },
+  });
 };
 
 export const sendPushNotification = async (
