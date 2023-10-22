@@ -13,6 +13,7 @@ import type { AppParamList } from "../../params";
 import {
   useMeStore,
   useNetworkStore,
+  useNotificationCountStore,
   useSettingsStore,
   useTriggersStore,
 } from "../../store";
@@ -27,6 +28,7 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
   const { settings } = useSettingsStore();
 
   const { network } = useNetworkStore();
+  const { setCount } = useNotificationCountStore();
   const { trigger, setTrigger } = useTriggersStore();
   const { data: notifications, refetch } = trpc.notification.all.useQuery();
   trpc.notification.onDelete.useSubscription(
@@ -145,6 +147,7 @@ const FeedHeader: React.FunctionComponent<Props> = ({ navigation }) => {
         notification: !!notifications.filter(({ read }) => read === false)
           .length,
       }));
+      setCount(notifications.filter(({ read }) => read === false).length);
     }
   }, [notifications]);
 

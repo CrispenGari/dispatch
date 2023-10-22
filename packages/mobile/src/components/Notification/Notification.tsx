@@ -38,7 +38,6 @@ const Notification: React.FunctionComponent<Props> = ({ id, navigation }) => {
     trpc.notification.unread.useMutation();
   const swipeableRef = React.useRef<Swipeable | undefined>();
   const { settings } = useSettingsStore();
-
   const { trigger } = useTriggersStore();
   React.useEffect(() => {
     if (trigger.notification?.read) {

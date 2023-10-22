@@ -3,9 +3,10 @@ import * as StoreReview from "expo-store-review";
 import * as Haptics from "expo-haptics";
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
-import { APP_NAME } from "../constants";
+import { APP_NAME, COLORS } from "../constants";
 import * as Notifications from "expo-notifications";
 import { Audio } from "expo-av";
+import type { AppParamList } from "../params";
 
 let tweetedSound: Audio.Sound | undefined;
 let reactedSound: Audio.Sound | undefined;
@@ -73,39 +74,33 @@ export const onFetchUpdateAsync = async () => {
   }
 };
 
-export const schedulePushNotification = async () => {
+export const schedulePushNotification = async ({
+  title,
+  body,
+  data,
+  badge,
+  subtitle,
+}: {
+  title: string;
+  body: string;
+  data: {
+    tweetId: string;
+    from: keyof AppParamList;
+  };
+  badge?: number;
+  subtitle?: string;
+}) => {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: "You've got mail! 📬",
-      body: "Here is the notification body",
-      data: { data: "goes here" },
-      sound: "",
+      title,
+      body,
+      data,
+      badge,
+      color: COLORS.main,
+      sound: "notification.wav",
+      subtitle,
     },
     trigger: { seconds: 2 },
-  });
-};
-
-export const sendPushNotification = async (
-  expoPushToken: string,
-  title: string,
-  body: string
-) => {
-  const message = {
-    to: expoPushToken,
-    sound: "default",
-    title,
-    body,
-    data: { testData: "test data" },
-  };
-
-  await fetch("https://exp.host/--/api/v2/push/send", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Accept-encoding": "gzip, deflate",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(message),
   });
 };
 

@@ -7,13 +7,14 @@ import {
   useLocationStore,
   useMeStore,
   useNetworkStore,
+  useNotificationCountStore,
   useSettingsStore,
 } from "../store";
 import { AppTabs } from "./app";
 import * as Location from "expo-location";
 import { useLocationPermission, useNotificationsToken } from "../hooks";
 import { trpc } from "../utils/trpc";
-import { retrieve, sendPushNotification } from "../utils";
+import { retrieve, schedulePushNotification } from "../utils";
 import { KEYS } from "../constants";
 import type { SettingsType } from "../types";
 
@@ -25,6 +26,7 @@ const Routes = () => {
   const { granted } = useLocationPermission();
   const { me, setMe } = useMeStore();
   const { setSettings, settings } = useSettingsStore();
+  const { count: badge } = useNotificationCountStore();
 
   trpc.user.onUpdate.useSubscription(
     { uid: me?.id || "" },
@@ -34,6 +36,7 @@ const Routes = () => {
       },
     }
   );
+
   trpc.reaction.onNewReactionNotification.useSubscription(
     {
       uid: me?.id || "",
@@ -41,11 +44,12 @@ const Routes = () => {
     {
       onData: async (data) => {
         if (!!token && settings.notifications.reaction) {
-          await sendPushNotification(
-            token,
-            `dispatch - ${data.user.nickname}`,
-            data.message
-          );
+          await schedulePushNotification({
+            title: `dispatch - ${data.type}`,
+            body: data.message,
+            data: { from: "Feed", tweetId: data.tweetId },
+            badge: badge === 0 ? undefined : badge,
+          });
         }
       },
     }
@@ -57,16 +61,16 @@ const Routes = () => {
     {
       onData: async (data) => {
         if (!!token && settings.notifications.comment) {
-          await sendPushNotification(
-            token,
-            `dispatch - ${data.user.nickname}`,
-            data.message
-          );
+          await schedulePushNotification({
+            title: `dispatch - ${data.type}`,
+            body: data.message,
+            data: { from: "Feed", tweetId: data.tweetId },
+            badge: badge === 0 ? undefined : badge,
+          });
         }
       },
     }
   );
-
   trpc.tweet.onNewTweetNotification.useSubscription(
     {
       uid: me?.id || "",
@@ -74,11 +78,12 @@ const Routes = () => {
     {
       onData: async (data: any) => {
         if (!!token && settings.notifications.tweet) {
-          await sendPushNotification(
-            token,
-            `dispatch - ${data.user.nickname}`,
-            data.message
-          );
+          await schedulePushNotification({
+            title: `dispatch - ${data.type}`,
+            body: data.message,
+            data: { from: "Feed", tweetId: data.tweetId },
+            badge: badge === 0 ? undefined : badge,
+          });
         }
       },
     }
@@ -90,11 +95,12 @@ const Routes = () => {
     {
       onData: async (data: any) => {
         if (!!token && settings.notifications.mention) {
-          await sendPushNotification(
-            token,
-            `dispatch - ${data.user.nickname}`,
-            data.message
-          );
+          await schedulePushNotification({
+            title: `dispatch - ${data.type}`,
+            body: data.message,
+            data: { from: "Feed", tweetId: data.tweetId },
+            badge: badge === 0 ? undefined : badge,
+          });
         }
       },
     }
@@ -106,15 +112,17 @@ const Routes = () => {
     {
       onData: async (data: any) => {
         if (!!token && settings.notifications.vote) {
-          await sendPushNotification(
-            token,
-            `dispatch - ${data.user.nickname}`,
-            data.message
-          );
+          await schedulePushNotification({
+            title: `dispatch - ${data.type}`,
+            body: data.message,
+            data: { from: "Feed", tweetId: data.tweetId },
+            badge: badge === 0 ? undefined : badge,
+          });
         }
       },
     }
   );
+
   React.useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(
       ({ type, isInternetReachable, isConnected }) => {

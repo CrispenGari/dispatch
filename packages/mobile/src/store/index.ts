@@ -13,6 +13,13 @@ export const useTriggersStore = create<{
   },
   setTrigger: (trigger: TriggerType) => set({ trigger }),
 }));
+export const useNotificationCountStore = create<{
+  count: number;
+  setCount: (count: number) => void;
+}>((set) => ({
+  count: 0,
+  setCount: (count: number) => set({ count }),
+}));
 
 export const useNetworkStore = create<{
   network: Required<NetworkType>;

@@ -169,13 +169,14 @@ const Feed: React.FunctionComponent<AppNavProps<"Feed">> = ({ navigation }) => {
 
   React.useEffect(() => {
     const notificationListener = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        console.log({ notification });
-      }
+      (_notification) => {}
     );
     const responseListener =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log(JSON.stringify({ response }, null, 2));
+        navigation.navigate("Tweet", {
+          from: response.notification.request.content.data.from,
+          id: response.notification.request.content.data.tweetId,
+        });
       });
     return () => {
       Notifications.removeNotificationSubscription(notificationListener);
