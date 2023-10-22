@@ -114,6 +114,7 @@ const Tweet: React.FunctionComponent<Props> = ({
       },
     }
   );
+
   trpc.poll.onVote.useSubscription(
     { uid: me?.id || "", tweetId: tweet?.id || "" },
     {
@@ -124,7 +125,6 @@ const Tweet: React.FunctionComponent<Props> = ({
       },
     }
   );
-
   trpc.comment.onTweetComment.useSubscription(
     { uid: me?.id || "", tweetId: tweet?.id || "" },
     {

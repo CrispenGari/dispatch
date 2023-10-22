@@ -96,7 +96,7 @@ export const schedulePushNotification = async ({
       body,
       data,
       badge,
-      color: COLORS.main,
+      color: COLORS.primary,
       sound: "notification.wav",
       subtitle,
     },
